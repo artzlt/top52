@@ -1,0 +1,2 @@
+module Top50MachineTypesHelper
+end

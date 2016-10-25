@@ -7,11 +7,11 @@ require "sessions/version"
 Gem::Specification.new do |s|
   s.name        = "sessions"
   s.version     = Sessions::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of Sessions."
-  s.description = "TODO: Description of Sessions."
+  s.authors     = ["N1"]
+  s.email       = ["n1@mail.ru"]
+  s.homepage    = "http://www.real.com"
+  s.summary     = "summ."
+  s.description = "desc."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]

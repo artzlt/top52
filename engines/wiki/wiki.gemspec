@@ -7,11 +7,11 @@ require "wiki/version"
 Gem::Specification.new do |s|
   s.name        = "wiki"
   s.version     = Wiki::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of Wiki."
-  s.description = "TODO: Description of Wiki."
+  s.authors     = ["N1"]
+  s.email       = ["n1@mail.ru"]
+  s.homepage    = "http://www.real.com"
+  s.summary     = "summ."
+  s.description = "desc."
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 

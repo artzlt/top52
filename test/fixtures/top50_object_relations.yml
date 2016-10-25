@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  prim_obj_id: 1
+  sec_obj_id: 1
+  sec_obj_qty: 1
+  type_id: 1
+  is_valid: 1
+  comment: MyString
+
+two:
+  prim_obj_id: 1
+  sec_obj_id: 1
+  sec_obj_qty: 1
+  type_id: 1
+  is_valid: 1
+  comment: MyString

@@ -1,0 +1,2 @@
+class Top50RelationsController < ApplicationController
+end

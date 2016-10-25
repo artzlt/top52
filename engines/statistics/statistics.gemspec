@@ -7,11 +7,11 @@ require "statistics/version"
 Gem::Specification.new do |s|
   s.name        = "statistics"
   s.version     = Statistics::VERSION
-  s.authors     = ["Dmitry Koprov"]
-  s.email       = ["dmitry.koprov@evrone.ru"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of Statistics."
-  s.description = "TODO: Description of Statistics."
+  s.authors     = ["N1"]
+  s.email       = ["n1@mail.ru"]
+  s.homepage    = "http://www.real.com"
+  s.summary     = "summ."
+  s.description = "desc."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]

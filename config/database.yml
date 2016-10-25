@@ -2,16 +2,21 @@ development:
   adapter: postgresql
   encoding: unicode
   database: new_octoshell_development
+  username: dbuser
+  password: pass
 
 test:
   adapter: postgresql
   encoding: unicode
   database: new_octoshell_test
+  username: dbuser
+  password: pass
 
 production:
   adapter: postgresql
   encoding: unicode
   database: new_octoshell
-  username: evrone
+  username: dbuser
+  password: pass
   pool: 10
   min_messages: warning

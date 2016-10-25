@@ -1,0 +1,7 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for [@top50_machine, @top50_machine.top50_benchmark_results.build], url: top50_machine_top50_benchmark_results_path(@top50_machine) do |f|
+      = f.collection_select :benchmark_id, Top50Benchmark.all, :id, :name
+      = f.text_field :result
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

@@ -1,0 +1,2 @@
+module Top50AttributeDatatypesHelper
+end

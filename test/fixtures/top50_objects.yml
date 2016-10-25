@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 
+  type_id: 1
+  is_valid: 1
+  comment: MyString
+
+two:
+  id: 
+  type_id: 1
+  is_valid: 1
+  comment: MyString

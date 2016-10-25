@@ -13,6 +13,7 @@
  *= require support/application
  *= require sessions/application
  *= require_self
+ *= require jquery-ui
  *= require_tree .
  */
 

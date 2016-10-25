@@ -1,0 +1,29 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 1
+  name: MyString
+  name_eng: MyString
+  website: MyString
+  type_id: 1
+  org_id: 1
+  vendor_id: 1
+  contact_id: 1
+  start_date: 2016-04-04
+  end_date: 2016-04-04
+  is_valid: 1
+  comment: MyString
+
+two:
+  id: 1
+  name: MyString
+  name_eng: MyString
+  website: MyString
+  type_id: 1
+  org_id: 1
+  vendor_id: 1
+  contact_id: 1
+  start_date: 2016-04-04
+  end_date: 2016-04-04
+  is_valid: 1
+  comment: MyString

@@ -1,0 +1,2 @@
+module Top50AttributeDbvalsHelper
+end

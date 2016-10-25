@@ -1,0 +1,13 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for @top50_machine do |f|
+      = f.text_field :name
+      = f.text_field :name_eng
+      = f.collection_select :type_id, Top50MachineType.all, :id, :name, include_blank: true
+      = f.collection_select :vendor_id, Top50Vendor.all, :id, :name, include_blank: true
+      = f.collection_select :org_id, Top50Organization.all, :id, :name, include_blank: true
+      = f.collection_select :contact_id, Top50Contact.all, :id, :full_name, include_blank: true
+
+      = f.text_field :website
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

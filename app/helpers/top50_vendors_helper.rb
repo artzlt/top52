@@ -1,0 +1,2 @@
+module Top50VendorsHelper
+end

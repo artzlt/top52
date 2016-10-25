@@ -1,0 +1,2 @@
+module Top50ObjectsHelper
+end

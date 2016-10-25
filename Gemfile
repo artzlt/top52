@@ -5,10 +5,14 @@ gem "rails", "~> 4.1.2"
 gem "activerecord-jdbcpostgresql-adapter"
 gem "uglifier", ">= 1.3.0"
 
+gem "jquery-rails"
+gem "jquery-ui-rails"
+
 group :development do
   gem "letter_opener"
   gem "quiet_assets"
   gem "pry-rails"
+  gem "rails-erd"
 end
 
 gem "sinatra", ">= 1.3.0", :require => nil

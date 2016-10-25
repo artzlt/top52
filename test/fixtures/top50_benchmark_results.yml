@@ -1,0 +1,21 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 1
+  benchmark_id: 1
+  machine_id: 1
+  result: 1.5
+  start_date: 2016-04-20
+  end_date: 2016-04-20
+  is_valid: 1
+  comment: MyString
+
+two:
+  id: 1
+  benchmark_id: 1
+  machine_id: 1
+  result: 1.5
+  start_date: 2016-04-20
+  end_date: 2016-04-20
+  is_valid: 1
+  comment: MyString

@@ -7,11 +7,11 @@ require "authentication/version"
 Gem::Specification.new do |s|
   s.name        = "authentication"
   s.version     = Authentication::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of Authentication."
-  s.description = "TODO: Description of Authentication."
+  s.authors     = ["N1"]
+  s.email       = ["n1@mail.ru"]
+  s.homepage    = "http://www.real.com"
+  s.summary     = "summ."
+  s.description = "desc."
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 

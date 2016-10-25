@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150617111011) do
+ActiveRecord::Schema.define(version: 20160510144257) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -657,6 +657,253 @@ ActiveRecord::Schema.define(version: 20150617111011) do
   create_table "support_topics_tags", force: true do |t|
     t.integer "topic_id"
     t.integer "tag_id"
+  end
+
+  create_table "top50_attribute_datatypes", force: true do |t|
+    t.string   "db_code"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_attribute_dbvals", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "datatype_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_attribute_dicts", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "dict_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_attribute_val_dbvals", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.binary   "value"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_attribute_val_dicts", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.integer  "dict_elem_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_attributes", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "attr_type"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_benchmark_results", force: true do |t|
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_benchmarks", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "measure_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_cities", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "region_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_contacts", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "surname"
+    t.string   "surname_eng"
+    t.string   "patronymic"
+    t.string   "patronymic_eng"
+    t.string   "phone"
+    t.string   "email"
+    t.text     "extra_info"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_countries", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_dictionaries", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_dictionary_elems", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_machine_types", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "parent_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_machines", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_measure_units", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "asc_order"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_object_relations", id: false, force: true do |t|
+    t.integer  "prim_obj_id"
+    t.integer  "sec_obj_id"
+    t.integer  "sec_obj_qty"
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_object_types", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "parent_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_objects", force: true do |t|
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_organizations", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "city_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_regions", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "country_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_relation_types", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_relations", force: true do |t|
+    t.integer  "prim_obj_id"
+    t.integer  "sec_obj_id"
+    t.integer  "sec_obj_qty"
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_vendors", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "country_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "user_groups", force: true do |t|

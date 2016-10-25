@@ -7,11 +7,11 @@ require "announcements/version"
 Gem::Specification.new do |s|
   s.name        = "announcements"
   s.version     = Announcements::VERSION
-  s.authors     = ["TODO: Your name"]
-  s.email       = ["TODO: Your email"]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of Announcements."
-  s.description = "TODO: Description of Announcements."
+  s.authors     = ["N1"]
+  s.email       = ["n1@mail.ru"]
+  s.homepage    = "http://www.real.com"
+  s.summary     = "summ."
+  s.description = "desc."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
