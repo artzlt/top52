@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160510144257) do
+ActiveRecord::Schema.define(version: 20161218225130) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -42,6 +42,32 @@ ActiveRecord::Schema.define(version: 20160510144257) do
     t.string   "attachment"
     t.boolean  "is_special"
     t.string   "state"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_bench_res_2016_11_23", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_top50_bench_res", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -363,6 +389,19 @@ ActiveRecord::Schema.define(version: 20160510144257) do
 
   add_index "core_surety_scans", ["surety_id"], name: "index_core_surety_scans_on_surety_id", using: :btree
 
+  create_table "cp_bench_res", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "delayed_jobs", force: true do |t|
     t.integer  "priority",   default: 0, null: false
     t.integer  "attempts",   default: 0, null: false
@@ -659,6 +698,39 @@ ActiveRecord::Schema.define(version: 20160510144257) do
     t.integer "tag_id"
   end
 
+  create_table "tmp_bckp_attr_val_dict", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.integer  "dict_elem_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "tmp_bckp_dict_elems", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "tmp_vendors_bckp", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "country_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "top50_attribute_datatypes", force: true do |t|
     t.string   "db_code"
     t.datetime "created_at"
@@ -811,6 +883,7 @@ ActiveRecord::Schema.define(version: 20160510144257) do
     t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "vendor_ids", default: [], array: true
   end
 
   create_table "top50_measure_units", force: true do |t|

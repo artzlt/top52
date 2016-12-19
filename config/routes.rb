@@ -2,6 +2,8 @@ require "sidekiq/web"
 require "admin_constraint"
 
 Octoshell::Application.routes.draw do
+  #root :to => redirect('/top50_objects')
+  #root 'top50_objects#index'
   # This line mounts Wiki routes at /wiki by default.
   mount Wiki::Engine, :at => "/wiki"
 
@@ -26,6 +28,7 @@ Octoshell::Application.routes.draw do
   mount Announcements::Engine, :at => "/announcements"
 
   root "face/home#show"
+  
 
   resources :users do
     get :login_as, on: :member
@@ -48,7 +51,7 @@ Octoshell::Application.routes.draw do
   resources :top50_attributes
   resources :top50_attribute_datatypes
   resources :top50_dictionaries, shallow: true do
-    resources :top50_dictionary_elems
+	resources :top50_dictionary_elems
   end
   resources :top50_measure_units
   resources :top50_benchmarks
@@ -56,6 +59,12 @@ Octoshell::Application.routes.draw do
   resources :top50_attribute_dbvals
   resources :top50_attribute_dicts
   get 'top50_machines_list', to: 'top50_machines#list', as:'top50_machines_list'
+  get 'top50_machines_archive/:eid', to: 'top50_machines#archive', as:'top50_machines_archive'
+  get 'top50_machines_archive/:eid/vendor/:vid', to: 'top50_machines#archive_by_vendor', as:'top50_machines_archive_vendor'
+  get 'top50_machines_archive/:eid/org/:oid', to: 'top50_machines#archive_by_org', as:'top50_machines_archive_org'
+  get 'top50_machines_vendor/:vid', to: 'top50_machines#vendor', as:'top50_machines_vendor'
+  get 'top50_machines_org/:oid', to: 'top50_machines#org', as:'top50_machines_org'
+  get 'top50_machines_archive', to: 'top50_machines#archive_lists', as:'top50_machines_archive_lists'
   get 'top50_objects/:id/top50_attribute_vals', to: 'top50_objects#attribute_vals', as:'top50_object_top50_attribute_vals'
 
   post 'top50_objects/:id/top50_attribute_val_dbvals', to: 'top50_objects#create_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbvals'
@@ -85,6 +94,7 @@ Octoshell::Application.routes.draw do
 # patch "top50_machines" => "top50_machines#update"
 # post "top50_machines" => "top50_machines#create"
 # get "top50_attributes_dbval" => "top50_attribute_dbval#index"
+
   namespace :admin do
     mount Sidekiq::Web => "/sidekiq", :constraints => AdminConstraint.new
 

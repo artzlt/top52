@@ -1,6 +1,3 @@
-div class="page-header"
-  h2 = t(".title", default: "Текущий рейтинг")
-  
 - date_attr = @date_vals.find_by(obj_id: @bench.id)
 - ldate = ""
 - if date_attr.present?
@@ -10,6 +7,7 @@ div class="page-header"
 - if num_attr.present?
   - lnum = num_attr.value
 div class="page-header"
-  h3 =  "(Редакция №#{lnum} от #{ldate})"
+  h2 =  "Редакция №#{lnum} списка Top50 от #{ldate}"
+  h2 = "Разработчик: #{@vendor.name}"
 
 = render "print_list"
