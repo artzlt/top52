@@ -1,0 +1,8 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for @top50_measure_unit do |f|
+      = f.text_field :name
+      = f.text_field :name_eng
+      = f.select :asc_order, [['По возрастанию', 1], ['По убыванию', 0]], label: "Порядок сравнения"
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

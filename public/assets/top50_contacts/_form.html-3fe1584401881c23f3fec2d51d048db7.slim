@@ -1,0 +1,14 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for @top50_contact do |f|
+      = f.text_field :name
+      = f.text_field :name_eng
+      = f.text_field :surname
+      = f.text_field :surname_eng
+      = f.text_field :patronymic
+      = f.text_field :patronymic_eng
+      = f.text_field :phone
+      = f.text_field :email
+      = f.text_area :extra_info, rows: 10
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

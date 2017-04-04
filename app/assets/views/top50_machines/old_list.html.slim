@@ -1,0 +1,82 @@
+div class="page-header"
+  h2 = t(".title", default: "Текущий рейтинг")
+
+div class="panel panel-default"
+
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = "#"
+        th = "Название"
+        th = "Место"
+        th = "Количество узлов/CPU"
+        th = "Архитектура"
+        th = "Rmax (Tflop/s)"
+        th = "Rpeak (Tflop/s)"
+        th = "Разработчик"
+		th = "Разработчики"
+      - @top50_machines.each do |top50_machine|
+        tr
+          td class="col-xs-1"
+           - rank_pos = @rated_pos.find_by(machine_id: top50_machine.id)
+           - if rank_pos.present?
+             = rank_pos.result.to_i
+          td class="col-xs-1" = custom_word_wrap(top50_machine.name, 10)
+          td class="col-xs-1" = custom_word_wrap(top50_machine.top50_organization.name)
+          td class="col-xs-1"
+		    - top50_nodes = top50_machine.top50_object.top50_relations
+			- cpucnt = 0
+			- top50_nodes.each do |top50_node| 
+              - top50_cpu = top50_node.top50_object.top50_relations.joins(:top50_object).merge(@cpu_objects).first
+              - if top50_cpu.present?
+			    - cpucnt += top50_cpu.sec_obj_qty * top50_node.sec_obj_qty
+            - cpu_qty_val = @cpu_qty_attr_vals.find_by(obj_id: top50_machine.id)
+            - core_qty_val = @core_qty_attr_vals.find_by(obj_id: top50_machine.id)
+			= top50_nodes.sum(:sec_obj_qty)
+			= "/"
+			= cpucnt
+          td class="col-xs-6" 
+            - top50_nodes.each do |top50_node| 
+              - top50_cpu = top50_node.top50_object.top50_relations.joins(:top50_object).merge(@cpu_objects).first
+              - top50_gpus = top50_node.top50_object.top50_relations.joins(:top50_object).merge(@gpu_objects)
+              = "узлов: #{top50_node.sec_obj_qty}("
+              - if top50_cpu.present?
+                = "#{top50_cpu.sec_obj_qty}x#{@cpu_model_attr_vals.find_by(obj_id: top50_cpu.top50_object).top50_dictionary_elem.name}, "
+              - if top50_gpus.any?
+                - top50_gpu = top50_gpus.first
+                = "[Acc: #{top50_gpu.sec_obj_qty}x#{@gpu_model_attr_vals.find_by(obj_id: top50_gpu.top50_object).top50_dictionary_elem.name}], " 
+              - ram_size_val = @ram_size_attr_vals.find_by(obj_id: top50_node.top50_object)
+              - if ram_size_val.present?
+                = "#{number_with_precision(@ram_size_attr_vals.find_by(obj_id: top50_node.top50_object).value.to_f, precision: 3, strip_insignificant_zeros: true)} GB RAM"
+              = ")"
+              br
+			- com_net = @com_net_attr_vals.find_by(obj_id: top50_machine.id)
+			- serv_net = @serv_net_attr_vals.find_by(obj_id: top50_machine.id)
+			- tran_net = @tran_net_attr_vals.find_by(obj_id: top50_machine.id)
+			= "("
+			- if com_net.present?
+			  = com_net.top50_dictionary_elem.name
+			= "/"
+			- if serv_net.present?
+			  = serv_net.top50_dictionary_elem.name
+			= "/"
+            - if tran_net.present?
+			  = tran_net.top50_dictionary_elem.name
+			= ")"
+          td class="col-xs-1" 
+            - rmax_record = @rmax_res.find_by(machine_id: top50_machine.id)
+            - if rmax_record.present?
+              = rmax_record.result / 1000000.0
+          td class="col-xs-1"
+            - rpeak_record = @rpeak_attr_vals.find_by(obj_id: top50_machine.id)
+            - if rpeak_record.present?
+              = rpeak_record.value.to_f / 1000000.0
+          td class="col-xs-1"
+            - if top50_machine.top50_vendor.present?
+              = top50_machine.top50_vendor.name
+		  td class="col-xs-1"
+            - top50_machine.vendor_ids.each do |v_id|
+              - vendor = Top50Vendor.find(v_id)
+			  = link_to vendor.name, top50_vendors_path(vendor)
+			  br
+

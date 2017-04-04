@@ -9,5 +9,7 @@
 div class="page-header"
   h2 =  "Редакция №#{lnum} списка Top50 от #{ldate}"
   h2 = "Организация: #{@org.name}"
+  h3 = "(Количество систем: #{@top50_machines.count})"
+  = link_to t("Назад к списку"), top50_machines_archive_path(@bench), class: "btn btn-default"
 
 = render "print_list"

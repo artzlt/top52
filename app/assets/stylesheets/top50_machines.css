@@ -1,4 +1,55 @@
-/*
+		/*
   Place all the styles related to the matching controller here.
   They will automatically be included in application.css.
 */
+
+table{
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+th {
+  background-color: #6699CC;
+  color: white;
+  vertical-align: middle;
+  text-align: center;
+}
+
+a.whint {
+  color: red;
+}
+
+a.new-m {
+  color: green;
+  font-size: 75%;
+  font-weight: bold;
+}
+
+a.upg-m {
+  color: orange;
+  font-size: 75%;
+  font-weight: bold;
+}
+
+a.arr-up {
+  color: green;
+}
+
+a.arr-down {
+  color: red;
+}
+
+.th-thin{
+  font-weight: normal;
+}
+
+.txt-ital{
+  font-weight: normal;
+  font-style: italic;
+}
+
+.table td.fit, 
+.table th.fit {
+    white-space: nowrap;
+    width: 1%;
+}

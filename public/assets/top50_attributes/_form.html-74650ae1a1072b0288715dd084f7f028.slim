@@ -1,0 +1,8 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for @top50_attribute do |f|
+      = f.text_field :name
+      = f.text_field :name_eng
+      = f.select :attr_type, [['Attribute-value', 1], ['Dictionary attribute', 2]]
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

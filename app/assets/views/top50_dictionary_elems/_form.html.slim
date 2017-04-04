@@ -1,0 +1,7 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for [@top50_dictionary, @top50_dictionary.top50_dictionary_elems.build] do |f|
+      = f.text_field :name
+      = f.text_field :name_eng
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

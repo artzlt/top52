@@ -1,0 +1,183 @@
+﻿div class="page-header"
+  - if @top50_machine.name.present? and @top50_machine.name.length > 0
+    h2 = @top50_machine.name
+  h2 =  "Сведения о системе:"
+		
+
+- if @top50_machine.top50_machine_type.present?
+  p
+    strong = "Тип системы: "
+    = @top50_machine.top50_machine_type.name
+		
+
+- if @top50_machine.name.present? and @top50_machine.name.length > 0
+  p
+    strong = "Название: "
+    = @top50_machine.name
+
+
+- if @top50_machine.website.present? and @top50_machine.website.length > 0
+  p
+    strong = "Веб-сайт: "
+    = link_to @top50_machine.website, @top50_machine.website
+	
+- top50_org = @top50_machine.top50_organization
+- if top50_org.present?
+  p
+    strong = "Место установки: "
+	= top50_org.name
+    - top50_parent_org_rel = (Top50Relation.all.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).find_by(sec_obj_id: top50_org.id)
+    - if top50_parent_org_rel.present?
+	  - top50_parent_org = Top50Organization.find_by(id: top50_parent_org_rel.prim_obj_id	)
+	  - if top50_parent_org.present?
+	    = ","
+	    br
+	    = top50_parent_org.name
+		
+
+- if @top50_machine.start_date.present?
+  p
+    strong = "Год установки: "
+    = @top50_machine.start_date.year
+
+p
+  strong = "Разработчики: "
+  - @top50_machine.vendor_ids.each_with_index do |v_id, i|
+    - if i > 0
+	  =", "
+    - vendor = Top50Vendor.find(v_id)
+    = vendor.name
+  br
+
+- top50_nodes = @top50_machine.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))
+- cpucnt = 0
+- acccnt = 0
+- top50_nodes.each do |top50_node| 
+  - top50_cpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects).first
+  - top50_acc = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@acc_objects).first
+  - if top50_cpu.present?
+	- cpucnt += top50_cpu.sec_obj_qty * top50_node.sec_obj_qty
+  - if top50_acc.present?
+	- acccnt += top50_acc.sec_obj_qty * top50_node.sec_obj_qty			
+- cpu_qty_val = @cpu_qty_attr_vals.find_by(obj_id: @top50_machine.id)
+- core_qty_val = @core_qty_attr_vals.find_by(obj_id: @top50_machine.id)
+- nodcnt = top50_nodes.sum(:sec_obj_qty)
+
+- if nodcnt > 0
+  p
+    strong = "Количество узлов: "
+    = nodcnt
+	
+- if cpucnt > 0
+  p
+    strong = "Количество CPU: "
+    = cpucnt
+	
+- if acccnt > 0
+  p
+    strong = "Количество ускорителей: "
+    = acccnt
+
+- if core_qty_val.present?
+  p
+    strong = "Всего ядер: "
+    = core_qty_val.to_i
+
+p
+  strong = "Архитектура: "
+  br
+	- top50_nodes.each do |top50_node| 
+	  - top50_cpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects).first
+	  - top50_gpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects)
+	  - top50_cops = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects)
+	  - if top50_node.sec_obj_qty > 0
+		= "узлов: #{top50_node.sec_obj_qty} "
+	  = "["
+	  - if top50_cpu.present?
+		- if top50_cpu.sec_obj_qty > 0 
+		  = "#{top50_cpu.sec_obj_qty}x "
+		- cpu_vendor = @cpu_vendor_attr_vals.find_by(obj_id: top50_cpu.top50_object)
+		- if cpu_vendor.present?
+		  = cpu_vendor.top50_dictionary_elem.name
+		  = " "
+		= link_to @cpu_model_attr_vals.find_by(obj_id: top50_cpu.top50_object).top50_dictionary_elem.name, top50_object_path(top50_cpu.top50_object)
+	  - ram_size_val = @ram_size_attr_vals.find_by(obj_id: top50_node.top50_object)
+	  - if ram_size_val.present? and ram_size_val.value.to_f > 0
+		  - if top50_cpu.present?
+			= ", "
+		  = "#{number_with_precision(@ram_size_attr_vals.find_by(obj_id: top50_node.top50_object).value.to_f, precision: 3, strip_insignificant_zeros: true)} GB RAM"
+	  - if top50_gpus.any? or top50_cops.any?
+		- if top50_gpus.any?
+		  - top50_gpu = top50_gpus.first
+		  = "; "
+		  = "Acc: "
+		  - if top50_gpu.sec_obj_qty > 0 
+			= "#{top50_gpu.sec_obj_qty}x "
+		  - gpu_vendor = @gpu_vendor_attr_vals.find_by(obj_id: top50_gpu.top50_object)
+		  - if gpu_vendor.present?
+			= gpu_vendor.top50_dictionary_elem.name
+			= " "				  
+		  = link_to @gpu_model_attr_vals.find_by(obj_id: top50_gpu.top50_object).top50_dictionary_elem.name, top50_object_path(top50_gpu.top50_object)
+		- if top50_cops.any?			
+		  - top50_cop = top50_cops.first
+		  = "; "
+		  = "Acc: "
+		  - if top50_cop.sec_obj_qty > 0 
+			= "#{top50_cop.sec_obj_qty}x "
+		  - cop_vendor = @cop_vendor_attr_vals.find_by(obj_id: top50_cop.top50_object)
+		  - if cop_vendor.present?
+			= cop_vendor.top50_dictionary_elem.name
+			= " "				  
+		  = link_to @cop_model_attr_vals.find_by(obj_id: top50_cop.top50_object).top50_dictionary_elem.name, top50_object_path(top50_cop.top50_object)
+	  = "]"	
+	  br			  
+
+br
+- top50_obj = @top50_machine.top50_object
+- top50_obj.top50_attribute_val_dbvals.each do |top50_attribute_val|
+  p
+    strong = top50_attribute_val.top50_attribute_dbval.top50_attribute.name
+	strong = ": "
+    = top50_attribute_val.value
+
+- top50_obj.top50_attribute_val_dicts.each do |top50_attribute_val|
+  p
+    strong = top50_attribute_val.top50_attribute_dict.top50_attribute.name
+	strong = ": "
+    = top50_attribute_val.top50_dictionary_elem.name
+
+br
+p
+  strong = "Linpack:"
+  - rmax = @rmax_res.find_by(machine_id: @top50_machine.id)
+  br
+  strong = "Результат(Rmax): "
+  = rmax.result
+  br
+  - top50_obj = rmax.top50_object
+  - top50_obj.top50_attribute_val_dbvals.each do |top50_attribute_val|
+	  strong = top50_attribute_val.top50_attribute_dbval.top50_attribute.name
+	  strong = ": "
+	  = top50_attribute_val.value
+      br
+br
+
+
+- @top50_machine.top50_benchmark_results.each do |top50_res|
+  p
+    - top50_bench = Top50Benchmark.all.find_by(id: top50_res.benchmark_id)
+	strong = top50_bench.name
+	strong = ": "
+	= top50_res.result
+	- top50_obj = top50_res.top50_object
+    - top50_obj.top50_attribute_val_dbvals.each do |top50_attribute_val|
+	  p
+		strong = top50_attribute_val.top50_attribute_dbval.top50_attribute.name
+		strong = ": "
+		= top50_attribute_val.value
+	
+	- top50_obj.top50_attribute_val_dicts.each do |top50_attribute_val|
+	  p
+		strong = top50_attribute_val.top50_attribute_dict.top50_attribute.name
+		strong = ": "
+		= top50_attribute_val.top50_dictionary_elem.name

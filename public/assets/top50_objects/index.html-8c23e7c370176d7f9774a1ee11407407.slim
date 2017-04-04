@@ -1,0 +1,28 @@
+div class="page-header"
+  h1 = t(".title", default: "Objects")
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = link_to t(".new_object"), new_top50_object_path, class: "btn btn-default"
+
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = "ID"
+        th = "Type"
+        th
+      - @top50_objects.each do |top50_object|
+        tr
+          td class="col-xs-3"
+            = link_to top50_object.id, top50_object_path(top50_object)
+          td class="col-xs-7" = top50_object.top50_object_type.name
+          td class="btn-group"
+            = link_to t("actions.edit"), [:edit, top50_object], class: "btn btn-default btn-sm"
+            button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"
+              span class="caret"
+            ul class="dropdown-menu" role="menu"
+              - name = t("actions.delete")
+              - confirm = t("actions.confirm", default: "Are You shure?")
+              - data = { method: :delete, confirm: confirm }
+              li class="text-left"
+                = link_to name, top50_object, data: data

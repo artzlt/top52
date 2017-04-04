@@ -180,6 +180,7 @@ GEM
       mime-types (>= 1.16)
     celluloid (0.16.0)
       timers (~> 4.0.0)
+    chartkick (2.2.3)
     choice (0.2.0)
     chronic (0.10.2)
     clbustos-rtf (0.5.0)
@@ -441,6 +442,7 @@ DEPENDENCIES
   announcements!
   authentication!
   capybara
+  chartkick
   codeclimate-test-reporter
   core!
   database_cleaner
@@ -475,4 +477,4 @@ DEPENDENCIES
   wiki!
 
 BUNDLED WITH
-   1.11.2
+   1.13.6

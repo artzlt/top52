@@ -1,0 +1,19 @@
+div class="page-header"
+  h1 = t(".title", default: "Objects by types")
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = link_to t(".new_object"), new_top50_object_path, class: "btn btn-default"
+
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = "Тип"
+        th = "Type"
+        th
+      - @top50_object_types.each do |top50_object_tp|
+        tr
+          td class="col-xs-3"
+            = link_to top50_object_tp.name, top50_object_by_tp_path(top50_object_tp)
+          td class="col-xs-3" = top50_object_tp.name_eng
+          td class="col-xs-3" = top50_object_tp.cnt

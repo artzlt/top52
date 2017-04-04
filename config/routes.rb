@@ -58,15 +58,26 @@ Octoshell::Application.routes.draw do
 #  resources :top50_attribute_dbval
   resources :top50_attribute_dbvals
   resources :top50_attribute_dicts
+  get 'top50_machines_list_tmp/:eid', to: 'top50_machines#list_tmp', as:'top50_machines_list_tmp'
+  get 'top50_machines_list_tmp2/:eid', to: 'top50_machines#list_tmp2', as:'top50_machines_list_tmp2'
   get 'top50_machines_list', to: 'top50_machines#list', as:'top50_machines_list'
   get 'top50_machines_archive/:eid', to: 'top50_machines#archive', as:'top50_machines_archive'
   get 'top50_machines_archive/:eid/vendor/:vid', to: 'top50_machines#archive_by_vendor', as:'top50_machines_archive_vendor'
+  get 'top50_machines_archive/:eid/vendor/:vid/excl', to: 'top50_machines#archive_by_vendor_excl', as:'top50_machines_archive_vendor_excl'
   get 'top50_machines_archive/:eid/org/:oid', to: 'top50_machines#archive_by_org', as:'top50_machines_archive_org'
+  get 'top50_machines_archive/:eid/comp/:oid', to: 'top50_machines#archive_by_proc', as:'top50_machines_archive_proc'
+  get 'top50_machines_archive/:eid/compgpu/:oid', to: 'top50_machines#archive_by_gpu', as:'top50_machines_archive_gpu'  
+  get 'top50_machines_archive/:eid/compcop/:oid', to: 'top50_machines#archive_by_cop', as:'top50_machines_archive_cop'  
+  get 'top50_machines_archive/:eid/comps/:oid', to: 'top50_machines#archive_by_comp', as:'top50_machines_archive_comp'  
+  get 'top50_machines_archive/:eid/comp_attrd/:elid', to: 'top50_machines#archive_by_comp_attrd', as:'top50_machines_archive_comp_attrd'  
+  get 'top50_machines_archive/:eid/attr/:aid/:elid', to: 'top50_machines#archive_by_attr_dict', as:'top50_machines_archive_attr_dict'
   get 'top50_machines_vendor/:vid', to: 'top50_machines#vendor', as:'top50_machines_vendor'
   get 'top50_machines_org/:oid', to: 'top50_machines#org', as:'top50_machines_org'
   get 'top50_machines_archive', to: 'top50_machines#archive_lists', as:'top50_machines_archive_lists'
   get 'top50_objects/:id/top50_attribute_vals', to: 'top50_objects#attribute_vals', as:'top50_object_top50_attribute_vals'
-
+  get 'top50_machines/:id', to: 'top50_machines#show', as:'top50_machines_show'
+  get 'top50_vendors_stats/:thres', to: 'top50_vendors#stats', as:'top50_vendors_stats'
+  
   post 'top50_objects/:id/top50_attribute_val_dbvals', to: 'top50_objects#create_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbvals'
   get 'top50_objects/:id/top50_attribute_val_dbvals/new', to: 'top50_objects#new_attribute_val_dbval', as:'new_top50_object_top50_attribute_val_dbval'
  
@@ -79,7 +90,10 @@ Octoshell::Application.routes.draw do
 
   post 'top50_objects/:id/top50_nested_objects', to: 'top50_objects#create_nested_object'
   get 'top50_objects/:id/top50_nested_objects/new', to: 'top50_objects#new_nested_object', as:'new_top50_object_top50_nested_object'
+  
+  get 'top50_objects_tp', to: 'top50_objects#index_type', as: 'top50_object_tp'
 
+  get 'top50_objects_tp/:tid', to: 'top50_objects#objects_of_type', as: 'top50_object_by_tp'
 
   get 'top50_machines/:id/benchmark_results', to: 'top50_machines#benchmark_results', as:'top50_machine_top50_benchmark_results'
 
