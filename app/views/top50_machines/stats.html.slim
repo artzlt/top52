@@ -1,0 +1,697 @@
+table
+  tr
+    td 
+      h4 = @header_text
+    td 
+      div class="btn-group"
+        button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+          span class="caret"
+        ul class="dropdown-menu" role="menu"
+          - @section_headers.each do |section, header|
+            li = link_to header, top50_stats_path(section)
+          
+- if @stat_section.present? and @stat_section[0..6] == "vendors"
+  table
+    tr
+      td 
+        h5 = @vendors_header_text
+      td 
+        div class="btn-group"
+          button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+            span class="caret"
+          ul class="dropdown-menu" role="menu"
+            - @vendors_headers.each do |section, header|
+              li = link_to header, top50_stats_path(section)
+
+br
+              
+- if @stat_section == "hybrid_inter" or @stat_section == "hybrid_intra"
+  - hlist_chart_data = {}
+  - hlist_dates = {}
+  - hlist_nums = {}
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      th = "Гибридные"
+      th = "Прочие"
+      - chart_data_by_tp["Гибридные"] = []
+      - chart_data_by_tp["Прочие"] = []
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      - sum_cnt = Top50BenchmarkResult.where(benchmark_id: top50_list.id).count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        td align="right" 
+          - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @hybrid_mach).count
+          = c_cnt
+          = " (#{100 * c_cnt / sum_cnt}%)"
+          - c_chart_data << ["Гибридные", c_cnt]
+          - chart_data_by_tp["Гибридные"].unshift([date_val.value, c_cnt])
+        td align="right" 
+          - c_cnt = sum_cnt - c_cnt
+          = c_cnt
+          = " (#{100 * c_cnt / sum_cnt}%)"
+          - c_chart_data << ["Прочие", c_cnt]
+          - chart_data_by_tp["Прочие"].unshift([date_val.value, c_cnt])
+      - hlist_chart_data[top50_list.id] = c_chart_data
+      - hlist_dates[top50_list.id] = date_val.value
+      - hlist_nums[top50_list.id] = list_num.value
+    tr
+      - achart_data = []
+
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      - ch_title = ""
+      - if @stat_section == "hybrid_inter"
+        - ch_title = "Доля гибридных систем (между узлами) в редакциях Top50"
+      - if @stat_section == "hybrid_intra"
+        - ch_title = "Доля гибридных систем (по наличию ускорителей) в редакциях Top50"
+      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+      br
+
+
+- elsif @stat_section == "cpu_vendor"
+  - hlist_chart_data = {}
+  - hlist_dates = {}
+  - hlist_nums = {}
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    - sel_mtype_ids = []
+    - oth_cnt = 0
+    - sum_cnt = 0
+    tr
+      th = "Редакция"
+      - @top50_cpuvendors.each do |top50_cpuvendor|
+        th = top50_cpuvendor.name
+        - chart_data_by_tp[top50_cpuvendor.name] = []
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      - sum_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_cpuvendors.each do |top50_cpuvendor|
+          td align="right" 
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cpuvendor_id_hash[top50_cpuvendor.id]).count
+            = c_cnt
+            - oth_cnt = oth_cnt - c_cnt
+            = " (#{100 * c_cnt / sum_cnt}%)"
+          - c_chart_data << [top50_cpuvendor.name, c_cnt]
+          - chart_data_by_tp[top50_cpuvendor.name].unshift([date_val.value, c_cnt])
+      - hlist_chart_data[top50_list.id] = c_chart_data
+      - hlist_dates[top50_list.id] = date_val.value
+      - hlist_nums[top50_list.id] = list_num.value
+      
+    tr
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+      br
+
+- elsif @stat_section == "area"
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      - sel_top50_areas = []
+      - @top50_areas.each do |top50_area|
+        - @area_id_hash[top50_area.area_id] = @area_id_hash[top50_area.area_id].uniq
+        - if @area_id_hash[top50_area.area_id].count > 3
+          th = top50_area.area_name
+          - chart_data_by_tp[top50_area.area_name] = []
+          - sel_top50_areas << top50_area
+      th = "Не указано/Прочие"
+      - chart_data_by_tp["Не указано/Прочие"] = []
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      - oth_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id}").count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - sel_top50_areas.each do |top50_area|
+          td align="right" 
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @area_id_hash[top50_area.area_id]).count
+            = c_cnt
+            - oth_cnt = oth_cnt - c_cnt  
+            - chart_data_by_tp[top50_area.area_name].unshift([date_val.value, c_cnt])
+        td align="right"
+          - chart_data_by_tp["Не указано/Прочие"].unshift([date_val.value, oth_cnt])
+          = oth_cnt
+    tr
+
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, max: 50, stacked: true, height: "750px"
+      br
+
+- elsif @stat_section == "cpu_cnt" or @stat_section == "core_cnt"
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      - @top50_ccnts.each do |top50_ccnt|
+        th = top50_ccnt
+        - chart_data_by_tp[top50_ccnt] = []
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_ccnts.each do |top50_ccnt|
+          td align="right" 
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @ccnt_id_hash[top50_ccnt]).count
+            = c_cnt
+            - chart_data_by_tp[top50_ccnt].unshift([date_val.value, c_cnt])
+    tr
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, max: 50, stacked: true, height: "750px"
+      br
+      
+      
+- elsif @stat_section == "comm_net"
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      - @top50_cnets.each do |top50_cnet|
+        th = top50_cnet.cnet_name
+        - chart_data_by_tp[top50_cnet.cnet_name] = []
+      th = "Прочие"
+      - chart_data_by_tp["Прочие"] = []
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      - oth_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id}").count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_cnets.each do |top50_cnet|
+          td align="right" 
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cnet_id_hash[top50_cnet.cnet_id]).count
+            = c_cnt
+            - oth_cnt = oth_cnt - c_cnt  
+            - chart_data_by_tp[top50_cnet.cnet_name].unshift([date_val.value, c_cnt])
+        td align="right"
+          - chart_data_by_tp["Прочие"].unshift([date_val.value, oth_cnt])
+          = oth_cnt
+    tr
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+
+      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+      br
+
+  
+- elsif @stat_section == "cpu_fam" || @stat_section == "cpu_gen"
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      - @top50_cpufams.each do |top50_cpufam|
+        th = top50_cpufam.fam_name
+        - chart_data_by_tp[top50_cpufam.fam_name] = []
+      th = ""
+    - c_sum_max = 0
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - c_sum = 0
+        - @top50_cpufams.each do |top50_cpufam|
+          td align="right" 
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cpufam_id_hash[top50_cpufam.fam_id]).count
+            = c_cnt
+            - c_sum += c_cnt
+            - chart_data_by_tp[top50_cpufam.fam_name].unshift([date_val.value, c_cnt])
+        - if c_sum > c_sum_max
+          - c_sum_max = c_sum
+        td align="right" 
+          = link_to "Подробнее", top50_stats_per_list_path(@stat_section, top50_list.id)
+    tr
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, stacked: true, height: "500px", max: c_sum_max
+      br
+      
+- elsif @stat_section == "vendors"
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    - sel_vendor_ids = []
+    - oth_cnt = 0
+    tr
+      th = "Редакция"
+      - @top50_vendors.each do |top50_vendor|
+        th = top50_vendor.name
+        - sel_vendor_ids << top50_vendor.id
+        - chart_data_by_tp[top50_vendor.name] = []
+      th = "Прочие"
+      - chart_data_by_tp["Прочие"] = []
+    - @top50_slists.each do |top50_list|
+      - sum_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_vendors.each do |top50_vendor|
+          td align="right" 
+            - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+            - prec_vid = 0
+            - if prec_vendor.present?
+              - prec_vid = prec_vendor.prim_obj_id
+              - sel_vendor_ids << prec_vid
+            - c_cnt = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids) ").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+            = link_to c_cnt, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+            = " (#{100 * c_cnt / sum_cnt}%)"
+            - chart_data_by_tp[top50_vendor.name].unshift([date_val.value, c_cnt])
+        - c_oth_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
+        - oth_cnt += c_oth_cnt
+        td align="right" 
+          = c_oth_cnt
+          = " (#{100 * c_oth_cnt / sum_cnt}%)"
+          - chart_data_by_tp["Прочие"].unshift([date_val.value, c_oth_cnt])
+    tr
+      th = "Итого"
+      - @top50_vendors.each do |top50_vendor|
+        th = top50_vendor.cnt
+        - sel_vendor_ids << top50_vendor.id
+      th = oth_cnt
+    tr
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+      br
+
+ 
+- elsif @stat_section == "vendors_rmax"
+  - chart_data_by_tp = {}
+  - chart_data_by_tp2 = {}
+  table class="table table-hover"
+    tr
+      - sel_vendor_ids = []
+      th = "Редакция"
+      - @top50_vendors.each do |top50_vendor|
+        th = top50_vendor.name
+        - sel_vendor_ids << top50_vendor.id
+        - chart_data_by_tp[top50_vendor.name] = []
+        - chart_data_by_tp2[top50_vendor.name] = []
+      th = "Прочие"
+      - chart_data_by_tp["Прочие"] = []
+      - chart_data_by_tp2["Прочие"] = []
+      th = "Всего"
+    - @top50_slists.each do |top50_list|
+      - sum_rmax = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result")
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_vendors.each do |top50_vendor|
+          td align="right" 
+            - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+            - prec_vid = 0
+            - if prec_vendor.present?
+              - prec_vid = prec_vendor.prim_obj_id
+              - sel_vendor_ids << prec_vid
+            - c_rmax = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result")
+            = (c_rmax / 1000000.0).round(2)
+            = " (#{(100 * c_rmax / sum_rmax).round(0)}%)"
+            - chart_data_by_tp[top50_vendor.name].unshift([date_val.value, (c_rmax / sum_rmax).round(2)]) 
+            - chart_data_by_tp2[top50_vendor.name].unshift([date_val.value, (c_rmax / 1000000.0).round(2)])
+        td align="right" 
+          - c_oth_rmax = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("rmax_res.result")
+          = (c_oth_rmax / 1000000.0).round(2)
+          = " (#{(100 * c_oth_rmax / sum_rmax).round(0)}%)"
+          - chart_data_by_tp["Прочие"].unshift([date_val.value, (c_oth_rmax / sum_rmax).round(2)])
+          - chart_data_by_tp2["Прочие"].unshift([date_val.value, (c_oth_rmax / 1000000.0).round(2)])
+        td align="right"
+          = (sum_rmax / 1000000.0).round(2)
+    tr
+      - achart_data = []
+      - chart_data_by_tp2.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp2[key]}
+      = line_chart achart_data, height: "500px"
+      br
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, max: 1, stacked: true, height: "500px"
+      br
+  
+- elsif @stat_section == "vendors_rpeak"
+  - chart_data_by_tp = {}
+  - chart_data_by_tp2 = {}
+  table class="table table-hover"
+    tr
+      - sel_vendor_ids = []
+      th = "Редакция"
+      - @top50_vendors.each do |top50_vendor|
+        th = top50_vendor.name
+        - sel_vendor_ids << top50_vendor.id
+        - chart_data_by_tp[top50_vendor.name] = []
+        - chart_data_by_tp2[top50_vendor.name] = []
+      th = "Прочие"
+      - chart_data_by_tp["Прочие"] = []
+      - chart_data_by_tp2["Прочие"] = []
+      th = "Всего"
+    - @top50_slists.each do |top50_list|
+      - sum_rpeak = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_vendors.each do |top50_vendor|
+          td align="right" 
+            - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+            - prec_vid = 0
+            - if prec_vendor.present?
+              - prec_vid = prec_vendor.prim_obj_id
+              - sel_vendor_ids << prec_vid
+            - c_rpeak = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
+            = (c_rpeak / 1000000.0).round(2)
+            = " (#{(100 * c_rpeak / sum_rpeak).round(0).to_i}%)"
+            - chart_data_by_tp[top50_vendor.name].unshift([date_val.value, (c_rpeak / sum_rpeak).round(2)]) 
+            - chart_data_by_tp2[top50_vendor.name].unshift([date_val.value, (c_rpeak / 1000000.0).round(2)])
+        td align="right" 
+          - c_oth_rpeak = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
+          = (c_oth_rpeak / 1000000.0).round(2)
+          = " (#{(100 * c_oth_rpeak / sum_rpeak).round(0).to_i}%)"
+          - chart_data_by_tp["Прочие"].unshift([date_val.value, (c_oth_rpeak / sum_rpeak).round(2)])
+          - chart_data_by_tp2["Прочие"].unshift([date_val.value, (c_oth_rpeak / 1000000.0).round(2)])
+        td align="right"
+          = (sum_rpeak / 1000000.0).round(2)
+    tr
+      - achart_data = []
+      - chart_data_by_tp2.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp2[key]}
+      = line_chart achart_data, height: "500px"
+      br
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, max: 1, stacked: true, height: "500px"
+      br
+
+- elsif @stat_section == "vendors_int"          
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    tr
+      - sel_vendor_ids = []
+      th = "Редакция"
+      - @top50_vendors.each do |top50_vendor|
+        th = top50_vendor.name
+        - sel_vendor_ids << top50_vendor.id
+        - chart_data_by_tp[top50_vendor.name] = []
+      th = "Прочие"
+      - chart_data_by_tp["Прочие"] = []
+    - @top50_slists.each do |top50_list|
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_vendors.each do |top50_vendor|
+          td align="right" 
+            - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+            - prec_vid = 0
+            - if prec_vendor.present?
+              - prec_vid = prec_vendor.prim_obj_id
+              - sel_vendor_ids << prec_vid
+            - c_ven_avg = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).average("array_length(vendor_ids, 1)").to_f
+            - c_ven = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).sum("array_length(vendor_ids, 1)")         
+            = c_ven
+            = " (#{number_with_precision(c_ven_avg, precision: 1, strip_insignificant_zeros: true)})"
+            - chart_data_by_tp[top50_vendor.name].unshift([date_val.value, c_ven]) 
+        td align="right" 
+          - c_oth_ven_avg = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").average("array_length(vendor_ids, 1)").to_f
+          - c_oth_ven = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("array_length(vendor_ids, 1)")       
+          = c_oth_ven
+          = " (#{number_with_precision(c_oth_ven_avg, precision: 1, strip_insignificant_zeros: true)})"
+          - chart_data_by_tp["Прочие"].unshift([date_val.value, c_oth_ven])
+    tr
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = line_chart achart_data, height: "500px"
+      br
+        
+- elsif @stat_section == "vendors_cnt_rmax"
+  table class="table table-hover"
+    tr
+      - sel_vendor_ids = []
+      th = "Редакция"
+      - @top50_vendors.each do |top50_vendor|
+        th = top50_vendor.name
+        - sel_vendor_ids << top50_vendor.id
+      th = "Прочие"
+    - @top50_slists.each do |top50_list|
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_vendors.each do |top50_vendor|
+          td align="right" 
+            - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+            - prec_vid = 0
+            - if prec_vendor.present?
+              - prec_vid = prec_vendor.prim_obj_id
+              - sel_vendor_ids << prec_vid
+            = link_to Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+            = " ("
+            = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result") / 1000000.0).round(2)
+            = ")"
+        td align="right" 
+          = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
+          = " ("
+          = (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("rmax_res.result") / 1000000.0).round(2)
+          = ")"
+
+- elsif @stat_section == "vendors_rmax_avg"
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    tr
+      - sel_vendor_ids = []
+      th = "Редакция"
+      - @top50_vendors.each do |top50_vendor|
+        th = top50_vendor.name
+        - sel_vendor_ids << top50_vendor.id
+        - chart_data_by_tp[top50_vendor.name] = []
+      th = "Прочие"
+      - chart_data_by_tp["Прочие"] = []
+      th = "Прочие"
+      - chart_data_by_tp["По всему списку"] = []
+    - @top50_slists.each do |top50_list|
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_vendors.each do |top50_vendor|
+          td align="right" 
+            - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+            - prec_vid = 0
+            - if prec_vendor.present?
+              - prec_vid = prec_vendor.prim_obj_id
+              - sel_vendor_ids << prec_vid
+            - c_cnt = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+            = link_to c_cnt, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+            = " ("
+            - c_avg = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").average("rmax_res.result").to_f / 1000000.0).round(2)
+            = c_avg
+            = ")"
+            - chart_data_by_tp[top50_vendor.name].unshift([date_val.value, c_avg])
+        td align="right"
+          - c_oth_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
+          = c_oth_cnt
+          = " ("
+          - c_oth_avg = (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").average("rmax_res.result").to_f / 1000000.0).round(2)
+          = c_oth_avg
+          = ")"
+          - chart_data_by_tp["Прочие"].unshift([date_val.value, c_oth_avg])
+        td align="right"
+          - c_all_cnt = Top50BenchmarkResult.where(benchmark_id: top50_list.id).count
+          = c_all_cnt
+          = " ("
+          - c_all_avg = (Top50BenchmarkResult.where(benchmark_id: top50_list.id).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_benchmark_results.machine_id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").average("rmax_res.result").to_f / 1000000.0).round(2)
+          = c_all_avg
+          = ")"
+          - chart_data_by_tp["По всему списку"].unshift([date_val.value, c_all_avg])
+    tr
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = line_chart achart_data, height: "500px"
+      br
+
+- elsif @stat_section == "type"
+  - hlist_chart_data = {}
+  - hlist_dates = {}
+  - hlist_nums = {}
+  - chart_data_by_tp = {}
+  table class="table table-hover"
+    - sel_mtype_ids = []
+    - oth_cnt = 0
+    tr
+      th = "Редакция"
+      - @top50_mtypes.each do |top50_mtype|
+        th = top50_mtype.name
+        - sel_mtype_ids << top50_mtype.id
+        - chart_data_by_tp[top50_mtype.name] = []
+      th = ""
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      - sum_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        - @top50_mtypes.each do |top50_mtype|
+          td align="right" 
+            - c_cnt = Top50Machine.all.where("#{top50_mtype.id} = type_id").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+            = c_cnt
+            = " (#{100 * c_cnt / sum_cnt}%)"
+          - c_chart_data << [top50_mtype.name, c_cnt]
+          - chart_data_by_tp[top50_mtype.name].unshift([date_val.value, c_cnt])
+        - c_oth_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_machine_types on top50_machine_types.id = type_id and top50_machine_types.id in (#{sel_mtype_ids.join(',')})").where("top50_machine_types.id is null").count
+        - oth_cnt += c_oth_cnt
+        td align="right" 
+          = link_to "Диаграмма", top50_ext_stats_path(top50_list.id)
+      - hlist_chart_data[top50_list.id] = c_chart_data
+      - hlist_dates[top50_list.id] = date_val.value
+      - hlist_nums[top50_list.id] = list_num.value
+      
+    tr
+
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+  
+- else
+  - chart_data_by_tp = {}
+  - chart_data_by_tp["Linpack (1-5)"] = []
+  - chart_data_by_tp["Linpack (1-50)"] = []
+  - chart_data_by_tp["Peak (1-5)"] = []
+  - chart_data_by_tp["Peak (1-50)"] = []
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      th = "Linpack (1-5)"
+      th = "Linpack (1-50)"
+      th = "Peak (1-5)"
+      th = "Peak (1-50)"
+    - @top50_slists.each do |top50_list|
+      - top5_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result <= 5").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
+      - top50_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
+      - top5_rpeak = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result <= 5").joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_benchmark_results.machine_id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)") / 1000000.0).round(2)
+      - top50_rpeak = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_benchmark_results.machine_id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)") / 1000000.0).round(2)
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        td align="right"
+          = top5_rmax
+          - chart_data_by_tp["Linpack (1-5)"].unshift([date_val.value, top5_rmax])
+        td align="right"
+          = top50_rmax
+          - chart_data_by_tp["Linpack (1-50)"].unshift([date_val.value, top50_rmax])
+        td align="right"
+          = top5_rmax
+          - chart_data_by_tp["Peak (1-5)"].unshift([date_val.value, top5_rpeak])
+        td align="right"
+          = top50_rmax
+          - chart_data_by_tp["Peak (1-50)"].unshift([date_val.value, top50_rpeak])
+    
+    tr
+  
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = line_chart achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
+      br
+    
+  - chart_data_by_tp = {}
+  - chart_data_by_tp["#1"] = []
+  - chart_data_by_tp["#25"] = []
+  - chart_data_by_tp["#50"] = []
+  - chart_data_by_tp["Средняя"] = []
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      th = "Максимальная (#1)"
+      th = "Медиана (#25)"
+      th = "Минимальная (#50)"
+      th = "Средняя"
+    - global_max = 0
+    - @top50_slists.each do |top50_list|
+      - avg_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").average("br.result") / 1000000.0).round(2)
+      - max_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2)
+      - min_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").minimum("br.result") / 1000000.0).round(2)
+      - med_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result = 25").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2)
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        td align="right"
+          = max_rmax
+          - chart_data_by_tp["#1"].unshift([date_val.value, max_rmax])
+          - if max_rmax > global_max
+            - global_max = max_rmax
+        td align="right"
+          = med_rmax
+          - chart_data_by_tp["#25"].unshift([date_val.value, med_rmax])
+        td align="right"
+          = min_rmax
+          - chart_data_by_tp["#50"].unshift([date_val.value, min_rmax])
+        td align="right"
+          = avg_rmax
+          - chart_data_by_tp["Средняя"].unshift([date_val.value, avg_rmax])
+    
+    tr
+
+      - achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - achart_data << {name: key, data: chart_data_by_tp[key]}
+      = line_chart achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
+      br

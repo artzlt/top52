@@ -1,5 +1,5 @@
 class Top50ObjectsController < ApplicationController
-
+  skip_before_filter :require_login, only: [:show_info]
   def index
     @top50_objects = Top50Object.all
   end
@@ -23,6 +23,10 @@ class Top50ObjectsController < ApplicationController
   end
 
   def show
+    @top50_object = Top50Object.find(params[:id])
+  end
+  
+  def show_info
     @top50_object = Top50Object.find(params[:id])
   end 
 

@@ -1,0 +1,31 @@
+div class="page-header"
+  h4 = "Статистика"
+
+- c_chart_data = []
+- list_num = @num_vals.find_by(obj_id: @list_id)
+- date_val = @date_vals.find_by(obj_id: @list_id)
+- if list_num.present?
+= link_to "Редакция №#{list_num.value} от #{date_val.value}", top50_machines_archive_path(@list_id)
+br
+= link_to "Назад", top50_stats_path, class: "btn btn-default"
+br
+- c_chart_data = []
+- counter = 0
+table class="table table-hover"
+  tr
+    th = "Категория"
+    th = "Количество систем"
+  - @sorted_cat_id_hash.each do |rec|
+    tr
+      - cat = @top50_cats_all.find{|x| x.id == rec[0]}
+      td class="fit"
+        = cat.name
+      td class="fit"
+        - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{@list_id} AND machine_id IN (?)", rec[1]).count
+        = c_cnt
+        - if counter < 10
+          - c_chart_data << [cat.name, c_cnt]
+        - counter += 1
+  tr
+    = pie_chart c_chart_data, :title => "#{@chart_title} в #{list_num.value}-ой редакции Top50 от #{date_val.value}", height: "500px"    
+    br

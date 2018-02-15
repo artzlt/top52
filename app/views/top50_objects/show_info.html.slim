@@ -1,0 +1,15 @@
+div class="page-header"
+  h3 = @top50_object.top50_object_type.name
+
+h4 = "Характеристики"
+div class="panel panel-default"
+  div class="panel-body"
+    table class="table table-hover"
+      - @top50_object.top50_attribute_val_dbvals.each do |top50_attribute_val|
+        tr
+          td class="col-xs-5" = top50_attribute_val.top50_attribute_dbval.top50_attribute.name
+          td class="col-xs-5" = top50_attribute_val.value
+      - @top50_object.top50_attribute_val_dicts.each do |top50_attribute_val|
+        tr
+          td class="col-xs-5" = top50_attribute_val.top50_attribute_dict.top50_attribute.name
+          td class="col-xs-5" = top50_attribute_val.top50_dictionary_elem.name

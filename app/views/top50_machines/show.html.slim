@@ -3,19 +3,17 @@
     h2 = @top50_machine.name
   h2 =  "Сведения о системе:"
 		
-
-- if @top50_machine.top50_machine_type.present?
-  p
-    strong = "Тип системы: "
-    = @top50_machine.top50_machine_type.name
-		
-
 - if @top50_machine.name.present? and @top50_machine.name.length > 0
   p
     strong = "Название: "
     = @top50_machine.name
 
 
+- if @top50_machine.top50_machine_type.present?
+  p
+    strong = "Тип системы: "
+    = @top50_machine.top50_machine_type.name
+		
 - if @top50_machine.website.present? and @top50_machine.website.length > 0
   p
     strong = "Веб-сайт: "
@@ -48,17 +46,41 @@ p
     - vendor = Top50Vendor.find(v_id)
     = vendor.name
   br
-
+    
 - top50_nodes = @top50_machine.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))
 - cpucnt = 0
-- acccnt = 0
+- gpucnt = 0
+- copcnt = 0
+- corecnt_cpu = 0
+- corecnt_gpu = 0
+- corecnt_cop = 0
+- gpucorecnt = 0
 - top50_nodes.each do |top50_node| 
   - top50_cpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects).first
   - top50_acc = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@acc_objects).first
+  - top50_gpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects).first
+  - top50_cop = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects).first
   - if top50_cpu.present?
-	- cpucnt += top50_cpu.sec_obj_qty * top50_node.sec_obj_qty
-  - if top50_acc.present?
-	- acccnt += top50_acc.sec_obj_qty * top50_node.sec_obj_qty			
+	- t = top50_cpu.sec_obj_qty * top50_node.sec_obj_qty
+	- cpucnt += t
+	- cores = @core_qty_attr_vals.find_by(obj_id: top50_cpu.top50_object)
+	- if cores.present?
+	  - corecnt_cpu += t * cores.value.to_i
+  - if top50_gpu.present?
+	- t = top50_gpu.sec_obj_qty * top50_node.sec_obj_qty
+	- gpucnt += t
+	- cores = @core_qty_attr_vals.find_by(obj_id: top50_gpu.top50_object)
+	- gpucores = @gpucore_qty_attr_vals.find_by(obj_id: top50_gpu.top50_object)			
+	- if cores.present?
+	  - corecnt_gpu += t * cores.value.to_i	
+	- if gpucores.present?
+	  - gpucorecnt += t * gpucores.value.to_i			
+  - if top50_cop.present?
+	- t = top50_cop.sec_obj_qty * top50_node.sec_obj_qty
+	- copcnt += t
+	- cores = @core_qty_attr_vals.find_by(obj_id: top50_cop.top50_object)
+	- if cores.present?
+	  - corecnt_cop += t * cores.value.to_i			  
 - cpu_qty_val = @cpu_qty_attr_vals.find_by(obj_id: @top50_machine.id)
 - core_qty_val = @core_qty_attr_vals.find_by(obj_id: @top50_machine.id)
 - nodcnt = top50_nodes.sum(:sec_obj_qty)
@@ -72,16 +94,49 @@ p
   p
     strong = "Количество CPU: "
     = cpucnt
-	
-- if acccnt > 0
+- elsif cpu_qty_val.present?
   p
-    strong = "Количество ускорителей: "
-    = acccnt
+    strong = "Количество CPU: "
+    = cpu_qty_val.value.to_i
 
-- if core_qty_val.present?
+- if corecnt_cpu > 0
+  p style="text-indent:20px;"
+    strong = "Количество ядер CPU: "
+	= corecnt_cpu
+	
+- if gpucnt > 0
+  p
+    strong = "Количество GPU-ускорителей: "
+    = gpucnt
+	
+- if gpucorecnt > 0
+  p style="text-indent:20px;"
+    strong = "Количество GPU-ядер: "
+	= gpucorecnt
+	
+- if corecnt_gpu > 0
+  p style="text-indent:20px;"
+    strong = "Количество мультипроцессорных блоков GPU: "
+	= corecnt_gpu
+	
+- if copcnt > 0
+  p
+    strong = "Количество сопроцессоров: "
+    = copcnt
+	
+- if corecnt_cop > 0
+  p style="text-indent:20px;"
+    strong = "Количество ядер сопроцессоров: "
+	= corecnt_cop
+
+- if corecnt_cpu + corecnt_gpu + corecnt_cop > 0
   p
     strong = "Всего ядер: "
-    = core_qty_val.to_i
+    = corecnt_cpu + corecnt_gpu + corecnt_cop
+- elsif core_qty_val.present?
+  p
+    strong = "Всего ядер: "
+    = core_qty_val.value.to_i
 
 p
   strong = "Архитектура: "
@@ -100,7 +155,7 @@ p
 		- if cpu_vendor.present?
 		  = cpu_vendor.top50_dictionary_elem.name
 		  = " "
-		= link_to @cpu_model_attr_vals.find_by(obj_id: top50_cpu.top50_object).top50_dictionary_elem.name, top50_object_path(top50_cpu.top50_object)
+		= link_to @cpu_model_attr_vals.find_by(obj_id: top50_cpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_cpu.top50_object)
 	  - ram_size_val = @ram_size_attr_vals.find_by(obj_id: top50_node.top50_object)
 	  - if ram_size_val.present? and ram_size_val.value.to_f > 0
 		  - if top50_cpu.present?
@@ -117,7 +172,7 @@ p
 		  - if gpu_vendor.present?
 			= gpu_vendor.top50_dictionary_elem.name
 			= " "				  
-		  = link_to @gpu_model_attr_vals.find_by(obj_id: top50_gpu.top50_object).top50_dictionary_elem.name, top50_object_path(top50_gpu.top50_object)
+		  = link_to @gpu_model_attr_vals.find_by(obj_id: top50_gpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_gpu.top50_object)
 		- if top50_cops.any?			
 		  - top50_cop = top50_cops.first
 		  = "; "
@@ -128,17 +183,19 @@ p
 		  - if cop_vendor.present?
 			= cop_vendor.top50_dictionary_elem.name
 			= " "				  
-		  = link_to @cop_model_attr_vals.find_by(obj_id: top50_cop.top50_object).top50_dictionary_elem.name, top50_object_path(top50_cop.top50_object)
+		  = link_to @cop_model_attr_vals.find_by(obj_id: top50_cop.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_cop.top50_object)
 	  = "]"	
 	  br			  
 
 br
+- excl_attr_list = ["Number of CPUs", "Number of cores"]
 - top50_obj = @top50_machine.top50_object
 - top50_obj.top50_attribute_val_dbvals.each do |top50_attribute_val|
-  p
-    strong = top50_attribute_val.top50_attribute_dbval.top50_attribute.name
-	strong = ": "
-    = top50_attribute_val.value
+  - if not excl_attr_list.include?(top50_attribute_val.top50_attribute_dbval.top50_attribute.name_eng)
+    p
+      strong = top50_attribute_val.top50_attribute_dbval.top50_attribute.name
+	  strong = ": "
+      = top50_attribute_val.value
 
 - top50_obj.top50_attribute_val_dicts.each do |top50_attribute_val|
   p
@@ -151,7 +208,7 @@ p
   strong = "Linpack:"
   - rmax = @rmax_res.find_by(machine_id: @top50_machine.id)
   br
-  strong = "Результат(Rmax): "
+  strong = "Результат (Rmax): "
   = rmax.result
   = " "
   = rmax.top50_benchmark.top50_measure_unit.name
@@ -166,7 +223,9 @@ br
 
 strong = "Позиции в редакциях Top50:"
 br
-
+br
+- l_chart_data = []
+- l_dates = []
 table class="table fit"
   tr
   	th class="fit"
@@ -175,7 +234,6 @@ table class="table fit"
 	th class="fit"
 	  - if 1==1	
 		= "Позиция"		
-
   - @top50_incl.each do |top50_res|
     tr
 	  td class="fit"
@@ -183,6 +241,11 @@ table class="table fit"
 	    - date_val = @date_vals.find_by(obj_id: top50_res.benchmark_id)
         - if list_num.present?
 		  = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_res.benchmark_id)
+		  - l_chart_data << [Date.parse(date_val.value), top50_res.result.to_i]
+		  - l_dates << Date.parse(date_val.value).to_time.to_i * 1000
   	  td class="fit" align="right"
 	    = link_to top50_res.result.to_i, top50_machines_show_path(top50_res.machine_id)
-
+		
+  tr
+    = line_chart l_chart_data, adapter: "highcharts", :curve => false, :colors => ["orange"], :library => {yAxis: {reversed: true, minTickInterval: 1},     xAxis: {type: "datetime", tickPositions: l_dates, labels: {format: "{value:%b '%y}"}}}, :min => 1
+    br

@@ -27,7 +27,8 @@ Octoshell::Application.routes.draw do
 
   mount Announcements::Engine, :at => "/announcements"
 
-  root "face/home#show"
+  # root "face/home#show"
+  root :to => redirect('/top50_stats')
   
 
   resources :users do
@@ -77,6 +78,10 @@ Octoshell::Application.routes.draw do
   get 'top50_objects/:id/top50_attribute_vals', to: 'top50_objects#attribute_vals', as:'top50_object_top50_attribute_vals'
   get 'top50_machines/:id', to: 'top50_machines#show', as:'top50_machines_show'
   get 'top50_vendors_stats/:thres', to: 'top50_vendors#stats', as:'top50_vendors_stats'
+  get 'top50_stats', to: 'top50_machines#stats', as:'top50_stats_def'
+  get 'top50_stats/:section', to: 'top50_machines#stats', as:'top50_stats'
+  get 'top50_stats/:section/:eid', to: 'top50_machines#stats_per_list', as: 'top50_stats_per_list'
+  get 'top50_ext_stats/:eid', to: 'top50_machines#ext_stats', as: 'top50_ext_stats'
   
   post 'top50_objects/:id/top50_attribute_val_dbvals', to: 'top50_objects#create_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbvals'
   get 'top50_objects/:id/top50_attribute_val_dbvals/new', to: 'top50_objects#new_attribute_val_dbval', as:'new_top50_object_top50_attribute_val_dbval'
@@ -94,6 +99,8 @@ Octoshell::Application.routes.draw do
   get 'top50_objects_tp', to: 'top50_objects#index_type', as: 'top50_object_tp'
 
   get 'top50_objects_tp/:tid', to: 'top50_objects#objects_of_type', as: 'top50_object_by_tp'
+  
+  get 'top50_objects/info/:id', to: 'top50_objects#show_info', as:'top50_objects_show_info'
 
   get 'top50_machines/:id/benchmark_results', to: 'top50_machines#benchmark_results', as:'top50_machine_top50_benchmark_results'
 

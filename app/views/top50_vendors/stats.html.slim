@@ -1,6 +1,17 @@
 div class="page-header"
   h1 = "Статистика по  разработчикам"
 
+= "Статистика по "
+div class="btn-group"
+  button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+    span class="caret"
+  ul class="dropdown-menu" role="menu"
+    li = link_to "Статистика по типам систем", top50_stats_path("type")
+    li = link_to "Статистика по гибридности систем", top50_stats_path("hybrid")
+    li = link_to "Статистика по разработчикам", top50_vendors_stats_path(70)
+    li = link_to "Статистика по производителям CPU", top50_stats_path("cpu_vendor")
+    li = link_to "Статистика по типам CPU", top50_stats_path("cpu_fam")
+ 
 h3 = "Количество систем:"
 table class="table table-hover"
   - sel_vendor_ids = []
@@ -9,32 +20,45 @@ table class="table table-hover"
     th = "Редакция"
     - @top50_vendors.each do |top50_vendor|
       th = top50_vendor.name
-	  - sel_vendor_ids << top50_vendor.id
-	th = "Прочие"
+      - sel_vendor_ids << top50_vendor.id
+    th = "Прочие"
   - @top50_slists.each do |top50_list|
-  	- sum_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+    - c_chart_data = []
+    - sum_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
     tr
-	  td class="fit"
-	    - list_num = @num_vals.find_by(obj_id: top50_list.id)
-	    - date_val = @date_vals.find_by(obj_id: top50_list.id)
+      td class="fit"
+        - list_num = @num_vals.find_by(obj_id: top50_list.id)
+        - date_val = @date_vals.find_by(obj_id: top50_list.id)
         - if list_num.present?
-		  = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-	  - @top50_vendors.each do |top50_vendor|
+          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+      - @top50_vendors.each do |top50_vendor|
         td align="right" 
-		  - c_cnt = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
-		  = link_to c_cnt, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
-		  = " (#{100 * c_cnt / sum_cnt}%)"
-	  - c_oth_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
-	  - oth_cnt += c_oth_cnt
-	  td align="right" 
-	    = c_oth_cnt
-		= " (#{100 * c_oth_cnt / sum_cnt}%)"
+          - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+          - prec_vid = 0
+          - if prec_vendor.present?
+            - prec_vid = prec_vendor.prim_obj_id
+            - sel_vendor_ids << prec_vid
+          - c_cnt = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids) ").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+          = link_to c_cnt, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+          = " (#{100 * c_cnt / sum_cnt}%)"
+        - c_chart_data << [top50_vendor.name, c_cnt]
+      - c_oth_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
+      - oth_cnt += c_oth_cnt
+      td align="right" 
+        = c_oth_cnt
+        = " (#{100 * c_oth_cnt / sum_cnt}%)"
+        - c_chart_data << ["Прочие", c_oth_cnt]
+    tr
+      br
+      br
+      = pie_chart c_chart_data, :title => "Распределение систем в #{list_num.value}-ой редакции от #{date_val.value}"
+      br
   tr
     th = "Итого"
     - @top50_vendors.each do |top50_vendor|
       th = top50_vendor.cnt
-	  - sel_vendor_ids << top50_vendor.id
-	th = oth_cnt
+      - sel_vendor_ids << top50_vendor.id
+    th = oth_cnt
 
 br
 
@@ -45,29 +69,34 @@ table class="table table-hover"
     th = "Редакция"
     - @top50_vendors.each do |top50_vendor|
       th = top50_vendor.name
-	  - sel_vendor_ids << top50_vendor.id
-	th = "Прочие"
-	th = "Всего"
+      - sel_vendor_ids << top50_vendor.id
+    th = "Прочие"
+    th = "Всего"
   - @top50_slists.each do |top50_list|
     - sum_rmax = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result")
     tr
-	  td class="fit"
-	    - list_num = @num_vals.find_by(obj_id: top50_list.id)
-	    - date_val = @date_vals.find_by(obj_id: top50_list.id)
+      td class="fit"
+        - list_num = @num_vals.find_by(obj_id: top50_list.id)
+        - date_val = @date_vals.find_by(obj_id: top50_list.id)
         - if list_num.present?
-		  = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-	  - @top50_vendors.each do |top50_vendor|
+          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+      - @top50_vendors.each do |top50_vendor|
         td align="right" 
-		  - c_rmax = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result")
-		  = (c_rmax / 1000000.0).round(2)
-    	  = " (#{(100 * c_rmax / sum_rmax).round(0)}%)"
-	  td align="right" 
-	    - c_oth_rmax = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("rmax_res.result")
-	    = (c_oth_rmax / 1000000.0).round(2)
-		= " (#{(100 * c_oth_rmax / sum_rmax).round(0)}%)"
-	  td align="right"
-		= (sum_rmax / 1000000.0).round(2)
-	  
+          - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+          - prec_vid = 0
+          - if prec_vendor.present?
+            - prec_vid = prec_vendor.prim_obj_id
+            - sel_vendor_ids << prec_vid
+          - c_rmax = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result")
+          = (c_rmax / 1000000.0).round(2)
+          = " (#{(100 * c_rmax / sum_rmax).round(0)}%)"
+      td align="right" 
+        - c_oth_rmax = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("rmax_res.result")
+        = (c_oth_rmax / 1000000.0).round(2)
+        = " (#{(100 * c_oth_rmax / sum_rmax).round(0)}%)"
+      td align="right"
+        = (sum_rmax / 1000000.0).round(2)
+      
 br
 
 h3 = "Суммарная производительность Rpeak (ПФлоп/с):"
@@ -77,29 +106,34 @@ table class="table table-hover"
     th = "Редакция"
     - @top50_vendors.each do |top50_vendor|
       th = top50_vendor.name
-	  - sel_vendor_ids << top50_vendor.id
-	th = "Прочие"
-	th = "Всего"
+      - sel_vendor_ids << top50_vendor.id
+    th = "Прочие"
+    th = "Всего"
   - @top50_slists.each do |top50_list|
     - sum_rpeak = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
     tr
-	  td class="fit"
-	    - list_num = @num_vals.find_by(obj_id: top50_list.id)
-	    - date_val = @date_vals.find_by(obj_id: top50_list.id)
+      td class="fit"
+        - list_num = @num_vals.find_by(obj_id: top50_list.id)
+        - date_val = @date_vals.find_by(obj_id: top50_list.id)
         - if list_num.present?
-		  = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-	  - @top50_vendors.each do |top50_vendor|
+          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+      - @top50_vendors.each do |top50_vendor|
         td align="right" 
-		  - c_rpeak = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
-		  = (c_rpeak / 1000000.0).round(2)
-    	  = " (#{(100 * c_rpeak / sum_rpeak).round(0).to_i}%)"
-	  td align="right" 
-	    - c_oth_rpeak = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
-	    = (c_oth_rpeak / 1000000.0).round(2)
-		= " (#{(100 * c_oth_rpeak / sum_rpeak).round(0).to_i}%)"
-	  td align="right"
-		= (sum_rpeak / 1000000.0).round(2)
-	  
+          - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+          - prec_vid = 0
+          - if prec_vendor.present?
+            - prec_vid = prec_vendor.prim_obj_id
+            - sel_vendor_ids << prec_vid
+          - c_rpeak = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
+          = (c_rpeak / 1000000.0).round(2)
+          = " (#{(100 * c_rpeak / sum_rpeak).round(0).to_i}%)"
+      td align="right" 
+        - c_oth_rpeak = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_machines.id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("cast(encode(rpeak_res.value, 'escape') as numeric)")
+        = (c_oth_rpeak / 1000000.0).round(2)
+        = " (#{(100 * c_oth_rpeak / sum_rpeak).round(0).to_i}%)"
+      td align="right"
+        = (sum_rpeak / 1000000.0).round(2)
+      
 br
 
 h3 = "Количество интеграторов: общее (среднее):"
@@ -109,29 +143,34 @@ table class="table table-hover"
     th = "Редакция"
     - @top50_vendors.each do |top50_vendor|
       th = top50_vendor.name
-	  - sel_vendor_ids << top50_vendor.id
-	th = "Прочие"
+      - sel_vendor_ids << top50_vendor.id
+    th = "Прочие"
   - @top50_slists.each do |top50_list|
     tr
-	  td class="fit"
-	    - list_num = @num_vals.find_by(obj_id: top50_list.id)
-	    - date_val = @date_vals.find_by(obj_id: top50_list.id)
+      td class="fit"
+        - list_num = @num_vals.find_by(obj_id: top50_list.id)
+        - date_val = @date_vals.find_by(obj_id: top50_list.id)
         - if list_num.present?
-		  = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-	  - @top50_vendors.each do |top50_vendor|
+          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+      - @top50_vendors.each do |top50_vendor|
         td align="right" 
-		  - c_ven_avg = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).average("array_length(vendor_ids, 1)").to_f
-		  - c_ven = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).sum("array_length(vendor_ids, 1)")		  
-		  = c_ven
-    	  = " (#{number_with_precision(c_ven_avg, precision: 1, strip_insignificant_zeros: true)})"
-	  td align="right" 
-  	    - c_oth_ven_avg = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").average("array_length(vendor_ids, 1)").to_f
- 	    - c_oth_ven = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("array_length(vendor_ids, 1)")		  
- 	    = c_oth_ven
-		= " (#{number_with_precision(c_oth_ven_avg, precision: 1, strip_insignificant_zeros: true)})"
-	  
+          - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+          - prec_vid = 0
+          - if prec_vendor.present?
+            - prec_vid = prec_vendor.prim_obj_id
+            - sel_vendor_ids << prec_vid
+          - c_ven_avg = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).average("array_length(vendor_ids, 1)").to_f
+          - c_ven = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).sum("array_length(vendor_ids, 1)")         
+          = c_ven
+          = " (#{number_with_precision(c_ven_avg, precision: 1, strip_insignificant_zeros: true)})"
+      td align="right" 
+        - c_oth_ven_avg = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").average("array_length(vendor_ids, 1)").to_f
+        - c_oth_ven = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("array_length(vendor_ids, 1)")       
+        = c_oth_ven
+        = " (#{number_with_precision(c_oth_ven_avg, precision: 1, strip_insignificant_zeros: true)})"
+      
 br
-	  
+      
 
 h3 = "Совмещенная таблица (количество + Rmax):"
 table class="table table-hover"
@@ -140,29 +179,32 @@ table class="table table-hover"
     th = "Редакция"
     - @top50_vendors.each do |top50_vendor|
       th = top50_vendor.name
-	  - sel_vendor_ids << top50_vendor.id
-	th = "Прочие"
+      - sel_vendor_ids << top50_vendor.id
+    th = "Прочие"
   - @top50_slists.each do |top50_list|
     tr
-	  td class="fit"
-	    - list_num = @num_vals.find_by(obj_id: top50_list.id)
-	    - date_val = @date_vals.find_by(obj_id: top50_list.id)
+      td class="fit"
+        - list_num = @num_vals.find_by(obj_id: top50_list.id)
+        - date_val = @date_vals.find_by(obj_id: top50_list.id)
         - if list_num.present?
-		  = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-	  - @top50_vendors.each do |top50_vendor|
+          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+      - @top50_vendors.each do |top50_vendor|
         td align="right" 
-		  = link_to Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
-	      = " ("
-          = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result") / 1000000.0).round(2)
-		  = ")"
-		end
-	  td align="right" 
-	    = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
+          - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+          - prec_vid = 0
+          - if prec_vendor.present?
+            - prec_vid = prec_vendor.prim_obj_id
+            - sel_vendor_ids << prec_vid
+          = link_to Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+          = " ("
+          = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result") / 1000000.0).round(2)
+          = ")"
+      td align="right" 
+        = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
         = " ("
-		= (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("rmax_res.result") / 1000000.0).round(2)
-		= ")"
-      end
-	  
+        = (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").sum("rmax_res.result") / 1000000.0).round(2)
+        = ")"
+      
 br
 
 h3 = "Средняя производительность Rmax (ПФлоп/с):"
@@ -172,25 +214,28 @@ table class="table table-hover"
     th = "Редакция"
     - @top50_vendors.each do |top50_vendor|
       th = top50_vendor.name
-	  - sel_vendor_ids << top50_vendor.id
-	th = "Прочие"
+      - sel_vendor_ids << top50_vendor.id
+    th = "Прочие"
   - @top50_slists.each do |top50_list|
     tr
-	  td class="fit"
-	    - list_num = @num_vals.find_by(obj_id: top50_list.id)
-	    - date_val = @date_vals.find_by(obj_id: top50_list.id)
+      td class="fit"
+        - list_num = @num_vals.find_by(obj_id: top50_list.id)
+        - date_val = @date_vals.find_by(obj_id: top50_list.id)
         - if list_num.present?
-		  = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-	  - @top50_vendors.each do |top50_vendor|
+          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+      - @top50_vendors.each do |top50_vendor|
         td align="right" 
-		  = link_to Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
-	      = " ("
-          = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").average("rmax_res.result").to_f / 1000000.0).round(2)
-		  = ")"
-		end
-	  td align="right" 
-	    = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
+          - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
+          - prec_vid = 0
+          - if prec_vendor.present?
+            - prec_vid = prec_vendor.prim_obj_id
+            - sel_vendor_ids << prec_vid
+          = link_to Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+          = " ("
+          = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").average("rmax_res.result").to_f / 1000000.0).round(2)
+          = ")"
+      td align="right" 
+        = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
         = " ("
-		= (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").average("rmax_res.result").to_f / 1000000.0).round(2)
-		= ")"
-      end
+        = (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").average("rmax_res.result").to_f / 1000000.0).round(2)
+        = ")"
