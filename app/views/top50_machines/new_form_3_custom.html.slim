@@ -1,0 +1,26 @@
+div class="page-header"
+  h3 = "Добавление заявки в Top50 (Шаг 3 из 3)"
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = link_to "Добавить дополнительные компоненты системы", add_top50_machine_any_component_path(@top50_machine), class: "btn btn-default"
+
+  div class="panel-body"
+    h4 = "Указанные компоненты системы:"
+    - @top50_machine.top50_object.top50_relations.where(type_id: @rel_contain_id).each do |top50_relation|
+      = link_to "#{top50_relation.sec_obj_qty} x #{top50_relation.top50_object.top50_object_type.name}", top50_object_path(top50_relation.top50_object)
+      br
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = link_to "Задать дополнительные характеристики системы", new_top50_object_top50_attribute_val_dict_path(@top50_machine.top50_object), class: "btn btn-default"
+
+  div class="panel-body"
+    h4 = "Указанные атрибуты системы:"
+    - @top50_machine.top50_object.top50_attribute_val_dbvals.each do |top50_attribute_val|
+      = "#{top50_attribute_val.top50_attribute_dbval.top50_attribute.name}: #{top50_attribute_val.value}"
+      br
+    - @top50_machine.top50_object.top50_attribute_val_dicts.each do |top50_attribute_val|
+      = "#{top50_attribute_val.top50_attribute_dict.top50_attribute.name}: #{top50_attribute_val.top50_dictionary_elem.name}"
+      br
+

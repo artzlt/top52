@@ -1,0 +1,11 @@
+div class="page-header"
+  h4 = "Добавление компоненты"
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for [@top50_object, @top50_object.top50_relations.build], url: add_top50_machine_component_path(@top50_machine) do |f|
+      = f.fields_for :top50_object do |f1|
+        = f1.collection_select :type_id, Top50ObjectType.all, :id, :name, label: "Тип компоненты", selectd: @comp_node_type.id
+      = f.fields_for :top50_relation do |f2| 
+        = f2.number_field :sec_obj_qty, label: "Количество компонент данного типа"
+      = f.form_group do
+        = f.submit "Готово"

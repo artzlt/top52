@@ -1,0 +1,64 @@
+div class="page-header"
+  h3 = "Добавление заявки в Top50 (Шаг 2 из 4)"
+  br
+  br
+  h4 = "Архитектура вычислительной системы"
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = "Указанные вычислительные узлы системы:"
+  div class="panel-body"
+    - counter = 0
+    - top50_nodes = @top50_machine.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))
+	- top50_nodes.each do |top50_node| 
+      - counter += 1
+	  - top50_cpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects).first
+	  - top50_gpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects)
+	  - top50_cops = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects)
+	  - if top50_node.sec_obj_qty > 0
+		= "Группа узлов ##{counter}: #{top50_node.sec_obj_qty} x "
+	  = "["
+	  - if top50_cpu.present?
+		- if top50_cpu.sec_obj_qty > 0 
+		  = "#{top50_cpu.sec_obj_qty}x "
+		- cpu_vendor = @cpu_vendor_attr_vals.find_by(obj_id: top50_cpu.top50_object)
+		- if cpu_vendor.present?
+		  = cpu_vendor.top50_dictionary_elem.name
+		  = " "
+		= link_to @cpu_model_attr_vals.find_by(obj_id: top50_cpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_cpu.top50_object)
+	  - ram_size_val = @ram_size_attr_vals.find_by(obj_id: top50_node.top50_object)
+	  - if ram_size_val.present? and ram_size_val.value.to_f > 0
+		  - if top50_cpu.present?
+			= ", "
+		  = "#{number_with_precision(@ram_size_attr_vals.find_by(obj_id: top50_node.top50_object).value.to_f, precision: 3, strip_insignificant_zeros: true)} GB RAM"
+	  - if top50_gpus.any? or top50_cops.any?
+		- if top50_gpus.any?
+		  - top50_gpu = top50_gpus.first
+		  = "; "
+		  = "Acc: "
+		  - if top50_gpu.sec_obj_qty > 0 
+			= "#{top50_gpu.sec_obj_qty}x "
+		  - gpu_vendor = @gpu_vendor_attr_vals.find_by(obj_id: top50_gpu.top50_object)
+		  - if gpu_vendor.present?
+			= gpu_vendor.top50_dictionary_elem.name
+			= " "				  
+		  = link_to @gpu_model_attr_vals.find_by(obj_id: top50_gpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_gpu.top50_object)
+		- if top50_cops.any?			
+		  - top50_cop = top50_cops.first
+		  = "; "
+		  = "Acc: "
+		  - if top50_cop.sec_obj_qty > 0 
+			= "#{top50_cop.sec_obj_qty}x "
+		  - cop_vendor = @cop_vendor_attr_vals.find_by(obj_id: top50_cop.top50_object)
+		  - if cop_vendor.present?
+			= cop_vendor.top50_dictionary_elem.name
+			= " "				  
+		  = link_to @cop_model_attr_vals.find_by(obj_id: top50_cop.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_cop.top50_object)
+	  = "]"	
+	  br
+      br
+
+= link_to "Добавить данные об еще одной группе узлов", add_top50_machine_component_path(@top50_machine), class: "btn btn-default"
+br
+br
+= link_to "Готово", top50_machines_new_form_3_path(@top50_machine), class: "btn btn-default" 

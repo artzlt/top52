@@ -1,20 +1,63 @@
 div class="page-header"
-  h1 = t(".title", default: "New Machine")
-= link_to "GNAdds", "#", id:"add-form-link"
+  h3 = "Добавление заявки в Top50 (Шаг 1 из 4)"
+  br
+  br
+  h4 = "Общая информация о системе"
 
-h2 id="just-text" "The note"
-= "Plain text"
-div class="row"
-  div class="col-xs-8" id="form-new_machine" style="display:none" 
-    = bootstrap_form_for @top50_machine do |f|
-      = f.text_field :name
-      = f.text_field :name_eng
-      = f.collection_select :type_id, Top50MachineType.all, :id, :name, include_blank: true
-      = f.collection_select :vendor_id, Top50Vendor.all, :id, :name, include_blank: true
-      = f.collection_select :org_id, Top50Organization.all, :id, :name, include_blank: true
-      = f.collection_select :contact_id, Top50Contact.all, :id, :full_name, include_blank: true
+div class="col-8" id="form-new_machine"
+  = bootstrap_form_for @top50_machine do |f|
+    div class="panel panel-default col-8"
+      div class="panel-body col-8"
+        = f.collection_select :vendor_id, Top50Vendor.all, :id, :name, {include_blank: true, label: "Основной производитель/поставщик системы (*)"}, {required: true}
+        = "Отсутствует в списке? "
+        = link_to "Добавить производителя", new_top50_vendor_path
+        br
+        br
+        = f.collection_select :vendor_ids, Top50Vendor.all, :id, :name, {include_blank: true, label: "Другие участвующие производители (возможен множественный выбор)"}, {multiple: true}
+        = "Отсутствуют в списке? "
+        = link_to "Добавить производителя", new_top50_vendor_path
+        br
+        br
+        = f.text_field :name, label: "Официальное название системы"
+        = f.text_field :name_eng, label: "Название системы (на английском)"
+ 
+        = f.number_field :start_date, label: "Год установки вычислительной системы (*)", required: true, in: 1990...2020
 
-      = f.text_field :website
-      = f.form_group do
-        = f.submit t("buttons.save", default: "Save")
+    div class="panel panel-default col-8"
+      div class="panel-body col-8"
 
+        = f.collection_select :type_id, Top50MachineType.all, :id, :name, {include_blank: true, label: "Тип вычислительной системы (*)"}, {required: true}
+        = "Отсутствует в списке? "
+        = link_to "Добавить новый тип", new_top50_machine_type_path
+        br
+        br
+        = f.collection_select :org_id, Top50Organization.where("is_valid = 1 and not exists (select 1 from top50_relations where sec_obj_id = top50_organizations.id)"), :id, :name, {include_blank: true, label: "Организация (место установки системы) (*)"}, {required: true}
+        = "Отсутствует в списке? "
+        = link_to "Добавить организацию", new_top50_organization_path
+        br
+        br
+        = f.fields_for :top50_organization do |f1|
+            = autocomplete f1, name: :sub_org_id, label: "Подразделение указанной организации", layout: :regular, source: top50_organization_suborg_path(0)
+            = "Отсутствует в списке? "
+            = link_to "Добавить подразделение", new_top50_organization_path
+        br
+        br
+        = f.text_field :website, label: "Веб-сайт с информацией о системе"
+    br
+    div class="panel panel-default col-8"
+      div class="panel-heading col-8"
+        h4 = "Контактная информация лица, подающего заявку (для связи по поводу уточнения/подтверждения информации по заявке)"
+      div class="panel-body col-8"
+        = f.fields_for :top50_contact, @top50_machine.top50_contact do |cf|
+          = cf.text_field :surname, label: "Фамилия (*)", required: true
+          = cf.text_field :name, label: "Имя (*)", required: true
+          = cf.text_field :patronymic, label: "Отчество"
+          = cf.text_field :phone, label: "Телефон"
+          = cf.text_field :email, label: "Email (*)", required: true, type: 'email'
+          = cf.text_area :extra_info, rows: 4, label: "Дополнительная информация"
+    br
+    = check_box :cond, :cond_accepted
+    = label :cond, "Я разрешаю МГУ им.М.В.Ломоносова обработку моих персональных данных", required: true
+    br
+    br
+    = f.submit "Далее"

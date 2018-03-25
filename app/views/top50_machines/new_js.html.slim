@@ -1,0 +1,25 @@
+div class="page-header"
+  h1 = "Новая заявка"
+= link_to "Показать поля ввода", "#", id:"add-form-link"
+
+h4 id="just-text" Нажмите ссылку, чтобы отобразить форму ввода
+div class="row"
+  div class="col-xs-8" id="form-new_machine" style="display:none" 
+    = bootstrap_form_for @top50_machine do |f|
+      = f.text_field :name, label: "Название системы"
+      = f.text_field :name_eng, label: "Название системы (Eng)"
+      = f.collection_select :type_id, Top50MachineType.all, :id, :name, include_blank: true, :label => "Тип системы"
+      = link_to "Добавить новый тип", new_top50_machine_type_path
+      br
+      = f.collection_select :vendor_id, Top50Vendor.all, :id, :name, include_blank: true, label: "Производитель"
+      = link_to "Добавить производителя", new_top50_vendor_path
+      br
+      = f.collection_select :org_id, Top50Organization.all, :id, :name, include_blank: true, label: "Организация"
+      = link_to "Добавить организацию", new_top50_organization_path
+      br
+      = f.collection_select :contact_id, Top50Contact.all, :id, :full_name, include_blank: true, label: "Контактное лицо"
+      = link_to "Добавить контактные данные", new_top50_contact_path
+      br
+      = f.text_field :website, label: "Веб-сайт"
+      = f.form_group do
+        = f.submit "Далее"
