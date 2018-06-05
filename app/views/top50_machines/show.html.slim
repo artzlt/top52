@@ -56,17 +56,17 @@ p
 - corecnt_cop = 0
 - gpucorecnt = 0
 - top50_nodes.each do |top50_node| 
-  - top50_cpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects).first
+  - top50_cpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects)
   - top50_acc = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@acc_objects).first
-  - top50_gpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects).first
-  - top50_cop = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects).first
-  - if top50_cpu.present?
+  - top50_gpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects)
+  - top50_cops = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects)
+  - top50_cpus.each do |top50_cpu|
 	- t = top50_cpu.sec_obj_qty * top50_node.sec_obj_qty
 	- cpucnt += t
 	- cores = @core_qty_attr_vals.find_by(obj_id: top50_cpu.top50_object)
 	- if cores.present?
 	  - corecnt_cpu += t * cores.value.to_i
-  - if top50_gpu.present?
+  - top50_gpus.each do |top50_gpu|
 	- t = top50_gpu.sec_obj_qty * top50_node.sec_obj_qty
 	- gpucnt += t
 	- cores = @core_qty_attr_vals.find_by(obj_id: top50_gpu.top50_object)
@@ -75,7 +75,7 @@ p
 	  - corecnt_gpu += t * cores.value.to_i	
 	- if gpucores.present?
 	  - gpucorecnt += t * gpucores.value.to_i			
-  - if top50_cop.present?
+  - top50_cops.each do |top50_cop|
 	- t = top50_cop.sec_obj_qty * top50_node.sec_obj_qty
 	- copcnt += t
 	- cores = @core_qty_attr_vals.find_by(obj_id: top50_cop.top50_object)
@@ -142,13 +142,15 @@ p
   strong = "Архитектура: "
   br
 	- top50_nodes.each do |top50_node| 
-	  - top50_cpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects).first
+	  - top50_cpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects)
 	  - top50_gpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects)
 	  - top50_cops = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects)
 	  - if top50_node.sec_obj_qty > 0
 		= "узлов: #{top50_node.sec_obj_qty} "
 	  = "["
-	  - if top50_cpu.present?
+	  - top50_cpus.each_with_index do |top50_cpu, i|
+        - if i > 0
+          = ", "
 		- if top50_cpu.sec_obj_qty > 0 
 		  = "#{top50_cpu.sec_obj_qty}x "
 		- cpu_vendor = @cpu_vendor_attr_vals.find_by(obj_id: top50_cpu.top50_object)
@@ -158,25 +160,28 @@ p
 		= link_to @cpu_model_attr_vals.find_by(obj_id: top50_cpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_cpu.top50_object)
 	  - ram_size_val = @ram_size_attr_vals.find_by(obj_id: top50_node.top50_object)
 	  - if ram_size_val.present? and ram_size_val.value.to_f > 0
-		  - if top50_cpu.present?
+		  - if top50_cpus.any?
 			= ", "
 		  = "#{number_with_precision(@ram_size_attr_vals.find_by(obj_id: top50_node.top50_object).value.to_f, precision: 3, strip_insignificant_zeros: true)} GB RAM"
 	  - if top50_gpus.any? or top50_cops.any?
-		- if top50_gpus.any?
-		  - top50_gpu = top50_gpus.first
-		  = "; "
-		  = "Acc: "
-		  - if top50_gpu.sec_obj_qty > 0 
+		= "; "
+		= "Acc: "
+        - i = 0
+		- top50_gpus.each do |top50_gpu|
+          - if i > 0
+            = ", "
+          - i += 1
+		  - if top50_gpu.sec_obj_qty > 0
 			= "#{top50_gpu.sec_obj_qty}x "
 		  - gpu_vendor = @gpu_vendor_attr_vals.find_by(obj_id: top50_gpu.top50_object)
 		  - if gpu_vendor.present?
 			= gpu_vendor.top50_dictionary_elem.name
 			= " "				  
 		  = link_to @gpu_model_attr_vals.find_by(obj_id: top50_gpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_gpu.top50_object)
-		- if top50_cops.any?			
-		  - top50_cop = top50_cops.first
-		  = "; "
-		  = "Acc: "
+		- top50_cops.each do |top50_cop|
+          - if i > 0
+            = ", "
+          - i += 1
 		  - if top50_cop.sec_obj_qty > 0 
 			= "#{top50_cop.sec_obj_qty}x "
 		  - cop_vendor = @cop_vendor_attr_vals.find_by(obj_id: top50_cop.top50_object)

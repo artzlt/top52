@@ -8,6 +8,7 @@ gem "chartkick"
 
 gem "jquery-rails"
 gem "jquery-ui-rails"
+gem "select2-rails"
 
 group :development do
   gem "letter_opener"

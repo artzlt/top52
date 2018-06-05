@@ -1,4 +1,6 @@
 class Top50OrganizationsController < ApplicationController
+  skip_before_filter :require_login, only: [:suborg]
+  respond_to :json
 
   def index
     @top50_organizations = Top50Organization.all
@@ -21,7 +23,7 @@ class Top50OrganizationsController < ApplicationController
     @top50_organization = Top50Organization.new(top50organization_params)
     @top50_organization.id = @linked_obj.id
     if @top50_organization.save
-      redirect_to :top50_organizations
+      redirect_to :back
     else
       render :new
     end
@@ -50,6 +52,18 @@ class Top50OrganizationsController < ApplicationController
     Top50Organization.default!
   end
 
+  def suborg
+    org_id = params[:org_id]
+    org = Top50Organization.find(org_id)
+    rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+    all_suborgs = Top50Organization.where("is_valid = 1 and id IN (select sec_obj_id from top50_relations where prim_obj_id = #{org_id} and type_id = #{rel_contain_id})")
+    #@top50_suborgs = all_suborgs.finder(params[:q])
+    #json = { records: @top50_suborgs.page(params[:page]).per(params[:per]), total: @top50_suborgs.count}
+    @top50_suborgs = all_suborgs
+    json = { records: @top50_suborgs, total: @top50_suborgs.count}
+    respond_with(json)
+  end
+  
   private
 
   def top50organization_params

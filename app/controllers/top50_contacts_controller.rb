@@ -21,7 +21,7 @@ class Top50ContactsController < ApplicationController
     @top50_contact = Top50Contact.new(top50contact_params)
     @top50_contact.id = @linked_obj.id
     if @top50_contact.save
-      redirect_to :top50_contacts
+      redirect_to :back
     else
       render :new
     end

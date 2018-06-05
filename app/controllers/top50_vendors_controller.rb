@@ -51,7 +51,7 @@ class Top50VendorsController < ApplicationController
     @top50_vendor = Top50Vendor.new(top50vendor_params)
     @top50_vendor.id = @linked_obj.id
     if @top50_vendor.save
-      redirect_to :top50_vendors
+      redirect_to :back
     else
       render :new
     end

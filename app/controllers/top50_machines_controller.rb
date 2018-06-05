@@ -1,6 +1,6 @@
 # encoding: UTF-8
 class Top50MachinesController < ApplicationController
-  skip_before_filter :require_login, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats]
+  skip_before_filter :require_login, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats, :new, :create, :new_form, :new_form_3, :new_form_3_save, :new_form_4, :new_form_4_save, :new_form_5, :add_component, :create_component]
   def index
     @top50_machines = Top50Machine.all
   end
@@ -685,6 +685,7 @@ class Top50MachinesController < ApplicationController
 		
   def new
     @top50_machine = Top50Machine.new
+    @top50_contact = Top50Contact.new
   end
 
   def create
@@ -695,8 +696,12 @@ class Top50MachinesController < ApplicationController
     @linked_obj.save!
     @top50_machine = Top50Machine.new(top50machine_params)
     @top50_machine.id = @linked_obj.id
-    if @top50_machine.save
-      redirect_to :top50_machines
+    @top50_machine.vendor_ids = [top50machine_params[:vendor_id]] + (params[:top50_machine][:vendor_ids] - [top50machine_params[:vendor_id], ""])
+    if cond_params[:cond_accepted].to_i != 1
+      flash[:notice] = "Для подачи заявки необходимо подтвердить согласие на обработку данных."
+    end
+    if cond_params[:cond_accepted].to_i == 1 and @top50_machine.save
+      redirect_to top50_machines_new_form_url(@top50_machine)
     else
       render :new
     end
@@ -733,15 +738,132 @@ class Top50MachinesController < ApplicationController
     @top50_machine.destroy
     redirect_to :top50_machines
   end
+  
+  def prepare_arch_attrs
+    ram_size_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "RAM size (GB)"))
+    @ram_size_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(ram_size_attrs)
+    cpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "CPU model"))
+    @cpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_model_attrs)
+    cpu_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "CPU Vendor"))
+    @cpu_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_vendor_attrs)
+    gpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU model"))
+    @gpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(gpu_model_attrs)
+	gpu_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU Vendor"))
+    @gpu_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(gpu_vendor_attrs)
+	cop_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor model"))
+    @cop_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cop_model_attrs)
+	cop_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor Vendor"))
+    @cop_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cop_vendor_attrs)
+    @cop_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Coprocessor"))
+    @cpu_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "CPU"))
+    @gpu_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "GPU"))
+  end
+  
+  def add_component
+    @comp_node_type = Top50ObjectType.where(name_eng: 'Compute node').first
+    @top50_machine = Top50Machine.find(params[:id])
+    @top50_object = Top50Object.find(params[:id])
+    @top50_nested_object = Top50Object.new
+    @top50_relation = Top50Relation.new
+    @cpu_dict_id = Top50Dictionary.where(name_eng: 'CPU model').first.id
+    @gpu_dict_id = Top50Dictionary.where(name_eng: 'GPU model').first.id
+    @cop_dict_id = Top50Dictionary.where(name_eng: 'Coprocessor model').first.id
+    
+    prepare_arch_attrs
+  end
 
-
+  def create_component
+    @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+    @comp_node_id = Top50ObjectType.where(name_eng: 'Compute node').first.id
+    @cpu_type_id = Top50ObjectType.where(name_eng: 'CPU').first.id
+    @gpu_type_id = Top50ObjectType.where(name_eng: 'GPU').first.id
+    @cop_type_id = Top50ObjectType.where(name_eng: 'Coprocessor').first.id
+    
+    @top50_machine = Top50Machine.find(params[:id])
+    @top50_object = Top50Object.find(params[:id])
+    
+    top50_relation = @top50_object.top50_relations.build(top50_node_params[:top50_node])
+    top50_relation.type_id = @rel_contain_id
+    top50_nested_node = Top50Object.new
+    top50_nested_node.type_id = @comp_node_id
+    top50_nested_node.save!
+    top50_relation.sec_obj_id = top50_nested_node.id
+    if top50_node_params[:top50_cpu][:sec_obj_qty].present? and top50_node_params[:top50_cpu][:sec_obj_qty].to_i > 0
+        top50_cpu_relation = top50_nested_node.top50_relations.build
+        top50_cpu_relation.sec_obj_qty = top50_node_params[:top50_cpu][:sec_obj_qty]
+        top50_cpu_id = Top50AttributeValDict.where(dict_elem_id: top50_node_params[:top50_cpu][:model_dict_elem_id]).first.obj_id
+        top50_cpu_relation.type_id = @rel_contain_id
+        top50_cpu_relation.sec_obj_id = top50_cpu_id
+    end
+    if top50_node_params[:top50_acc][:sec_obj_qty].present? and top50_node_params[:top50_acc][:sec_obj_qty].to_i > 0
+        top50_acc_relation = top50_nested_node.top50_relations.build
+        top50_acc_relation.sec_obj_qty = top50_node_params[:top50_acc][:sec_obj_qty]
+        top50_acc_id = Top50AttributeValDict.where(dict_elem_id: top50_node_params[:top50_acc][:model_dict_elem_id]).first.obj_id
+        top50_acc_relation.type_id = @rel_contain_id
+        top50_acc_relation.sec_obj_id = top50_acc_id
+        top50_acc_relation.save
+    end
+    
+    top50_ram_attr = top50_nested_node.top50_attribute_val_dbvals.build
+    @ram_size_attrid = Top50Attribute.where(name_eng: "RAM size (GB)").first.id
+    top50_ram_attr.attr_id = @ram_size_attrid
+    top50_ram_attr.value = top50_node_params[:top50_ram][:ram_size]
+    top50_ram_attr.save
+    
+    if top50_relation.save and top50_cpu_relation.save
+      redirect_to top50_machines_new_form_url(@top50_machine)
+    else
+      render add_component_path(@top50_machine)
+    end
+  end
 
   def default
     Top50Machine.default!
     redirect_to :top50_machines
   end
+  
+  def new_form
+    @top50_machine = Top50Machine.find(params[:id])
+    @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+    @comp_node_id = Top50ObjectType.where(name_eng: 'Compute node').first.id
+    prepare_arch_attrs
+  end
+  
+  def new_form_3
+    @top50_machine = Top50Machine.find(params[:id])
+    @app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
+    @net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
+    @tplg_dict_id = Top50Dictionary.where(name_eng: 'Topologies').first.id
+    @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+  end
 
+  def new_form_3_save
+    @top50_machine = Top50Machine.find(params[:id])
+    redirect_to top50_machines_new_form_4_url(@top50_machine)
+  end
+
+  def new_form_4
+    @top50_machine = Top50Machine.find(params[:id])
+    @app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
+    @net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
+    @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+  end
+
+  def new_form_4_save
+    @top50_machine = Top50Machine.find(params[:id])
+    redirect_to top50_machines_new_form_5_url(@top50_machine)
+  end
+  
+  def new_form_5
+    @top50_machine = Top50Machine.find(params[:id])
+  end
+
+  
   private
+  
+  def cond_params
+    params.require(:cond).permit(:cond_accepted)
+  end
 
   def top50machine_params
     params.require(:top50_machine).permit(:name, :name_eng, :type_id, :vendor_id, :org_id, :contact_id, :website)
@@ -749,5 +871,9 @@ class Top50MachinesController < ApplicationController
 
   def top50_benchmark_result_params
     params.require(:top50_benchmark_result).permit(:benchmark_id, :result)
+  end
+  
+  def top50_node_params
+    params.require(:top50_relation).permit(:top50_node => [:sec_obj_qty], :top50_cpu => [:model_dict_elem_id, :sec_obj_qty], :top50_acc => [:model_dict_elem_id, :sec_obj_qty], :top50_ram => [:ram_size])
   end
 end

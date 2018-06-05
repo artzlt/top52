@@ -36,6 +36,12 @@ Octoshell::Application.routes.draw do
     get :return_to_self, on: :member
   end
   resource :profile
+  get 'top50_machines/:id/new_form', to: 'top50_machines#new_form', as:'top50_machines_new_form'
+  get 'top50_machines/:id/new_form_3', to: 'top50_machines#new_form_3', as:'top50_machines_new_form_3'
+  patch 'top50_machines/:id/new_form_3', to: 'top50_machines#new_form_3_save'
+  get 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4', as:'top50_machines_new_form_4'
+  patch 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4_save'
+  get 'top50_machines/:id/new_form_5', to: 'top50_machines#new_form_5', as:'top50_machines_new_form_5'
   resources :top50_machines
 #  resources :top50_objects
   resources :top50_contacts
@@ -96,6 +102,13 @@ Octoshell::Application.routes.draw do
   post 'top50_objects/:id/top50_nested_objects', to: 'top50_objects#create_nested_object'
   get 'top50_objects/:id/top50_nested_objects/new', to: 'top50_objects#new_nested_object', as:'new_top50_object_top50_nested_object'
   
+  get 'top50_machines/:id/add_component', to: 'top50_machines#add_component', as:'add_top50_machine_component'
+  post 'top50_machines/:id/add_component', to: 'top50_machines#create_component'
+  patch 'top50_machines/:id/add_component', to: 'top50_machines#create_component'
+  
+  get 'top50_machines/:id/add_any_component', to: 'top50_machines#add_any_component', as:'add_top50_machine_any_component'
+  post 'top50_machines/:id/add_any_component', to: 'top50_machines#create_any_component'
+  
   get 'top50_objects_tp', to: 'top50_objects#index_type', as: 'top50_object_tp'
 
   get 'top50_objects_tp/:tid', to: 'top50_objects#objects_of_type', as: 'top50_object_by_tp'
@@ -107,6 +120,7 @@ Octoshell::Application.routes.draw do
   post 'top50_machines/:id/benchmark_results', to: 'top50_machines#create_benchmark_result'
 
   get 'top50_machines/:id/benchmark_results/add', to: 'top50_machines#add_benchmark_result', as:'new_top50_machine_top50_benchmark_result'
+  get 'top50_organizations/:org_id/suborgs', to: 'top50_organizations#suborg', as:'top50_organization_suborg'
 
 # get "top50_machines" => "top50_machines#index"
 # get "top50_machine" => "top50_machines#show"

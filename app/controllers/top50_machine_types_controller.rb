@@ -17,7 +17,7 @@ class Top50MachineTypesController < ApplicationController
     @top50_machine_type[:is_valid] = 0
     @top50_machine_type[:comment] = "Added type"
     if @top50_machine_type.save
-      redirect_to :top50_machine_types
+      redirect_to :back
     else
       render :new
     end
