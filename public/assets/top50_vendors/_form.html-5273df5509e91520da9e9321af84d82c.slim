@@ -1,8 +1,0 @@
-div class="row"
-  div class="col-xs-8"
-    = bootstrap_form_for @top50_vendor do |f|
-      = f.text_field :name
-      = f.text_field :name_eng
-      = f.text_field :website
-      = f.form_group do
-        = f.submit t("buttons.save", default: "Save")
