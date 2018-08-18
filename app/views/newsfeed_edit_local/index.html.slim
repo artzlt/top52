@@ -1,0 +1,25 @@
+= link_to t("Назад"), newsfeed_settings_path, class: "btn btn-default"
+
+div class="page-header"
+  h1 = t(".title", default: "Локальные новости и аннонсы")
+
+= link_to t("Создать"), (newsfeed_local_index_path), class: "btn btn-default"
+
+- if @local_news.any?
+    div class="panel-body"
+      table class="table table-hover"
+        - @local_news.each do |local|
+          tr
+            td
+              - if local.title?
+                h5 = local.title
+              p = local.announce.html_safe
+              - if Date.today >= local.start_date and Date.today <= local.end_date
+                <span class="badge badge-warning">Активна</span>
+              - else
+                <span class="badge badge-warning">Неактивна</span>
+              br
+              br
+              = link_to t("Редактировать"), patch_newsfeed_local_path(local.id), :method => :patch, class: "btn btn-primary btn-sm"
+              = "    "
+              = link_to t("Удалить"), destroy_newsfeed_local_path(local.id), :method => :delete, :data => {:confirm => "Are you sure?"}, class: "btn btn-danger btn-sm"

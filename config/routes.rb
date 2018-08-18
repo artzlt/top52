@@ -29,12 +29,12 @@ Octoshell::Application.routes.draw do
 
   # root "face/home#show"
   root :to => redirect('/top50_stats')
-  
 
   resources :users do
     get :login_as, on: :member
     get :return_to_self, on: :member
   end
+
   resource :profile
   get 'top50_machines/:id/new_form', to: 'top50_machines#new_form', as:'top50_machines_new_form'
   get 'top50_machines/:id/new_form_3', to: 'top50_machines#new_form_3', as:'top50_machines_new_form_3'
@@ -58,13 +58,15 @@ Octoshell::Application.routes.draw do
   resources :top50_attributes
   resources :top50_attribute_datatypes
   resources :top50_dictionaries, shallow: true do
-	resources :top50_dictionary_elems
+  resources :top50_dictionary_elems
   end
+
   resources :top50_measure_units
   resources :top50_benchmarks
 #  resources :top50_attribute_dbval
   resources :top50_attribute_dbvals
   resources :top50_attribute_dicts
+  
   get 'top50_machines_list_tmp/:eid', to: 'top50_machines#list_tmp', as:'top50_machines_list_tmp'
   get 'top50_machines_list_tmp2/:eid', to: 'top50_machines#list_tmp2', as:'top50_machines_list_tmp2'
   get 'top50_machines_list', to: 'top50_machines#list', as:'top50_machines_list'
@@ -129,6 +131,34 @@ Octoshell::Application.routes.draw do
 # patch "top50_machines" => "top50_machines#update"
 # post "top50_machines" => "top50_machines#create"
 # get "top50_attributes_dbval" => "top50_attribute_dbval#index"
+
+  resources :newsfeed, only: [:new, :index]
+  resources :newsfeed_settings, only: [:new, :create, :index]
+  resources :newsfeed_local, only: [:new, :create, :index]
+
+  post '/newsfeed/', to: 'newsfeed#create', as: 'newsfeed_create'
+  patch '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_patch'
+  put '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_put'
+
+  post '/newsfeed_edit_import/', to: 'newsfeed_edit_import#create', as: 'newsfeed_edit_import_create'
+  patch '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_patch'
+  put '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_put'
+
+  patch '/newsfeed_settings/:id', to: 'newsfeed_settings#update', as: 'patch_newsfeed_settings'
+  put '/newsfeed_settings/:id', to: 'newsfeed_settings#update', as: 'put_newsfeed_settings'
+
+  delete '/newsfeed_local/:id', to: 'newsfeed_local#destroy', as: 'destroy_newsfeed_local'
+  patch '/newsfeed_local/:id', to: 'newsfeed_local#update', as: 'patch_newsfeed_local'
+  put '/newsfeed_local/:id', to: 'newsfeed_local#update', as: 'put_newsfeed_local'
+  get '/newsfeed_local/:id', to: 'newsfeed_local#show', as: 'show_newsfeed_local'
+
+  resources :newsfeed_edit_local, only: [:index]
+  resources :newsfeed_import, only: [:index]
+  resources :newsfeed_edit_import, only: [:index]
+
+  patch '/newsfeed_import/:id', to: 'newsfeed_import#update', as: 'patch_newsfeed_import'
+  put '/newsfeed_import/:id', to: 'newsfeed_import#update', as: 'put_newsfeed_import'
+  # get '/newsfeed_import/:id', to: 'newsfeed_import#show', as: 'show_newsfeed_import'
 
   namespace :admin do
     mount Sidekiq::Web => "/sidekiq", :constraints => AdminConstraint.new

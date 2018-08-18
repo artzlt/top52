@@ -1,0 +1,11 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for(@import_post, url: patch_newsfeed_import_path, validate: true) do |f|
+      = f.text_area :title, size: "10x5", required: true
+      = f.text_field :initial_title, readonly: true
+      = f.url_field :link, required: true
+      = f.text_field :tags, value: @import_post.tags.join(', ')
+      = f.date_field :date_created, required: true
+      = f.check_box :is_ignoring
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

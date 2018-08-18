@@ -1,0 +1,2 @@
+module NewsfeedLocalHelper
+end

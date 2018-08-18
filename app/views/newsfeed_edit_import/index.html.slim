@@ -1,0 +1,44 @@
+= link_to t("Назад"), newsfeed_settings_path, class: "btn btn-default"
+
+div class="page-header"
+  h1 = t(".title", default: "Импортированные новости")
+
+- if @import_news.any?
+    div class="panel-body"
+      table class="table table-hover"
+        - @import_news.each do |local|
+          tr
+            td
+              a(href=local.link) = truncate(local.title, :length => 380, :omission => "" , :escape => false)
+              br
+              br
+              - if local.tags != nil
+                b = "Категории: "
+                | 
+                = local.tags.join(", ")
+                br
+                br
+              div align="left"
+                = link_to t("Редактировать"), patch_newsfeed_import_path(local.id), :method => :patch, class: "btn btn-primary btn-sm"
+
+- if @import_news.any?
+  div width="100%" align="center"
+    = will_paginate @import_news, renderer: BootstrapPagination::Rails, :previous_label => 'Назад', :next_label => 'Вперед'
+
+ruby:
+  def all_tags
+    return NewsfeedImport.select("tags").flat_map { |x| x.tags }.uniq
+  end
+
+br
+br
+div class="form-group"
+  = bootstrap_form_for(@settings, url: newsfeed_edit_import_index_path) do |f|
+    div class="col-sm-4"
+      = f.date_field :start_date
+    div class="col-sm-4"
+      = f.select(:tag, all_tags, {include_blank: true}, {class: "form-control", width: "50%"})
+    div class="col-sm-4"
+      = f.date_field :end_date
+    div class="col-sm-12" align="center"
+      = f.submit "Сохранить"

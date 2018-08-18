@@ -1,0 +1,69 @@
+- if current_user && User.superadmins.include?(current_user)
+    = link_to t("Настройки"), ("/newsfeed_settings"), class: "btn btn-default"
+    br
+    br
+
+table border="0px"
+  tr
+    td id="M1" align="left" valign="top" style="padding: 5px 10px 5px 5px;" width="200px"
+      h5 = "Коротко о главном:"
+      hr
+      - if @local_news.any?
+        - @local_news.each do |post|
+          - if post.title?
+            div
+            | 
+            b = post.title
+            br
+            br
+          div
+          | 
+          = post.announce.html_safe
+          - if post.body?
+            div
+            |
+            br = link_to t("Подробнее..."), show_newsfeed_local_path(post.id), target: '_blank'
+          - elsif post.link?
+            div
+            |
+            br = link_to t("Подробнее..."), post.link, target: '_blank'
+          hr
+      - else
+        m = "Новостей пока нет"
+
+    td id="M2" rowspan="2" valign="top" align="left" style="padding: 4px 25px 4px 25px;"
+      table border="0" cellspacing="0" cellpadding="0"
+        h4 = "Последние Новости"
+
+      - if @posts.any?
+        - @posts.each do |post|
+          div class="form-horizontal center"
+            li
+              = link_to t(post.title), post.link, style: "font-size: 14.5px; text-decoration: underline;", target: '_blank'
+              br style="line-height:22px;"
+              i = post.date_created.strftime("%d %B %Y")
+              br style="line-height:30px;"
+      - else
+        m = "Новостей пока нет"
+
+- if @posts.any?
+  div width="100%" align="center"
+    = will_paginate @posts, renderer: BootstrapPagination::Rails, :previous_label => 'Назад', :next_label => 'Вперед'
+
+ruby:
+  def all_tags
+    return NewsfeedImport.select("tags").flat_map { |x| x.tags }.uniq
+  end
+
+br
+br
+div class="form-group"
+  = bootstrap_form_for(@settings, url: '/newsfeed') do |f|
+    div class="col-sm-4"
+      = f.date_field :start_date
+    div class="col-sm-4"
+      = f.select(:tag, all_tags, {include_blank: true}, {class: "form-control", width: "50%"})
+    div class="col-sm-4"
+      = f.date_field :end_date
+    div class="col-sm-12" align="center"
+      = f.submit "Сохранить"

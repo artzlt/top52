@@ -1,0 +1,2 @@
+module NewsfeedImportHelper
+end
