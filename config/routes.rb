@@ -28,7 +28,7 @@ Octoshell::Application.routes.draw do
   mount Announcements::Engine, :at => "/announcements"
 
   # root "face/home#show"
-  root :to => redirect('/top50_stats')
+  root :to => redirect('/newsfeed')
 
   resources :users do
     get :login_as, on: :member
