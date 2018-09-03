@@ -204,7 +204,7 @@ class Top50MachinesController < ApplicationController
       order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc").first.obj_id
 	
 	prepare_archive(top50_current_id)
-    
+
     @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{top50_current_id}").
       order("ed_results.result asc").

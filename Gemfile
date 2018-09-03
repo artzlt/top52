@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 gem "rake"
 gem "rails", "~> 4.1.2"
-gem "activerecord-jdbcpostgresql-adapter"
+gem "activerecord-jdbcpostgresql-adapter", "~> 1.3"
 gem "uglifier", ">= 1.3.0"
 gem "chartkick"
 
@@ -36,7 +36,7 @@ gem "statistics",     path: "engines/statistics"
 gem "wiki",           path: "engines/wiki"
 gem "announcements",  path: "engines/announcements"
 
-gem "rails_config"
+gem "config"
 gem "decorators", "~> 1.0.0"
 
 gem "will_paginate"
