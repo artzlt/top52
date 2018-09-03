@@ -7,7 +7,7 @@
 5. Установить bundler в папке с проектом: `gem install bundler`
 6. `bundle install`.
 7. `sudo -u postgres psql`<br />
-postgres=# `create user dbuser_dev;<br />`
+postgres=# `create user dbuser_dev;`<br />
 postgres=# `\password dbuser_dev`  # Password: `pass`<br />
 postgres=# `alter user dbuser CREATEDB;`
 8. `rake db:setup`
