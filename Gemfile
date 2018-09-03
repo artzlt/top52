@@ -39,6 +39,11 @@ gem "announcements",  path: "engines/announcements"
 gem "rails_config"
 gem "decorators", "~> 1.0.0"
 
+gem "will_paginate"
+gem "will_paginate-bootstrap"
+# gem "md_simple_editor" # doesn't support jruby
+gem "ckeditor"
+
 group :production do
   gem "whenever"
 end

@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  number_of_imported_news_shown: 1
+  imported_news_source: MyString
+  number_of_local_news_shown: 1
+
+two:
+  number_of_imported_news_shown: 1
+  imported_news_source: MyString
+  number_of_local_news_shown: 1

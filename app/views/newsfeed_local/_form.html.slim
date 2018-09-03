@@ -1,0 +1,30 @@
+= render "data"
+= javascript_include_tag Ckeditor.cdn_url
+
+div class="row"
+  div class="col-xs-10"
+    = bootstrap_form_for(@local_post, url: newsfeed_local_index_path, validate: true) do |f|
+      = f.select(:template, options_for_select(templates), {}, {class: "form-control", id: "template_id", onchange: "selectedTemplate()"})
+      = f.text_field :title, placeholder: "Optional", class: "form-control"
+      = f.cktext_area :announce, id: "announce", size: "20x10", required: true
+      br
+      = f.date_field :date_created, value: Time.now.strftime('%Y-%m-%d'), required: true
+      = f.date_field :start_date, required: true
+      = f.date_field :end_date, required: true
+
+      div
+        a(class="btn btn-primary" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample") = "Article body and link"
+        <div class="collapse" id="collapseExample">
+          <br/>
+          <div class="card card-body">
+            = f.cktext_area :body, size: "50x15", placeholder: "Optional", class: "form-control"
+            br
+            = f.text_field :link, placeholder: "Optional", class: "form-control"
+          </div>
+        </div>
+      br
+      
+      = f.text_field :header_weight, id: "header_weight", class:"header_weight", onkeydown: "document.getElementById('footer_weight').value = '';", placeholder: "Optional"
+      = f.text_field :footer_weight, id: "footer_weight", class:"footer_weight", onkeydown: "document.getElementById('header_weight').value = '';", placeholder: "Optional"
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

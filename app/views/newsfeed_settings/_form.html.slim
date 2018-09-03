@@ -1,0 +1,23 @@
+ruby:
+  def schedule_options
+    return [
+      ['Minutly', 'minute'],
+      ['Hourly', 'hour'],
+      ['Daily', 'day'],
+      ['Weekly', 'week'],
+      ['Monthly', 'month']
+    ]
+  end
+
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for(@settings, url: patch_newsfeed_settings_path(@settings.id)) do |f|
+      = f.text_field :number_of_local_news_shown
+      = f.text_field :number_of_imported_news_shown
+      = f.text_field :imported_news_source, readonly: true
+      / = f.text_field :update_interval_minutes
+      / = f.text_field :update_interval_hours
+      = f.select(:cron_schedule, schedule_options, {}, {class: "form-control", id: "schedule_id", onchange: ""})
+      = f.number_field :cron_value
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

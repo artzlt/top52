@@ -1,0 +1,9 @@
+div class="panel panel-default" width="70%"
+  - if @local_post.title?
+      div class="panel-heading"
+        h3 = @local_post.title
+
+  div class="panel-body" id="content"
+    p = @local_post.body.html_safe
+    br
+    m = @local_post.date_created
