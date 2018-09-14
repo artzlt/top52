@@ -1,0 +1,17 @@
+<form action='page2' method='POST'>
+	Номер редакции:<br>
+	<select name='reliz'>
+		<% @n_relizes.each do |n| %>
+		<option value= <%= n %> > <%= n %> </option>
+		<% end %>
+	</select><br>
+	Место в топе:<br>
+	<select name='position'>
+		<% @n_places.each do |n| %>
+		<option value= <%= n %> > <%= n %> </option>
+		<% end %>
+	</select><br>
+	Использовать сохраненные данные:<br>
+	<input type='checkbox' name='if_csv'><br>
+	<input type='submit' value='Получить данные'>
+</form><br>
