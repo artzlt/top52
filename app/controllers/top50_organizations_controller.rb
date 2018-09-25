@@ -1,5 +1,6 @@
-class Top50OrganizationsController < ApplicationController
+class Top50OrganizationsController < Top50BaseController
   skip_before_filter :require_login, only: [:suborg]
+  skip_before_filter :require_admin_rights, only: [:suborg]
   respond_to :json
 
   def index

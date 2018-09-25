@@ -65,7 +65,7 @@ div class="row"
         div class="panel-body"
           = f.fields_for :top50_cpu do |f3| 
             = f3.number_field :sec_obj_qty, label: "Количество процессоров на одном узле (*)", required: true
-            = f3.collection_select :model_dict_elem_id, Top50DictionaryElem.where(dict_id: @cpu_dict_id, is_valid: 1), :id, :name, {label: "Модель процессора (*)", include_blank: true}, {required: true}
+            = f3.collection_select :model_dict_elem_id, Top50DictionaryElem.where(dict_id: @cpu_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Модель процессора (*)", include_blank: true}, {required: true}
             = "Отсутствует в списке? "
             = link_to "Добавить модель процессора", new_top50_object_path
       div class="panel panel-default"
@@ -81,7 +81,7 @@ div class="row"
         div class="panel-body"
           = f.fields_for :top50_acc do |f3| 
             = f3.number_field :sec_obj_qty, label: "Количество ускорителей на одном узле"
-            = f3.collection_select :model_dict_elem_id, Top50DictionaryElem.where("dict_id in (#{@gpu_dict_id}, #{@cop_dict_id}) and is_valid = 1"), :id, :name, {label: "Модель ускорителя (при наличии)", include_blank: true}
+            = f3.collection_select :model_dict_elem_id, Top50DictionaryElem.where("dict_id in (#{@gpu_dict_id}, #{@cop_dict_id}) and is_valid = 1").order(:name), :id, :name, {label: "Модель ускорителя (при наличии)", include_blank: true}
             = "Отсутствует в списке? "
             = link_to "Добавить модель ускорителя", new_top50_object_path
           br

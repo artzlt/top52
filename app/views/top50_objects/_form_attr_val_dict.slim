@@ -4,7 +4,7 @@ div class="row"
       
       - primary_attr = Top50AttributeDict.first
       = f.collection_select :attr_id, Top50Attribute.where(attr_type: 2), :id, :name, selected: primary_attr.top50_attribute
-      = autocomplete f, name: :dict_elem_id, label: "Element", layout: :regular, source: top50_attribute_dict_top50_dictionary_elems_path(primary_attr)
+      = f.collection_select :dict_elem_id, Top50DictionaryElem.all.order(:name), :id, :name
 
       = f.form_group do
         = f.submit t("buttons.save", default: "Save")

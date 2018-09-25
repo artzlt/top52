@@ -1,4 +1,4 @@
-class Top50AttributeDbvalsController < ApplicationController
+class Top50AttributeDbvalsController < Top50BaseController
 
   def index
     @top50_attributes_dbval = Top50AttributeDbval.includes(:top50_attribute).all

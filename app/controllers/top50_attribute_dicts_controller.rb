@@ -1,4 +1,4 @@
-class Top50AttributeDictsController < ApplicationController
+class Top50AttributeDictsController < Top50BaseController
 
   def index
     @top50_attributes_dict = Top50AttributeDict.includes(:top50_attribute).all

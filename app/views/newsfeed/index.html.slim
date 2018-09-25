@@ -1,4 +1,4 @@
-- if current_user && User.superadmins.include?(current_user)
+- if current_user && current_user.may_manage_news?
     = link_to t("Настройки"), ("/newsfeed_settings"), class: "btn btn-default"
     br
     br

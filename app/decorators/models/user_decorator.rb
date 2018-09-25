@@ -37,8 +37,36 @@ User.class_eval do
     [full_name, email].join(" - ")
   end
 
+  def may_preview?
+    return (Group.superadmins.users | Group.preview_users.users).include? self
+  end
+
+  def may_manage_news?
+    return (Group.superadmins.users | Group.news_moderators.users).include? self
+  end
+
+  def may_manage_certs?
+    return (Group.superadmins.users | Group.cert_moderators.users).include? self
+  end
+
+  def may_edit_top50?
+    return Group.superadmins.users.include? self
+  end
+
   def self.superadmins
     Group.superadmins.users
+  end
+  
+  def self.news_moderators
+    Group.news_moderators.users
+  end
+
+  def self.cert_moderators
+    Group.cert_moderators.users
+  end
+
+  def self.preview_users
+    Group.preview_users.users
   end
 
   def self.support

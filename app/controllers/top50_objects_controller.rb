@@ -1,5 +1,6 @@
-class Top50ObjectsController < ApplicationController
+class Top50ObjectsController < Top50BaseController
   skip_before_filter :require_login, only: [:show_info]
+  skip_before_filter :require_admin_rights, only: [:show_info]
   def index
     @top50_objects = Top50Object.all
   end

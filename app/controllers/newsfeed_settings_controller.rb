@@ -1,7 +1,4 @@
-class NewsfeedSettingsController < ApplicationController
-  before_filter :require_login
-  before_filter :authorize_admins!
-
+class NewsfeedSettingsController < NewsfeedBaseController
   def show
     default_vals()
   end
@@ -50,10 +47,6 @@ class NewsfeedSettingsController < ApplicationController
       @settings = NewsfeedSettingsController.default_settings
       @settings.save()
     end
-  end
-
-  def authorize_admins!
-    authorize! :access, :admin
   end
 
   def newsfeed_settings_params

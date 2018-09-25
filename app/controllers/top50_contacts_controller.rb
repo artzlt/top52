@@ -1,4 +1,4 @@
-class Top50ContactsController < ApplicationController
+class Top50ContactsController < Top50BaseController
 
   def index
     @top50_contacts = Top50Contact.all

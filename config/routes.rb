@@ -2,8 +2,6 @@ require "sidekiq/web"
 require "admin_constraint"
 
 Octoshell::Application.routes.draw do
-  #root :to => redirect('/top50_objects')
-  #root 'top50_objects#index'
   # This line mounts Wiki routes at /wiki by default.
   mount Wiki::Engine, :at => "/wiki"
 
@@ -27,13 +25,15 @@ Octoshell::Application.routes.draw do
 
   mount Announcements::Engine, :at => "/announcements"
 
-  # root "face/home#show"
-  root :to => redirect('/newsfeed')
+  root 'newsfeed#index'
+  #root :to => redirect('/newsfeed')
 
   resources :users do
     get :login_as, on: :member
     get :return_to_self, on: :member
   end
+  
+  get 'certificates/download', to: 'top50_machines#download_certificate', as: 'download_certificate'
 
   resource :profile
   get 'top50_machines/:id/new_form', to: 'top50_machines#new_form', as:'top50_machines_new_form'
@@ -42,8 +42,22 @@ Octoshell::Application.routes.draw do
   get 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4', as:'top50_machines_new_form_4'
   patch 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4_save'
   get 'top50_machines/:id/new_form_5', to: 'top50_machines#new_form_5', as:'top50_machines_new_form_5'
+  get 'top50_machines/new_list', to: 'top50_machines#new_list', as: 'top50_machines_new_list'
+  post 'top50_machines/new_list', to: 'top50_machines#submit_list', as: 'top50_machines_submit_list'
+  get 'top50_machines/delete_list/:id', to: 'top50_machines#destroy_list', as: 'top50_machines_destroy_list'
+  get 'top50_machines/edit_list/:id', to: 'top50_machines#new_list', as: 'top50_machines_edit_list'
+  post 'top50_machines/edit_list/:id', to: 'top50_machines#submit_list', as: 'top50_machines_save_list'
+  get 'top50_machines/add_preview_list/:id', to: 'top50_machines#add_preview_list', as: 'top50_machines_add_preview_list'
+  get 'top50_machines/delete_preview_list/:id', to: 'top50_machines#delete_preview_list', as: 'top50_machines_delete_preview_list'
+  get 'top50_machines/publish_list/:id', to: 'top50_machines#publish_list', as: 'top50_machines_publish_list'
+  get 'top50_machines/unpublish_list/:id', to: 'top50_machines#unpublish_list', as: 'top50_machines_unpublish_list'
+  
+  get 'top50_machines/moderate/:id', to: 'top50_machines#moderate', as: 'top50_machines_moderate'
+  post 'top50_machines/moderate/:id', to: 'top50_machines#pre_save', as: 'top50_machines_presave'
+  get 'top50_machines/moderate', to: 'top50_machines#moderate', as: 'top50_machines_moderate_new'
+  post 'top50_machines/moderate', to: 'top50_machines#pre_save', as: 'top50_machines_presave_new'
+
   resources :top50_machines
-#  resources :top50_objects
   resources :top50_contacts
   resources :top50_vendors
   resources :top50_organizations

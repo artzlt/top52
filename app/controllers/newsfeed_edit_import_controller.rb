@@ -1,6 +1,4 @@
-class NewsfeedEditImportController < ApplicationController
-  before_filter :require_login
-  before_filter :authorize_admins!
+class NewsfeedEditImportController < NewsfeedBaseController
 
   def index
     @settings = NewsfeedSettingsController.settings
@@ -39,9 +37,4 @@ class NewsfeedEditImportController < ApplicationController
 																		:end_date => newsfeed_settings[:end_date].to_date,
 																		:tag => newsfeed_settings[:tag].blank? ? nil : newsfeed_settings[:tag])
 	end
-
-  private
-  def authorize_admins!
-    authorize! :access, :admin
-  end
 end

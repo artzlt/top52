@@ -1,4 +1,4 @@
-class Top50AttributesController < ApplicationController
+class Top50AttributesController < Top50BaseController
 
   def index
     @top50_attributes = Top50Attribute.all

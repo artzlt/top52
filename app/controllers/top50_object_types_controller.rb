@@ -1,4 +1,4 @@
-class Top50ObjectTypesController < ApplicationController
+class Top50ObjectTypesController < Top50BaseController
 
   def index
     @top50_object_types = Top50ObjectType.all

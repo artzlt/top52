@@ -1,7 +1,7 @@
 doctype html
 html
   head
-    title Top50 Project
+    title Top50 | Суперкомпьютеры
     = favicon_link_tag 'favicon.ico'
     = favicon_link_tag 'apple-touch-icon-precomposed.png', type: 'image/png'
     = favicon_link_tag 'apple-touch-icon-precomposed.png', rel: 'apple-touch-icon', type: 'image/png'
@@ -34,11 +34,17 @@ html
             a class="navbar-brand" href="/top50_machines_archive" Архив
           ul class="nav navbar-nav"
             a class="navbar-brand" href="/top50_stats" Статистика			
-          ul class="nav navbar-nav"
-            a class="navbar-brand" href="/auth/session/new" Войти
           /!
             ul class="nav navbar-nav"
-              a class="navbar-brand" href="/top50_machines/new" Подать заявку
+              a class="navbar-brand" href="/auth/session/new" Войти
+          ul class="nav navbar-nav"
+            a class="navbar-brand" href="http://top50.supercomputers.ru/?page=application" Подать заявку
+          - if current_user
+            - if current_user.may_edit_top50?
+              ul class="nav navbar-nav"
+                = link_to 'Новая редакция', top50_machines_new_list_path, class: "navbar-brand"
+            ul class="nav navbar-nav"
+              a class="navbar-brand" href="/auth/session" Выйти (#{current_user.email})
 
     div class="container"
 	  table border="0" cellspacing="0" cellpadding="0"
@@ -63,4 +69,7 @@ html
 			
       div id="footer"
         = link_to 'НИВЦ МГУ имени М.В. Ломоносова', 'http://srcc.msu.ru', target: '_blank'
+        br
+        br
+        = link_to 'Вход для администратора', '/auth/session/new'
 

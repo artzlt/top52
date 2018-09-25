@@ -1,5 +1,6 @@
-class NewsfeedController < ApplicationController
-	skip_before_filter :require_login#, only: []
+class NewsfeedController < NewsfeedBaseController
+	skip_before_filter :require_login
+    skip_before_filter :require_moder_rights
 
 	def index
 		@settings = NewsfeedSettingsController.settings

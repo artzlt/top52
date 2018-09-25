@@ -1,5 +1,4 @@
-class Top50VendorsController < ApplicationController
-#skip_before_filter :require_login, only: [:stats]
+class Top50VendorsController < Top50BaseController
   def index
     @top50_vendors = Top50Vendor.all
   end

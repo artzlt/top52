@@ -1,4 +1,4 @@
-class Top50RelationTypesController < ApplicationController
+class Top50RelationTypesController < Top50BaseController
 
   def index
     @top50_relation_types = Top50RelationType.all
