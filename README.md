@@ -9,7 +9,7 @@
 7. `sudo -u postgres psql`<br />
 postgres=# `create user dbuser_dev;`<br />
 postgres=# `\password dbuser_dev`  # Password: `pass`<br />
-postgres=# `alter user dbuser CREATEDB;`
+postgres=# `alter user dbuser_dev CREATEDB;`
 8. `rake db:setup`
 9. Аналогично создать юзера для production
 10. Установить плагин rbenv-vars для rbenv
