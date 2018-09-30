@@ -41,7 +41,7 @@ table border="0px"
             li
               = link_to post.title, post.link, style: "font-size: 14.5px; text-decoration: underline;", target: '_blank'
               br style="line-height:22px;"
-              i = post.date_created.strftime("%d %B %Y")
+              i = post.date_created
               br style="line-height:30px;"
       - else
         m = "Новостей пока нет"
