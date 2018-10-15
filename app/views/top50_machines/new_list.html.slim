@@ -1,0 +1,31 @@
+div class="panel panel-default"
+  div class="panel-heading"
+    = "Неопубликованные редакции"
+  div class="panel-body"
+    - @top50_slists.each do |top50_list|
+      - date_attr = @date_vals.find_by(obj_id: top50_list.id)
+      - num_attr = @list_nums.find_by(obj_id: top50_list.id)
+      - ldate = ""
+      - lnum = ""
+      - if date_attr.present?
+        - ldate = date_attr.value
+      - if num_attr.present?
+        - lnum = num_attr.value
+      = link_to "Редакция №#{lnum} списка Top50 от #{ldate}", top50_machines_archive_path(top50_list)
+      = "&nbsp;".html_safe
+      = format("(создана %s; последнее изменение %s)", top50_list.created_at.strftime('%d.%m.%Y %T'), top50_list.updated_at.strftime('%d.%m.%Y %T'))
+      br
+= form_tag action: "submit_list", method: :post do
+  p
+    - if @editing.present? and @editing
+      = content_tag :h4, "Редактирование"
+    - else
+      = content_tag :h4, "Новый рейтинг"
+    = content_tag :h4, "Редакция №", style: "display:inline-block"
+    = number_field_tag :list_num, @new_ed_num.present? ? @new_ed_num : @ed_num, style: "display:inline-block", min: 1, max: 50
+    = content_tag :h4, "&nbsp;от&nbsp;".html_safe, style: "display:inline-block"
+    = date_field_tag :list_date, @pdate.present? ? @pdate : Date.today, style: "display:inline-block"
+   
+  = render "print_new_list"
+  br
+  = submit_tag "Подтверждаю"

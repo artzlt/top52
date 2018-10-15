@@ -1,4 +1,4 @@
-class Top50DictionariesController < ApplicationController
+class Top50DictionariesController < Top50BaseController
 
   def index
     @top50_dictionaries = Top50Dictionary.all

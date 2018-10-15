@@ -8,12 +8,12 @@ div class="col-8" id="form-new_machine"
   = bootstrap_form_for @top50_machine do |f|
     div class="panel panel-default col-8"
       div class="panel-body col-8"
-        = f.collection_select :vendor_id, Top50Vendor.all, :id, :name, {include_blank: true, label: "Основной производитель/поставщик системы (*)"}, {required: true}
+        = f.collection_select :vendor_id, Top50Vendor.all.order(:name), :id, :name, {include_blank: true, label: "Основной производитель/поставщик системы (*)"}, {required: true}
         = "Отсутствует в списке? "
         = link_to "Добавить производителя", new_top50_vendor_path
         br
         br
-        = f.collection_select :vendor_ids, Top50Vendor.all, :id, :name, {include_blank: true, label: "Другие участвующие производители (возможен множественный выбор)"}, {multiple: true}
+        = f.collection_select :vendor_ids, Top50Vendor.all.order(:name), :id, :name, {include_blank: true, label: "Другие участвующие производители (возможен множественный выбор)"}, {multiple: true}
         = "Отсутствуют в списке? "
         = link_to "Добавить производителя", new_top50_vendor_path
         br
@@ -21,17 +21,17 @@ div class="col-8" id="form-new_machine"
         = f.text_field :name, label: "Официальное название системы"
         = f.text_field :name_eng, label: "Название системы (на английском)"
  
-        = f.number_field :start_date, label: "Год установки вычислительной системы (*)", required: true, in: 1990...2020
+        = f.number_field :installation_date, label: "Год установки вычислительной системы (*)", required: true, in: 1990...2020
 
     div class="panel panel-default col-8"
       div class="panel-body col-8"
 
-        = f.collection_select :type_id, Top50MachineType.all, :id, :name, {include_blank: true, label: "Тип вычислительной системы (*)"}, {required: true}
+        = f.collection_select :type_id, Top50MachineType.all.order(:name), :id, :name, {include_blank: true, label: "Тип вычислительной системы (*)"}, {required: true}
         = "Отсутствует в списке? "
         = link_to "Добавить новый тип", new_top50_machine_type_path
         br
         br
-        = f.collection_select :org_id, Top50Organization.where("is_valid = 1 and not exists (select 1 from top50_relations where sec_obj_id = top50_organizations.id)"), :id, :name, {include_blank: true, label: "Организация (место установки системы) (*)"}, {required: true}
+        = f.collection_select :org_id, Top50Organization.where("is_valid = 1 and not exists (select 1 from top50_relations where sec_obj_id = top50_organizations.id)").order(:name), :id, :name, {include_blank: true, label: "Организация (место установки системы) (*)"}, {required: true}
         = "Отсутствует в списке? "
         = link_to "Добавить организацию", new_top50_organization_path
         br

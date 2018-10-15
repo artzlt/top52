@@ -2,15 +2,19 @@
 class Group < ActiveRecord::Base
   GroupStrata = Struct.new(:name, :weight)
   SUPERADMINS     = GroupStrata.new( "superadmins",     0 )
+  NEWS_MODERATORS = GroupStrata.new( "news_moderators", 1 )
   FAULTS_MANAGERS = GroupStrata.new( "faults_managers", 1 )
   EXPERTS         = GroupStrata.new( "experts",         2 )
+  CERT_MODERATOES = GroupStrata.new( "cert_moderators", 2 )
   SUPPORT         = GroupStrata.new( "support",         3 )
   AUTHORIZED      = GroupStrata.new( "authorized",      4 )
+  PREVIEW_USERS   = GroupStrata.new( "preview_users",   4 )
   REREGISTRATORS  = GroupStrata.new( "reregistrators",  5 )
 
   DEFAULT_STRATAS = [ SUPERADMINS, AUTHORIZED,
                       FAULTS_MANAGERS, EXPERTS,
-                      SUPPORT, REREGISTRATORS ]
+                      SUPPORT, REREGISTRATORS, 
+                      NEWS_MODERATORS, CERT_MODERATOES, PREVIEW_USERS]
 
   has_many :user_groups, dependent: :destroy
   has_many :users, through: :user_groups

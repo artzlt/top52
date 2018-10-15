@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180809224649) do
+ActiveRecord::Schema.define(version: 20180924104050) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -134,6 +134,16 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.integer  "measure_id"
     t.integer  "is_valid"
     t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algowiki_entities", force: true do |t|
+    t.string   "name",       null: false
+    t.string   "name_eng"
+    t.integer  "type_id",    null: false
+    t.string   "wiki_link"
+    t.integer  "is_valid"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -1300,7 +1310,7 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.datetime "updated_at"
   end
 
-  create_table "top50_attribute_val_dbvals", id: false, force: true do |t|
+  create_table "top50_attribute_val_dbvals", force: true do |t|
     t.integer  "attr_id"
     t.integer  "obj_id"
     t.binary   "value"
@@ -1310,7 +1320,7 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.datetime "updated_at"
   end
 
-  create_table "top50_attribute_val_dicts", id: false, force: true do |t|
+  create_table "top50_attribute_val_dicts", force: true do |t|
     t.integer  "attr_id"
     t.integer  "obj_id"
     t.integer  "dict_elem_id"
@@ -1432,7 +1442,26 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "vendor_ids", default: [], array: true
+    t.integer  "vendor_ids",        default: [], array: true
+    t.date     "installation_date"
+  end
+
+  create_table "top50_machines_backup20180904", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
   end
 
   create_table "top50_measure_units", force: true do |t|
@@ -1511,6 +1540,14 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.integer  "sec_obj_qty"
     t.integer  "type_id"
     t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_valid_types", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
     t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"

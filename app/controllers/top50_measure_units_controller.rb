@@ -1,4 +1,4 @@
-class Top50MeasureUnitsController < ApplicationController
+class Top50MeasureUnitsController < Top50BaseController
 
   def index
     @top50_measure_units = Top50MeasureUnit.all

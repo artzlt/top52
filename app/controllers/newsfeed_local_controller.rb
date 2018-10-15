@@ -1,6 +1,6 @@
-class NewsfeedLocalController < ApplicationController
-  before_filter :require_login, except: [:show]
-  before_filter :authorize_admins!, except: [:show]
+class NewsfeedLocalController < NewsfeedBaseController
+  skip_before_filter :require_login, only: [:show]
+  skip_before_filter :require_moder_rights, only: [:show]
 
   def index
     @local_post = NewsfeedLocal.new
@@ -44,9 +44,6 @@ class NewsfeedLocalController < ApplicationController
   end
 
   private
-  def authorize_admins!
-    authorize! :access, :admin
-  end
 
   def newsfeed_local_params
     return params.require(:newsfeed_local).permit(:title, :announce, :link, :body, :date_created, :start_date, :end_date, :header_weight, :footer_weight)

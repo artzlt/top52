@@ -9,7 +9,7 @@
 7. `sudo -u postgres psql`<br />
 postgres=# `create user dbuser_dev;`<br />
 postgres=# `\password dbuser_dev`  # Password: `pass`<br />
-postgres=# `alter user dbuser CREATEDB;`
+postgres=# `alter user dbuser_dev CREATEDB;`
 8. `rake db:setup`
 9. Аналогично создать юзера для production
 10. Установить плагин rbenv-vars для rbenv
@@ -20,3 +20,7 @@ APP_DB_PASSWORD={пароль юзера, созданного для production
 12. `rake db:setup RAILS_ENV=production`
 13. `rake assets:precompile`
 14. Для запуска приложения после настройки, выполнить: `bundle exec puma`
+<br /><br />Для разворачивания сервиса наружу:
+15. Установить Nginx (`sudo apt-get install nginx`)
+16. Использовать конфиг Nginx из ./shared/top52 (поместить его в /etc/nginx/sites-available и в /etc/nginx/sites-enabled)
+17. Перезапустить nginx (`sudo service nginx restart`)

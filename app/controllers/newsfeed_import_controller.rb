@@ -1,6 +1,6 @@
-class NewsfeedImportController < ApplicationController
-  before_filter :require_login, except: [:show]
-  before_filter :authorize_admins!, except: [:show]
+class NewsfeedImportController < NewsfeedBaseController
+  skip_filter :require_login, only: [:show]
+  skip_before_filter :require_moder_rights, only: [:show]
 
   def update
     @import_post = NewsfeedImport.find(params[:id])
@@ -15,10 +15,7 @@ class NewsfeedImportController < ApplicationController
     end
   end
 
-  private
-  def authorize_admins!
-    authorize! :access, :admin
-  end
+private
 
   def newsfeed_local_params
     return params.require(:newsfeed_import).permit(:title, :initial_title, :tags, :link, :date_created, :is_ignoring)

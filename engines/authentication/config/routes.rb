@@ -7,7 +7,7 @@ Authentication::Engine.routes.draw do
   resources :activations, only: [:new, :create]
 
   resource :session, only: [:new, :create, :destroy]
-  get "/session" => "sessions#destroy"
+  get "/session" => "sessions#destroy", as: 'leave_session'
 
   resource :password, only: [:new, :create]
   get "password/:token" => "passwords#change", as: :change_password

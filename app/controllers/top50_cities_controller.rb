@@ -1,2 +1,2 @@
-class Top50CitiesController < ApplicationController
+class Top50CitiesController < Top50BaseController
 end

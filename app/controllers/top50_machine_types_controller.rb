@@ -1,4 +1,4 @@
-class Top50MachineTypesController < ApplicationController
+class Top50MachineTypesController < Top50BaseController
 
   def index
     @top50_machine_types = Top50MachineType.all

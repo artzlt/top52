@@ -1,4 +1,4 @@
-class Top50DictionaryElemsController < ApplicationController
+class Top50DictionaryElemsController < Top50BaseController
 
   respond_to :json
 

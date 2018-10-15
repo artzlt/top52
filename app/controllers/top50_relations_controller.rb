@@ -1,2 +1,2 @@
-class Top50RelationsController < ApplicationController
+class Top50RelationsController < Top50BaseController
 end

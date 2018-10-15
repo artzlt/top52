@@ -1,4 +1,4 @@
-class Top50BenchmarksController < ApplicationController
+class Top50BenchmarksController < Top50BaseController
 
   def index
     @top50_benchmarks = Top50Benchmark.all

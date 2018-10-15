@@ -1,3 +1,21 @@
+- if current_user and current_user.may_edit_top50?
+  = link_to t("Редактировать"), top50_machines_edit_list_path(@bench.id), class: "btn btn-default"
+  = "&nbsp;&nbsp;".html_safe
+  = link_to t("Удалить"), top50_machines_destroy_list_path(@bench.id), class: "btn btn-default", data: { confirm: 'Вы увеены?' }
+  = "&nbsp;&nbsp;".html_safe
+  = "&nbsp;&nbsp;".html_safe
+  - if not @top50_published_benchmarks.include? @bench.id
+    - if not @top50_preview_benchmarks.include? @bench.id
+      = link_to t("Добавить в предпросмотр"), top50_machines_add_preview_list_path(@bench.id), class: "btn btn-default"
+    - else
+      = link_to t("Убрать из предпросмотра"), top50_machines_delete_preview_list_path(@bench.id), class: "btn btn-default"
+    = "&nbsp;&nbsp;".html_safe
+    = link_to t("Опубликовать"), top50_machines_publish_list_path(@bench.id), class: "btn btn-default"
+  - else
+    = link_to t("Разопубликовать"), top50_machines_unpublish_list_path(@bench.id), class: "btn btn-default"
+  br
+  br
+
 - date_attr = @date_vals.find_by(obj_id: @bench.id)
 - ldate = ""
 - if date_attr.present?

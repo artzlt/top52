@@ -1,7 +1,5 @@
 div class="page-header"
   h1 = "Статистика"
-
-= link_to "Назад", top50_stats_path, class: "btn btn-default"
   
 h3 = "Количество систем / тип"
 br
@@ -15,3 +13,5 @@ br
     - c_chart_data << [top50_mtype.name, c_cnt]
 
   = pie_chart c_chart_data, :title => "Распределение систем по типу в #{list_num.value}-ой редакции от #{date_val.value}"
+  br
+  = link_to "Назад", top50_stats_path('type'), class: "btn btn-default"

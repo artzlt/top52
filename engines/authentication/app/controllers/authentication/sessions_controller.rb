@@ -8,7 +8,7 @@ class Authentication::SessionsController < Authentication::ApplicationController
   def create
     email, password, remember = fetch_user(params[:user])
     if @user = login(email, password, remember)
-      redirect_back_or_to(root_url)
+      redirect_back_or_to(main_app.root_path)
     else
       User.extend(Authentication::UserWithAuthErrors)
       @user = User.initialize_with_auth_errors(email)

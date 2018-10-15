@@ -1,4 +1,4 @@
-div class="page-header
+div class="page-header"
   h3 = "Добавление заявки в Top50 (Шаг 3 из 4)"
   br
   br
@@ -10,7 +10,7 @@ div class="page-header
       = "Область применения"
     div class="panel-body"
       = f.fields_for :top50_app_area do |f3| 
-        = f3.collection_select :app_dict_elem_id, Top50DictionaryElem.where(dict_id: @app_dict_id, is_valid: 1), :id, :name, {label: "Область применения вычислительной системы (*)", include_blank: true}, {required: true}
+        = f3.collection_select :app_dict_elem_id, Top50DictionaryElem.where(dict_id: @app_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Область применения вычислительной системы (*)", include_blank: true}, {required: true}
         = "Отсутствует в списке? "
         = link_to "Добавить область применения", new_top50_dictionary_top50_dictionary_elem_path(@app_dict_id)
   
@@ -24,7 +24,7 @@ div class="page-header
         = link_to "Добавить тип сети", new_top50_dictionary_top50_dictionary_elem_path(@net_dict_id)
         br
         br
-        = f3.collection_select :tplg_dict_elem_id, Top50DictionaryElem.where(dict_id: @tplg_dict_id, is_valid: 1), :id, :name, {label: "Топология коммуникационной сети (*)", include_blank: true}, {required: true}
+        = f3.collection_select :tplg_dict_elem_id, Top50DictionaryElem.where(dict_id: @tplg_dict_id, is_valid: 1), :id, :name, {label: "Топология коммуникационной сети (*)", include_blank: true}
         = "Отсутствует в списке? "
         = link_to "Добавить тип топологии", new_top50_dictionary_top50_dictionary_elem_path(@tplg_dict_id)
         br
