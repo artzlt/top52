@@ -410,6 +410,83 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.datetime "updated_at"
   end
 
+  create_table "comments_comments", force: true do |t|
+    t.text     "text"
+    t.integer  "attachable_id",               null: false
+    t.string   "attachable_type", limit: nil, null: false
+    t.integer  "user_id",                     null: false
+    t.integer  "context_id"
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+  end
+
+  add_index "comments_comments", ["attachable_type", "attachable_id"], name: "index_comments_comments_on_attachable_type_and_attachable_id", using: :btree
+  add_index "comments_comments", ["context_id"], name: "index_comments_comments_on_context_id", using: :btree
+  add_index "comments_comments", ["user_id"], name: "index_comments_comments_on_user_id", using: :btree
+
+  create_table "comments_context_groups", force: true do |t|
+    t.integer  "context_id", null: false
+    t.integer  "group_id",   null: false
+    t.integer  "type_ab",    null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "comments_context_groups", ["context_id"], name: "index_comments_context_groups_on_context_id", using: :btree
+  add_index "comments_context_groups", ["group_id"], name: "index_comments_context_groups_on_group_id", using: :btree
+
+  create_table "comments_contexts", force: true do |t|
+    t.string   "name",       limit: nil
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  create_table "comments_file_attachments", force: true do |t|
+    t.string   "file",            limit: nil
+    t.text     "description"
+    t.integer  "attachable_id",               null: false
+    t.string   "attachable_type", limit: nil, null: false
+    t.integer  "user_id",                     null: false
+    t.integer  "context_id"
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+  end
+
+  add_index "comments_file_attachments", ["attachable_id", "attachable_type"], name: "attach_index", using: :btree
+  add_index "comments_file_attachments", ["context_id"], name: "index_comments_file_attachments_on_context_id", using: :btree
+  add_index "comments_file_attachments", ["user_id"], name: "index_comments_file_attachments_on_user_id", using: :btree
+
+  create_table "comments_group_classes", force: true do |t|
+    t.string   "class_name", limit: nil
+    t.integer  "obj_id"
+    t.integer  "group_id"
+    t.boolean  "allow",                  null: false
+    t.integer  "type_ab",                null: false
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  add_index "comments_group_classes", ["group_id"], name: "index_comments_group_classes_on_group_id", using: :btree
+
+  create_table "comments_taggings", force: true do |t|
+    t.integer  "tag_id"
+    t.integer  "attachable_id",               null: false
+    t.string   "attachable_type", limit: nil, null: false
+    t.integer  "user_id"
+    t.integer  "context_id"
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+  end
+
+  add_index "comments_taggings", ["attachable_type", "attachable_id"], name: "index_comments_taggings_on_attachable_type_and_attachable_id", using: :btree
+  add_index "comments_taggings", ["context_id"], name: "index_comments_taggings_on_context_id", using: :btree
+  add_index "comments_taggings", ["tag_id", "attachable_id", "attachable_type", "context_id"], name: "att_contex_index", unique: true, using: :btree
+  add_index "comments_taggings", ["user_id"], name: "index_comments_taggings_on_user_id", using: :btree
+
+  create_table "comments_tags", force: true do |t|
+    t.string "name", limit: nil
+  end
+
   create_table "core_access_fields", force: true do |t|
     t.integer "access_id"
     t.integer "quota"
@@ -436,6 +513,7 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.integer "country_id"
     t.string  "title_ru"
     t.string  "title_en"
+    t.boolean "checked",    default: false
   end
 
   add_index "core_cities", ["country_id"], name: "index_core_cities_on_country_id", using: :btree
@@ -476,8 +554,9 @@ ActiveRecord::Schema.define(version: 20180809224649) do
   add_index "core_clusters", ["public_key"], name: "index_core_clusters_on_public_key", unique: true, using: :btree
 
   create_table "core_countries", force: true do |t|
-    t.string "title_ru"
-    t.string "title_en"
+    t.string  "title_ru"
+    t.string  "title_en"
+    t.boolean "checked",  default: false
   end
 
   create_table "core_credentials", force: true do |t|
@@ -504,6 +583,14 @@ ActiveRecord::Schema.define(version: 20180809224649) do
 
   add_index "core_critical_technologies_per_projects", ["critical_technology_id"], name: "icrittechs_on_critical_technologies_per_projects", using: :btree
   add_index "core_critical_technologies_per_projects", ["project_id"], name: "iprojects_on_critical_technologies_per_projects", using: :btree
+
+  create_table "core_department_mergers", force: true do |t|
+    t.integer  "source_department_id"
+    t.integer  "to_organization_id"
+    t.integer  "to_department_id"
+    t.datetime "created_at",           null: false
+    t.datetime "updated_at",           null: false
+  end
 
   create_table "core_direction_of_sciences", force: true do |t|
     t.string   "name"
@@ -571,6 +658,7 @@ ActiveRecord::Schema.define(version: 20180809224649) do
   create_table "core_organization_departments", force: true do |t|
     t.integer "organization_id"
     t.string  "name"
+    t.boolean "checked",         default: false
   end
 
   add_index "core_organization_departments", ["organization_id"], name: "index_core_organization_departments_on_organization_id", using: :btree
@@ -590,6 +678,7 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.integer  "city_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "checked",      default: false
   end
 
   add_index "core_organizations", ["city_id"], name: "index_core_organizations_on_city_id", using: :btree
@@ -794,13 +883,89 @@ ActiveRecord::Schema.define(version: 20180809224649) do
     t.integer  "number_of_imported_news_shown", default: 20
     t.string   "imported_news_source"
     t.integer  "number_of_local_news_shown",    default: 2
-    t.string   "cron_schedule"
-    t.integer  "cron_value"
-    t.date     "start_date"
-    t.date     "end_date"
+    t.string   "cron_schedule",                 default: "hour"
+    t.integer  "cron_value",                    default: 1
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "pack_access_tickets", id: false, force: true do |t|
+    t.integer "access_id"
+    t.integer "ticket_id"
+  end
+
+  add_index "pack_access_tickets", ["access_id"], name: "index_pack_access_tickets_on_access_id", using: :btree
+  add_index "pack_access_tickets", ["ticket_id"], name: "index_pack_access_tickets_on_ticket_id", using: :btree
+
+  create_table "pack_accesses", force: true do |t|
+    t.integer  "version_id"
+    t.integer  "who_id"
+    t.string   "who_type",      limit: nil
+    t.string   "status",        limit: nil
+    t.integer  "created_by_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.date     "end_lic"
+    t.date     "new_end_lic"
+    t.integer  "allowed_by_id"
+    t.integer  "lock_version",              default: 0, null: false
+  end
+
+  add_index "pack_accesses", ["version_id"], name: "index_pack_accesses_on_version_id", using: :btree
+  add_index "pack_accesses", ["who_type", "who_id"], name: "index_pack_accesses_on_who_type_and_who_id", using: :btree
+
+  create_table "pack_clustervers", force: true do |t|
+    t.integer  "core_cluster_id"
+    t.integer  "version_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "active"
+  end
+
+  add_index "pack_clustervers", ["core_cluster_id"], name: "index_pack_clustervers_on_core_cluster_id", using: :btree
+  add_index "pack_clustervers", ["version_id"], name: "index_pack_clustervers_on_version_id", using: :btree
+
+  create_table "pack_options_categories", force: true do |t|
+    t.string   "category",   limit: nil
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  create_table "pack_packages", force: true do |t|
+    t.string   "name",        limit: nil
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.text     "description"
+    t.boolean  "deleted",                 default: false, null: false
+  end
+
+  create_table "pack_version_options", force: true do |t|
+    t.integer  "version_id"
+    t.string   "name",       limit: nil
+    t.text     "value"
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
+  add_index "pack_version_options", ["version_id"], name: "index_pack_version_options_on_version_id", using: :btree
+
+  create_table "pack_versions", force: true do |t|
+    t.string   "name",             limit: nil
+    t.text     "description"
+    t.integer  "package_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "cost"
+    t.string   "folder",           limit: nil
+    t.date     "end_lic"
+    t.string   "state",            limit: nil
+    t.integer  "lock_col",                     default: 0,     null: false
+    t.boolean  "deleted",                      default: false, null: false
+    t.boolean  "service",                      default: false, null: false
+    t.boolean  "delete_on_expire",             default: false, null: false
+  end
+
+  add_index "pack_versions", ["package_id"], name: "index_pack_versions_on_package_id", using: :btree
 
   create_table "profiles", force: true do |t|
     t.integer "user_id",                              null: false

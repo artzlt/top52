@@ -605,6 +605,7 @@ br
       = area_chart achart_data, max: 50, stacked: true, height: "500px"
   
 - else
+  div id="chart_1"
   - chart_data_by_tp = {}
   - chart_data_by_tp["Linpack (1-5)"] = []
   - chart_data_by_tp["Linpack (1-50)"] = []
@@ -643,12 +644,20 @@ br
     
     tr
   
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = line_chart achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        draw_perfomance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50")
+      /= line_chart @achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
       br
+
     
+
+  div id="chart_2"  
   - chart_data_by_tp = {}
   - chart_data_by_tp["#1"] = []
   - chart_data_by_tp["#25"] = []
@@ -687,11 +696,17 @@ br
         td align="right"
           = avg_rmax
           - chart_data_by_tp["Средняя"].unshift([date_val.value, avg_rmax])
-    
+
     tr
 
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = line_chart achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        draw_perfomance(data, "chart_2", "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50")
+      /= line_chart @achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
       br
+
