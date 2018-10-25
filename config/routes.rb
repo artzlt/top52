@@ -2,6 +2,11 @@ require "sidekiq/web"
 require "admin_constraint"
 
 Octoshell::Application.routes.draw do
+    
+  get "certificates/page1" => "certificates#page1"
+  post "certificates/page2" => "certificates#page2"
+  post "certificates/scr" => "certificates#scr"
+    
   #root :to => redirect('/top50_objects')
   #root 'top50_objects#index'
   # This line mounts Wiki routes at /wiki by default.
