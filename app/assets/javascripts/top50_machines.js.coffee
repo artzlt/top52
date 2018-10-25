@@ -1,6 +1,7 @@
 COLORS = ["red", "green", "blue", "orange", "purple"]
 
 @test_fun = (text) ->
+  #dsdfgdsfsa
   console.log("AAAAAAAAAAAAAAAAAAAAAAA" + text)
 
 @draw_perfomance = (data, src_id, title, x_label, y_label) ->
