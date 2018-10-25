@@ -611,7 +611,15 @@ br
   - chart_data_by_tp["Linpack (1-50)"] = []
   - chart_data_by_tp["Peak (1-5)"] = []
   - chart_data_by_tp["Peak (1-50)"] = []
-  table class="table table-hover"
+
+  g id="table_control_chart_1"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "ПФлоп / с"
+    div class="button" style="background: gray; float: left" id=1
+      = "% от общей производительности"
+    div class="button" style="background: gray; float: left" id=2
+      = "Цветовая подсветка"
+  table class="table table-hover" id="table_chart_1"
     tr
       th = "Редакция"
       th = "Linpack (1-5)"
@@ -624,22 +632,22 @@ br
       - top5_rpeak = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result <= 5").joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_benchmark_results.machine_id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)") / 1000000.0).round(2)
       - top50_rpeak = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_benchmark_results.machine_id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)") / 1000000.0).round(2)
       tr
-        td class="fit"
+        td class="fit" 
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-        td align="right"
+            = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+        td align="right" i=list_num.value j=0 value=top5_rmax
           = top5_rmax
           - chart_data_by_tp["Linpack (1-5)"].unshift([date_val.value, top5_rmax])
-        td align="right"
+        td align="right" i=list_num.value j=1 value=top50_rmax
           = top50_rmax
           - chart_data_by_tp["Linpack (1-50)"].unshift([date_val.value, top50_rmax])
-        td align="right"
-          = top5_rmax
+        td align="right" i=list_num.value j=2 value=top5_rpeak
+          = top5_rpeak
           - chart_data_by_tp["Peak (1-5)"].unshift([date_val.value, top5_rpeak])
-        td align="right"
-          = top50_rmax
+        td align="right" i=list_num.value j=3 value=top50_rpeak
+          = top50_rpeak
           - chart_data_by_tp["Peak (1-50)"].unshift([date_val.value, top50_rpeak])
     
     tr
@@ -651,7 +659,7 @@ br
         var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
 
       coffee:
-        draw_perfomance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50")
+        draw_perfomance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", "Дата (MM.YY)", "Производительность (ПФлоп/с)")
       /= line_chart @achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
       br
 
@@ -663,7 +671,7 @@ br
   - chart_data_by_tp["#25"] = []
   - chart_data_by_tp["#50"] = []
   - chart_data_by_tp["Средняя"] = []
-  table class="table table-hover"
+  table class="table table-hover" id="table_chart_2"
     tr
       th = "Редакция"
       th = "Максимальная (#1)"
@@ -681,7 +689,7 @@ br
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
         td align="right"
           = max_rmax
           - chart_data_by_tp["#1"].unshift([date_val.value, max_rmax])
@@ -706,7 +714,7 @@ br
         var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
 
       coffee:
-        draw_perfomance(data, "chart_2", "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50")
+        draw_perfomance(data, "chart_2", "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", "Дата (MM.YY)", "Производительность (ПФлоп/с)")
       /= line_chart @achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
       br
 

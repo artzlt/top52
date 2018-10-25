@@ -3,7 +3,7 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
 @test_fun = (text) ->
   console.log("AAAAAAAAAAAAAAAAAAAAAAA" + text)
 
-@draw_perfomance = (data, src_id, title) ->
+@draw_perfomance = (data, src_id, title, x_label, y_label) ->
   for i in [0..data.length - 1]
     #need for normal render, delete in prod
     data[i].data.splice(23, 1)
@@ -18,13 +18,13 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
 
   func = () ->
     width = document.getElementById(src_id).offsetWidth
-    height = 500
+    height = 550
 
     margin =
       top : 10
-      bottom : 50
+      bottom : 80
       right : 10
-      left : 50
+      left : 80
 
     container = d3.selectAll("div").filter(() -> d3.select(this).attr("id") == src_id)
             
@@ -41,123 +41,240 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
 
     legend = add_legend(container, data)
 
-    log_button = container.append("div")
-              .text("log")
-              .attr("active", 0)
-              .style("color", "white")
-              .style("font-family", "Arial")
-              .style("font-size", "14px")
-              .style("border-radius", "7px")
-              .style("font-weight", "600")
-              .style("text-align", "center")
-              .style("padding", "4px  10px")
-              .style("opacity", "0.9")
-              .style("float", "right")
-              .style("background", "gray")
+    buttons = container.append("g").attr("id", "buttons")
 
-    bar_button = container.append("div")
-              .text("bar")
-              .attr("active", 0)
-              .style("color", "white")
-              .style("font-family", "Arial")
-              .style("font-size", "14px")
-              .style("border-radius", "7px")
-              .style("font-weight", "600")
-              .style("text-align", "center")
-              .style("padding", "4px  10px")
-              .style("opacity", "0.9")
+
+    line_button = buttons.append("div")
+              .text("line")
+              .attr("class", "button")
+              .style("background", "#6699CC")
               .style("float", "right")
+              .attr("name", "type")
+              .property("checked", "true")
+
+    log_button = buttons.append("div")
+              .text("log")
+              .attr("class", "button")
               .style("background", "gray")
+              .style("float", "right")
+              .attr("name", "type")
+              .property("checked", "false")
+
+    bar_button = buttons.append("div")
+              .text("bar")
+              .attr("class", "button")
+              .style("background", "gray")
+              .style("float", "right")
+              .attr("name", "type")
+              .property("checked", "false")
+
+    table_control = d3.selectAll("g").filter(() -> d3.select(this).attr("id") == "table_control_" + src_id)
+    mode = [true, false, false]
+    table = d3.selectAll("table").filter(() -> d3.select(this).attr("id") == "table_" + src_id)
+    table_control.selectAll("div").filter(() -> d3.select(this).attr("id") == "0")
+                .property("checked", true)
+                .each(() -> console.log(d3.select(this).property("checked")))
+    table_control.selectAll("div").filter(() -> d3.select(this).attr("id") == "1")
+                .property("checked", false)
+                .each(() -> console.log(d3.select(this).property("checked")))
+    table_control.selectAll("div").filter(() -> d3.select(this).attr("id") == "2")
+                .property("checked", false)
+                .each(() -> console.log(d3.select(this).property("checked")))
 
     svg = container.append("svg").attr("style", "width:100%; height:" + height + "px").attr("id", "svg_" + src_id)
 
-    add_legend_events(legend, svg, container, data, add_line_chart, margin, width, height)
+    add_legend_events(legend, svg, container, data, add_line_chart, margin, width, height, x_label, y_label)
+    add_axes(svg, data, margin, width, height, x_label, y_label)
     add_line_chart(svg, container, data, margin, width, height)
-    add_axes(svg, data, margin, width, height)
 
+
+    line_button.on("click", () ->
+      buttons.selectAll("div[name='type']").each(() ->
+        if d3.select(this).property("checked")
+          d3.select(this)
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(500)
+            .style("background", "gray")
+      )
+      if d3.select(this).property("checked")
+        d3.select(this)
+          .transition()
+          .ease(d3.easeLinear)
+          .duration(500)
+          .style("background", "#6699CC")
+
+        svg.selectAll("g")
+            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+            .transition()
+            .duration(500)
+            .style("opacity", "0")
+            .remove()
+
+        data_to_draw = []
+        legend.selectAll("div")
+                .filter(() -> +d3.select(this).attr("active"))
+                .each(() -> data_to_draw.push(data[+d3.select(this).attr("number")]))
+
+        add_legend_events(legend, svg, container, data, add_line_chart, margin, width, height, x_label, y_label)
+        add_axes(svg, data_to_draw, margin, width, height, x_label, y_label)
+        add_line_chart(svg, container, data_to_draw, margin, width, height)       
+    )
 
     log_button.on("click", () ->
-      temp = []
-      for x, i in data
-        temp.push({})
-        temp[i].name = x.name
-        temp[i].color = x.color
-        temp[i].data = []
-        for y in x.data
-          temp[i].data.push([y[0], y[1]])
+      buttons.selectAll("div[name='type']").each(() ->
+        if d3.select(this).property("checked")
+          d3.select(this)
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(500)
+            .style("background", "gray")
+      )
+      if d3.select(this).property("checked")
+        temp = []
+        for x, i in data
+          temp.push({})
+          temp[i].name = x.name
+          temp[i].color = x.color
+          temp[i].data = []
+          for y in x.data
+            temp[i].data.push([y[0], y[1]])
 
-      d3.select(this).attr("active", (+d3.select(this).attr("active") + 1) % 2)
-        .style("background", () -> 
-          if +d3.select(this).attr("active")
-            return "violet"
-          return "gray"
-        )
-      if +d3.select(this).attr("active")
-        bar_button.attr("active", 0).style("background", "gray")
+        d3.select(this)
+          .transition()
+          .ease(d3.easeLinear)
+          .duration(500)
+          .style("background", "#6699CC")
+
         for x in temp
           x.data = x.data.map((d) -> [d[0], Math.log(1 + d[1])])
 
-      console.log(temp)
-      svg.selectAll("g")
-          .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
-          .transition()
-          .duration(500)
-          .style("opacity", "0")
-          .remove()
+        console.log(temp)
+        svg.selectAll("g")
+            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+            .transition()
+            .duration(500)
+            .style("opacity", "0")
+            .remove()
 
-      legend.selectAll("div")
-            .style("background", () -> COLORS[+d3.select(this).attr("number")])
-            .attr("active", 1)
+        data_to_draw = []
+        legend.selectAll("div")
+                .filter(() -> +d3.select(this).attr("active"))
+                .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
 
-      add_legend_events(legend, svg, container, temp, add_line_chart, margin, width, height)
-      add_line_chart(svg, container, temp, margin, width, height)       
-      add_axes(svg, temp, margin, width, height)
+        add_legend_events(legend, svg, container, temp, add_line_chart, margin, width, height, x_label)
+        add_axes(svg, data_to_draw, margin, width, height, x_label)
+        add_line_chart(svg, container, data_to_draw, margin, width, height)       
     )
 
     bar_button.on("click", () ->
-      temp = []
-      for x, i in data
-        temp.push({})
-        temp[i].name = x.name
-        temp[i].color = x.color
-        temp[i].data = []
-        for y in x.data
-          temp[i].data.push([y[0], y[1]])
+      buttons.selectAll("div[name='type']").each(() ->
+        if d3.select(this).property("checked")
+          d3.select(this)
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(500)
+            .style("background", "gray")
+      )
+      if d3.select(this).property("checked")
+        temp = []
+        for x, i in data
+          temp.push({})
+          temp[i].name = x.name
+          temp[i].color = x.color
+          temp[i].data = []
+          for y in x.data
+            temp[i].data.push([y[0], y[1]])
 
-      d3.select(this).attr("active", (+d3.select(this).attr("active") + 1) % 2)
-        .style("background", () -> 
-          if +d3.select(this).attr("active")
-            return "lightblue"
-          return "gray"
-        )
-
-      svg.selectAll("g")
-          .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+        d3.select(this)
           .transition()
+          .ease(d3.easeLinear)
           .duration(500)
-          .style("opacity", "0")
-          .remove()
+          .style("background", "#6699CC")
 
-      legend.selectAll("div")
-            .style("background", () -> COLORS[+d3.select(this).attr("number")])
-            .attr("active", 1)
+        svg.selectAll("g")
+            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+            .transition()
+            .duration(500)
+            .style("opacity", "0")
+            .remove()
 
-      if +d3.select(this).attr("active")
-        log_button.attr("active", 0).style("background", "gray")
+        data_to_draw = []
+        legend.selectAll("div")
+                .filter(() -> +d3.select(this).attr("active"))
+                .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
 
         bar_data = [{"data" : []}]
-        for i in [0..data[0].data.length - 1]
+        for i in [0..data_to_draw[0].data.length - 1]
           bar_data[0].data.push([data[0].data[i][0], 0])
-          for j in [0..data.length - 1]
-            bar_data[0].data[i][1] += data[j].data[i][1]
+          for j in [0..data_to_draw.length - 1]
+            bar_data[0].data[i][1] += data_to_draw[j].data[i][1]
 
-        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height)
-        add_bar_chart(svg, container, temp, margin, width, height)
-        add_axes(svg, bar_data, margin, width, height)
+        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label)
+        add_axes(svg, bar_data, margin, width, height, x_label, y_label)
+        add_bar_chart(svg, container, data_to_draw, margin, width, height)
+    )
+
+    table_control.selectAll("div").on("click", (d, i) ->
+      d3.select(this).property("checked", !d3.select(this).property("checked"))
+      mode[i] = d3.select(this).property("checked")
+      console.log(mode)
+      if d3.select(this).property("checked")
+        d3.select(this)
+          .transition()
+          .ease(d3.easeLinear)
+          .duration(500)
+          .style("background", "#6699CC")
       else
-        add_legend_events(legend, svg, container, temp, add_line_chart, margin, width, height)
-        add_line_chart(svg, container, temp, margin, width, height)       
-        add_axes(svg, temp, margin, width, height)
+        d3.select(this)
+          .transition()
+          .ease(d3.easeLinear)
+          .duration(500)
+          .style("background", "gray")
+    )
+
+    table_control.on("click", () ->
+      console.log("table control")
+      table.selectAll("td")
+            .filter(() -> d3.select(this).attr("class") != "fit")
+            .each(() ->
+              elem = d3.select(this)
+              i = +elem.attr("i")
+              j = +elem.attr("j")
+              val = +elem.attr("value")
+              find_j = j
+              if !(j % 2) then find_j = j + 1
+              next = table.selectAll("td").filter(() -> +d3.select(this).attr("i") == i and +d3.select(this).attr("j") == find_j)
+              find_i = i
+              if i != 1 then find_i = i - 1
+              pred = table.selectAll("td").filter(() -> +d3.select(this).attr("i") == find_i and +d3.select(this).attr("j") == j)
+              pred_next = table.selectAll("td").filter(() -> +d3.select(this).attr("i") == find_i and +d3.select(this).attr("j") == find_j)
+
+              perc = Math.round(100  * 100 * val / +next.attr("value")) / 100
+              perc_pred = Math.round(100  * 100 * +pred.attr("value") / +pred_next.attr("value")) / 100
+
+              val_pred = +pred.attr("value")
+              if mode[0] and mode[1]
+                elem.text(val + " (" + perc + "%)")
+              else
+                if mode[0]
+                  elem.text(val)
+                if mode[1]
+                  if j % 2
+                    elem.text("---> " + perc + "%")
+                  else
+                    elem.text(perc + "%")
+
+              elem.style("background-color", "white")
+              if mode[2] and mode[1]
+                if perc - perc_pred > 0.01
+                  elem.style("background-color", "rgba(0, 255, 0, 0.05)")
+                if perc - perc_pred < -0.01
+                  elem.style("background-color", "rgba(255, 0, 0, 0.05)")
+              else if mode[2] and mode[0]
+                if val - val_pred > val_pred / 2
+                  elem.style("background-color", "rgba(0, 255, 0, 0.05)")
+            )
     )
 
 
@@ -176,23 +293,16 @@ add_legend = (container, data) ->
 
   for set, i in data
     legend.append("div")
-          .style("background", COLORS[i])
           .text(data[i].name)
           .attr("active", 1)
           .attr("number", i)
-          .style("color", "white")
-          .style("font-family", "Arial")
-          .style("font-size", "14px")
-          .style("border-radius", "7px")
-          .style("font-weight", "600")
-          .style("text-align", "center")
-          .style("padding", "4px  10px")
-          .style("opacity", "0.9")
+          .attr("class", "button")
+          .style("background", COLORS[i])
           .style("float", "left")
 
   return legend
 
-add_legend_events = (legend, svg, container, data, construct, margin, width, height) ->
+add_legend_events = (legend, svg, container, data, construct, margin, width, height, x_label, y_label) ->
   legend.selectAll("div")
     .on("click", () ->
           d3.select(this).attr("active", (+d3.select(this).attr("active") + 1) % 2)
@@ -215,12 +325,12 @@ add_legend_events = (legend, svg, container, data, construct, margin, width, hei
               .style("opacity", "0")
               .remove()
 
-          add_axes(svg, temp, margin, width, height)
+          add_axes(svg, temp, margin, width, height, x_label, y_label)
           construct(svg, container, temp, margin, width, height)
     )
 
 
-add_axes = (svg, data, margin, width, height) ->
+add_axes = (svg, data, margin, width, height, x_label, y_label) ->
   xScale = d3.scaleTime()
             .domain([data[0].data[0][0], data[0].data[data[0].data.length - 1][0]])
             .range([margin.left, width - margin.right])
@@ -236,10 +346,11 @@ add_axes = (svg, data, margin, width, height) ->
 
   axes = svg.append("g").attr("id", "axes")
 
+  xAxisFun = d3.axisBottom(xScale).tickValues(dates).tickFormat(d3.timeFormat("%m.%y")).tickSize(7)
   xAxis = axes.append("g")
     .attr("id", "x_axis")
     .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(xScale).tickValues(dates).tickFormat(d3.timeFormat("%m.%y")).tickSize(7))
+    .call(xAxisFun)
 
   xAxis.selectAll("text")
       .attr("text-anchor", "end")
@@ -250,10 +361,11 @@ add_axes = (svg, data, margin, width, height) ->
       .style("font-size", "14px")
       .style("font-weight", "500")
 
+  yAxisFun = d3.axisLeft(yScale).tickSize(-width + margin.left + margin.right).tickPadding(8)
   yAxis = axes.append("g")
           .attr("id", "y_axis")
           .attr("transform", "translate(0,0)")
-          .call(d3.axisLeft(yScale).tickSize(-width + margin.left + margin.right).tickPadding(8))
+          .call(yAxisFun)
 
   yAxis.selectAll("text")
       .style("font-family", "Arial")
@@ -279,6 +391,30 @@ add_axes = (svg, data, margin, width, height) ->
       .selectAll("line")
       .attr("dashoffset", 10)
       .style("stroke-dasharray", "7 5")
+
+  axes.append("text")
+      .text(x_label)
+      .attr("transform", "translate(" + ((width - margin.left - margin.right) / 2 + margin.left) + "," + (height) + ")")
+      .style("text-anchor", "middle")
+      .style("font-family", "Arial")
+      .style("font-size", "16px")
+      .style("font-weight", "500")
+      .transition()
+      .duration(1000)
+      .ease(d3.easeLinear)
+      .attr("transform", "translate(" + ((width - margin.left - margin.right) / 2 + margin.left) + "," + (height - margin.bottom / 4) + ")")
+
+  axes.append("text")
+      .text(y_label)
+      .attr("transform", "translate(0," + ((height - margin.top - margin.bottom) / 2 + margin.top) + ") rotate(-90)")
+      .style("text-anchor", "middle")
+      .style("font-family", "Arial")
+      .style("font-size", "16px")
+      .style("font-weight", "500")
+      .transition()
+      .duration(1000)
+      .ease(d3.easeLinear)
+      .attr("transform", "translate(" + (margin.left / 4) + "," + ((height - margin.top - margin.bottom) / 2 + margin.top) + ") rotate(-90)")
   return axes
 
 add_line_chart = (svg, container, data, margin, width, height) ->
@@ -447,7 +583,7 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
   tooltip = container.append("div")
                     .attr("id", "tooltip_" + container.attr("id"))
                     .style("opacity", 0)
-                    .style("position", "absolute")
+                    .style("position", "fixed")
                     .style("padding", "2px 10px")
                     .style("color", "white")
                     .style("border-radius", "7px 7px 0px 7px")

@@ -3,6 +3,24 @@
   They will automatically be included in application.css.
 */
 
+.button {
+  color: white;
+  font-family: Arial;
+  font-size: 14px;
+  border-radius: 7px;
+  font-weight: 600;
+  text-align: center;
+  padding: 4px 10px;
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
 table{
   border-collapse: separate;
   border-spacing: 2px;
