@@ -637,16 +637,16 @@ br
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
           - if list_num.present?
             = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
-        td align="right" i=list_num.value j=0 value=top5_rmax
+        td align="right" i=list_num.value j=0 value=top5_rmax title="Суммарная производительность топ 5 суперкомпьютеров на тесте Linpack"
           = top5_rmax
           - chart_data_by_tp["Linpack (1-5)"].unshift([date_val.value, top5_rmax])
-        td align="right" i=list_num.value j=1 value=top50_rmax
+        td align="right" i=list_num.value j=1 value=top50_rmax title="Суммарная производительность на тесте Linpack"
           = top50_rmax
           - chart_data_by_tp["Linpack (1-50)"].unshift([date_val.value, top50_rmax])
-        td align="right" i=list_num.value j=2 value=top5_rpeak
+        td align="right" i=list_num.value j=2 value=top5_rpeak title="Суммарная производительность топ 5 суперкомпьютеров на тесте Peak"
           = top5_rpeak
           - chart_data_by_tp["Peak (1-5)"].unshift([date_val.value, top5_rpeak])
-        td align="right" i=list_num.value j=3 value=top50_rpeak
+        td align="right" i=list_num.value j=3 value=top50_rpeak title="Суммарная производительность на тесте Peak"
           = top50_rpeak
           - chart_data_by_tp["Peak (1-50)"].unshift([date_val.value, top50_rpeak])
     

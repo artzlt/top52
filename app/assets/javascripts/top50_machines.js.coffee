@@ -219,7 +219,6 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
     table_control.selectAll("div").on("click", (d, i) ->
       d3.select(this).property("checked", !d3.select(this).property("checked"))
       mode[i] = d3.select(this).property("checked")
-      console.log(mode)
       if d3.select(this).property("checked")
         d3.select(this)
           .transition()
@@ -235,7 +234,6 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
     )
 
     table_control.on("click", () ->
-      console.log("table control")
       table.selectAll("td")
             .filter(() -> d3.select(this).attr("class") != "fit")
             .each(() ->
@@ -273,7 +271,7 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
                 if perc - perc_pred < -0.01
                   elem.style("background-color", "rgba(255, 0, 0, 0.05)")
               else if mode[2] and mode[0]
-                if val - val_pred > val_pred / 2
+                if val - val_pred > val_pred
                   elem.style("background-color", "rgba(0, 255, 0, 0.05)")
             )
     )
@@ -347,6 +345,7 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
 
   axes = svg.append("g").attr("id", "axes")
 
+
   xAxisFun = d3.axisBottom(xScale).tickValues(dates).tickFormat(d3.timeFormat("%m.%y")).tickSize(7)
   xAxis = axes.append("g")
     .attr("id", "x_axis")
@@ -416,6 +415,102 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
       .duration(1000)
       .ease(d3.easeLinear)
       .attr("transform", "translate(" + (margin.left / 4) + "," + ((height - margin.top - margin.bottom) / 2 + margin.top) + ") rotate(-90)")
+
+  zoom_func = () ->
+    newXScale = d3.event.transform.rescaleX(xScale)
+    newYScale = d3.event.transform.rescaleY(yScale)
+
+    x_dates = []
+    y_domain = [yScale.domain()[1], yScale.domain()[0]]
+    data[0].data.forEach((d, i) ->
+      if d[0] > newXScale.domain()[0] && d[0] < newXScale.domain()[1]
+        x_dates.push(d[0])
+        for set in data
+          if set.data[i][1] < y_domain[0]
+            y_domain[0] = set.data[i][1]
+          if set.data[i][1] > y_domain[1]
+            y_domain[1] = set.data[i][1]
+    )
+
+    newYScale.domain(y_domain)
+
+    # update axes
+    xAxis.call(xAxisFun.tickValues(x_dates).scale(newXScale))
+    yAxis.call(yAxisFun.scale(newYScale))
+
+    xAxis.selectAll("text")
+        .attr("text-anchor", "end")
+        .attr("dx", "-.6em")
+        .attr("dy", ".15em")
+        .attr("transform", "rotate(-55)")
+        .style("font-family", "Arial")
+        .style("font-size", "14px")
+        .style("font-weight", "500")
+    yAxis.selectAll("text")
+        .style("font-family", "Arial")
+        .style("font-size", "14px")
+        .style("font-weight", "500")
+    yAxis.selectAll("line")
+        .attr("dashoffset", 10)
+        .style("stroke-dasharray", "7 5")
+        .style("opacity", "0.2")
+
+    chart = svg.selectAll("g").filter(() -> d3.select(this).attr("id") == "chart")
+    chart.selectAll("circle")
+          .transition()
+          .duration(100)
+          .ease(d3.easeLinear)
+          .attr("cx", (d) -> newXScale(d[0]))
+          .attr("cy", (d) -> newYScale(d[1]))
+          .each((d) ->
+            if newXScale(d[0]) < margin.left || newXScale(d[0]) > width - margin.right || newYScale(d[1]) < margin.top || newYScale(d[1]) > height - margin.bottom
+              d3.select(this).style("opacity", 0)
+            else
+              d3.select(this).style("opacity", 1)
+          )
+
+    line = d3.line()
+            .x((d) ->
+              if newXScale(d[0]) < margin.left
+                return margin.left
+              if newXScale(d[0]) > width - margin.right
+                return width - margin.right
+              return newXScale(d[0])
+            )
+            .y((d) ->
+              if newYScale(d[1]) < margin.top
+                return margin.top
+              if newYScale(d[1]) > height - margin.bottom
+                return height - margin.bottom
+              return newYScale(d[1])
+            )
+            .curve(d3.curveMonotoneX)
+    
+    chart.selectAll("path")
+          .style("stroke-dasharray", 0)
+          .transition()
+          .duration(100)
+          .ease(d3.easeLinear)
+          .attr("d", (d, i) ->
+            path_data = []
+            data[i].data.forEach((el, j) ->
+              if el[0] > newXScale.domain()[0] && el[0] < newXScale.domain()[1] && el[1] > newYScale.domain()[0] && el[1] < newYScale.domain()[1]
+                path_data.push(el)
+              else if j != data[i].data.length - 1 && data[i].data[j + 1][0] > newXScale.domain()[0] && data[i].data[j + 1][0] < newXScale.domain()[1] && data[i].data[j + 1][1] > newYScale.domain()[0] && data[i].data[j + 1][1] < newYScale.domain()[1]
+                path_data.push(el)
+              else if j && data[i].data[j - 1][0] > newXScale.domain()[0] && data[i].data[j - 1][0] < newXScale.domain()[1] && data[i].data[j - 1][1] > newYScale.domain()[0] && data[i].data[j - 1][1] < newYScale.domain()[1]
+                path_data.push(el)
+            )
+            line(path_data)
+          )
+
+  zoom = d3.zoom()
+          .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+          .translateExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+          .scaleExtent([1, Infinity])
+          .on("zoom", zoom_func)
+
+  svg.call(zoom)
   return axes
 
 add_line_chart = (svg, container, data, margin, width, height) ->
@@ -628,7 +723,6 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
               .text(elem.attr("value"))
               .style("left", (+elem.attr("x") + left) + "px")
               .style("top", (+elem.attr("y") + top) + "px")
-        console.log(+elem.attr("y") + top)
     )
     .on("mouseout", () ->
         xcord = d3.select(this).attr("cx");
