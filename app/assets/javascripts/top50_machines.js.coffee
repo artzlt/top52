@@ -494,11 +494,11 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
           .attr("d", (d, i) ->
             path_data = []
             data[i].data.forEach((el, j) ->
-              if el[0] > newXScale.domain()[0] && el[0] < newXScale.domain()[1] && el[1] > newYScale.domain()[0] && el[1] < newYScale.domain()[1]
+              if el[0] >= newXScale.domain()[0] && el[0] <= newXScale.domain()[1] && el[1] >= newYScale.domain()[0] && el[1] <= newYScale.domain()[1]
                 path_data.push(el)
-              else if j != data[i].data.length - 1 && data[i].data[j + 1][0] > newXScale.domain()[0] && data[i].data[j + 1][0] < newXScale.domain()[1] && data[i].data[j + 1][1] > newYScale.domain()[0] && data[i].data[j + 1][1] < newYScale.domain()[1]
+              else if j != data[i].data.length - 1 && data[i].data[j + 1][0] >= newXScale.domain()[0] && data[i].data[j + 1][0] <= newXScale.domain()[1] && data[i].data[j + 1][1] >= newYScale.domain()[0] && data[i].data[j + 1][1] <= newYScale.domain()[1]
                 path_data.push(el)
-              else if j && data[i].data[j - 1][0] > newXScale.domain()[0] && data[i].data[j - 1][0] < newXScale.domain()[1] && data[i].data[j - 1][1] > newYScale.domain()[0] && data[i].data[j - 1][1] < newYScale.domain()[1]
+              else if j && data[i].data[j - 1][0] >= newXScale.domain()[0] && data[i].data[j - 1][0] <= newXScale.domain()[1] && data[i].data[j - 1][1] >= newYScale.domain()[0] && data[i].data[j - 1][1] <= newYScale.domain()[1]
                 path_data.push(el)
             )
             line(path_data)
