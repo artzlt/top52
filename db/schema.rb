@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180924104050) do
+ActiveRecord::Schema.define(version: 20181016090412) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1297,6 +1297,17 @@ ActiveRecord::Schema.define(version: 20180924104050) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "vendor_ids", array: true
+  end
+
+  create_table "top50_measure_scales", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.float    "scale"
+    t.integer  "measure_unit_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "top50_measure_units", force: true do |t|

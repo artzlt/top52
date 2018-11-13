@@ -76,6 +76,7 @@ Octoshell::Application.routes.draw do
   end
 
   resources :top50_measure_units
+  resources :top50_measure_scales
   resources :top50_benchmarks
 #  resources :top50_attribute_dbval
   resources :top50_attribute_dbvals

@@ -124,7 +124,8 @@ class Top50MachinesController < Top50BaseController
     @cop_model_attrid = Top50Attribute.where(name_eng: "Coprocessor model").first.id
     @cop_vendor_attrid = Top50Attribute.where(name_eng: "Coprocessor Vendor").first.id
     @rmax_benchid = Top50Benchmark.where(name_eng: "Linpack").first.id
-
+    @place_measureid = Top50MeasureUnit.where(name_eng: 'place').first.id
+    @perf_measureid = Top50MeasureUnit.where(name_eng: 'MFlop/s').first.id
     
   end
   
@@ -190,7 +191,20 @@ class Top50MachinesController < Top50BaseController
     @mach_x_attrdb.each do |rec|
       @mach_attrdb_hash[rec["id"]] << _attrdb_val.new(rec["attr_id"], rec["attr_name"], rec["value"])
     end
-    
+
+    @mach_x_bench = Top50BenchmarkResult.select("top50_benchmark_results.machine_id as id, b.id as benchmark_id, b.name as benchmark_name, br.result, mu.id as measure_id, mu.name as measure_name").
+      joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").
+      joins("join top50_benchmarks b on b.id = br.benchmark_id").
+      joins("join top50_measure_units mu on mu.id = b.measure_id").
+      where("top50_benchmark_results.benchmark_id = #{edition_id}").
+      map(&:attributes)
+
+    _bench_res = Struct.new('BenchResult', :benchmark_id, :benchmark_name, :result, :measure_id, :measure_name)
+    @mach_bench_hash = Hash.new{|h, k| h[k] = []}
+    @mach_x_bench.each do |rec|
+      @mach_bench_hash[rec["id"]] << _bench_res.new(rec["benchmark_id"], rec["benchmark_name"], rec["result"], rec["measure_id"], rec["measure_name"])
+    end
+
     @l1_x_attrd = Top50AttributeValDict.select("top50_attribute_val_dicts.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name").
       joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dicts.attr_id").
       joins("join top50_dictionary_elems dict_elems on dict_elems.id = top50_attribute_val_dicts.dict_elem_id").
@@ -250,7 +264,7 @@ class Top50MachinesController < Top50BaseController
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{top50_current_id}").
       order("ed_results.result asc").
       map(&:attributes)
-    
+
   end
 
 def new_list
@@ -874,15 +888,16 @@ end
   
   def show
     @top50_machine = Top50Machine.find(params[:id])
-	calc_machine_attrs
+  	calc_machine_attrs
+    @perf_measured_attrs = [@rpeak_attrid]
 	
-	@top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches)
-	list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
+	  @top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches)
+	  list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
     @list_nums = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
-	list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
+	  list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
     @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
-	@top50_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(@top50_lists)
-	@top50_incl = @top50_res.select("top50_benchmark_results.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmark_results.benchmark_id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").where("top50_benchmark_results.machine_id IN (#{tree_prec_sql(@top50_machine.id)})").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int)")
+	  @top50_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(@top50_lists)
+	  @top50_incl = @top50_res.select("top50_benchmark_results.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmark_results.benchmark_id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").where("top50_benchmark_results.machine_id IN (#{tree_prec_sql(@top50_machine.id)})").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int)")
 	
   end
 

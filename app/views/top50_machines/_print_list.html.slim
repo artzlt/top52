@@ -1,4 +1,17 @@
-﻿table class="table table-responsive table-striped"
+﻿- min_rmax = Top50BenchmarkResult.where("benchmark_id = ? and machine_id in (?) and result > 0", @rmax_benchid, @top50_machines.collect{ |x| x['id'] }).order(:result).first
+- if min_rmax.present?
+  - @global_scale = min_rmax.top50_benchmark.top50_measure_unit.top50_measure_scales.where("scale < ?", min_rmax.result).order(scale: :desc).first
+  - if not @global_scale.present?
+    - @global_scale = min_rmax.top50_benchmark.top50_measure_unit.top50_measure_scales.order(:scale).first
+- else
+  - min_rpeak = Top50AttributeValDbval.where("attr_id = ? and machine_id in (?) and cast(encode(value, 'escape') as int) > 0", @rpeak_attrid, @top50_machines.collect{ |x| x['id'] }).order("cast(encode(value, 'escape') as int)").first
+  - mu = Top50MeasureUnit.find(@perf_benchid)
+  - if min_rpeak.present?
+    - @global_scale = mu.top50_measure_scales.where("scale < ?", min_rpeak.value.to_f).order(scale: :desc).first
+  - if not @global_scale.present?
+    - @global_scale = mu.top50_measure_scales.order(:scale).first
+    
+table class="table table-responsive table-striped"
   tr
 	th
 	  - if 1==1
@@ -29,7 +42,7 @@
 		br
 		= "Rpeak"
 		br
-		= content_tag :span, "(Tflop/s)", :class => "th-thin"
+		= content_tag :span, format("(%s)", @global_scale.name), :class => "th-thin"
 	th 
 	  - if 1==1
 		= "Разработчик"
@@ -218,13 +231,13 @@
 		- if rmax_record.present?
 		  - nmax_val = @nmax_attr_vals.find_by(obj_id: rmax_record.id)
 		  - if nmax_val.present?
-		    = content_tag :a, (rmax_record.result / 1000000.0).round(2), :title => "Максимальная производительность на тесте Linpack (Rmax). \nРазмер матрицы (Nmax): #{nmax_val.value.to_i}", :class => "whint"
+		    = content_tag :a, (rmax_record.result / @global_scale.scale).round(2), :title => "Максимальная производительность на тесте Linpack (Rmax). \nРазмер матрицы (Nmax): #{nmax_val.value.to_i}", :class => "whint"
 		  - else
-		    = (rmax_record.result / 1000000.0).round(2)
+		    = (rmax_record.result / @global_scale.scale).round(2)
 		- rpeak_record = @mach_attrdb_hash[top50_machine["id"]].find{|x| x.attr_id == @rpeak_attrid}
 		- if rpeak_record
 		  br
-		  = (rpeak_record.value.to_f / 1000000.0).round(2) 
+		  = (rpeak_record.value.to_f / @global_scale.scale).round(2) 
 	  td class="col-xs-1"
 		- top50_machine["vendor_ids"].each do |v_id|
 		  - vendor = Top50Vendor.find(v_id)

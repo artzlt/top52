@@ -207,9 +207,14 @@ br
 - top50_obj.top50_attribute_val_dbvals.each do |top50_attribute_val|
   - if not excl_attr_list.include?(top50_attribute_val.top50_attribute_dbval.top50_attribute.name_eng)
     p
-      - if top50_attribute_val.attr_id == 14
-        strong = "Rpeak (ТФлоп/с): "
-        = top50_attribute_val.value.to_f / 1000000.0
+      - if @perf_measured_attrs.include?(top50_attribute_val.attr_id)
+        - mu = Top50MeasureUnit.find(@perf_measureid)
+        - sc = mu.top50_measure_scales.where("scale < ?", top50_attribute_val.value.to_f).order(scale: :desc).first
+        - if not sc.present?
+          - sc = mu.top50_measure_scales.order(:scale).first
+        strong = top50_attribute_val.top50_attribute_dbval.top50_attribute.name.gsub!(mu.name, sc.name)
+        strong = ": "
+        = top50_attribute_val.value.to_f / sc.scale
       - else
         strong = top50_attribute_val.top50_attribute_dbval.top50_attribute.name
         strong = ": "
@@ -227,9 +232,12 @@ p
   - rmax = @rmax_res.find_by(machine_id: @top50_machine.id)
   br
   strong = "Результат (Rmax): "
-  = rmax.result / 1000000.0
+  - sc = rmax.top50_benchmark.top50_measure_unit.top50_measure_scales.where("scale < ?", rmax.result).order(scale: :desc).first
+  - if not sc.present?
+    - sc = rmax.top50_benchmark.top50_measure_unit.top50_measure_scales.order(:scale).first
+  = rmax.result / sc.scale
   = " "
-  = "ТФлоп/с"
+  = sc.name
   br
   - top50_obj = rmax.top50_object
   - top50_obj.top50_attribute_val_dbvals.each do |top50_attribute_val|
