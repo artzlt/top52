@@ -422,6 +422,7 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
 
     x_dates = []
     y_domain = [yScale.domain()[1], yScale.domain()[0]]
+    bar_max = 0
     data[0].data.forEach((d, i) ->
       if d[0] > newXScale.domain()[0] && d[0] < newXScale.domain()[1]
         x_dates.push(d[0])
@@ -430,9 +431,17 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
             y_domain[0] = set.data[i][1]
           if set.data[i][1] > y_domain[1]
             y_domain[1] = set.data[i][1]
+        sum = 0
+        for set in data
+          sum += set.data[i][1]
+        if sum > bar_max
+          bar_max = sum
     )
 
     newYScale.domain(y_domain)
+    newBarYScale = d3.scaleLinear()
+                    .domain([0, bar_max])
+                    .range([height - margin.bottom, margin.top])
 
     # update axes
     xAxis.call(xAxisFun.tickValues(x_dates).scale(newXScale))
@@ -502,6 +511,23 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
                 path_data.push(el)
             )
             line(path_data)
+          )
+
+    # scaling bar chart
+    rect_width = width / x_dates.length - 6
+    chart.selectAll("rect")
+          .transition()
+          .duration(100)
+          .ease(d3.easeLinear)
+          .attr("width", rect_width)
+          .attr("height", (d) -> newBarYScale(d[0]) - newBarYScale(d[1]))
+          .attr("x", (d) -> newXScale(d.data.date) - rect_width / 2)
+          .attr("y", (d) -> newBarYScale(d[1]))
+          .each((d) ->
+            if newXScale(d.data.date) - rect_width / 2 < margin.left || newXScale(d.data.date) + rect_width / 2 > width + margin.right
+              d3.select(this).style("opacity", 0)
+            else
+              d3.select(this).style("opacity", 1)
           )
 
   zoom = d3.zoom()
@@ -655,6 +681,8 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
 
   chart = svg.append("g").attr("id", "chart")
 
+  rect_width = width / data[0].data.length - 6
+
   chart.selectAll("g")
         .data(bar_data)
         .enter()
@@ -665,8 +693,8 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
         .enter()
         .append("rect")
         .attr("value", (d) -> Math.round((d[1] - d[0]) * 100) / 100)
-        .attr("x", (d) -> xScale(d.data.date) - 10)
-        .attr("width", 20)
+        .attr("x", (d) -> xScale(d.data.date) - rect_width / 2)
+        .attr("width", rect_width)
         .attr("rx", 4)
         .attr("ry", 4)
         .attr("y", height - margin.bottom)
@@ -700,8 +728,8 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
             .ease(d3.easeElastic)
             .style("stroke", () -> d3.select(this.parentNode).style("fill"))
             .style("stroke-width", 5)
-            .attr("width", 26)
-            .attr("x", (d) -> xScale(d.data.date) - 13)
+            .attr("width", rect_width + 2)
+            .attr("x", (d) -> xScale(d.data.date) - 1 - rect_width / 2)
             .attr("height", (d) -> yScale(d[0]) - yScale(d[1]) + 6)
             .attr("y", (d) -> yScale(d[1]) - 3)
 
@@ -732,9 +760,9 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
             .ease(d3.easeElastic)
             .style("fill", () -> d3.select(this.parentNode).attr("color"))
             .style("stroke-width", 0)
-            .attr("width", 20)
+            .attr("width", rect_width)
             .attr("height", (d) -> yScale(d[0]) - yScale(d[1]))
-            .attr("x", (d) -> xScale(d.data.date) - 10)
+            .attr("x", (d) -> xScale(d.data.date) - rect_width / 2)
             .attr("y", (d) -> yScale(d[1]))
 
         tooltip.transition()
