@@ -1182,28 +1182,14 @@ end
 		
   def new
     @top50_machine = Top50Machine.new
-    @top50_contact = Top50Contact.new
   end
 
   def create
-    @top50_contact = Top50Contact.new
-    @top50_contact['name'] = params['top50_machine']['top50_contact']['name']
-    @top50_contact['surname'] = params['top50_machine']['top50_contact']['surname']
-    @top50_contact['patronymic'] = params['top50_machine']['top50_contact']['patronymic']
-    @top50_contact['phone'] = params['top50_machine']['top50_contact']['phone']
-    @top50_contact['email'] = params['top50_machine']['top50_contact']['email']
-    @top50_contact['extra_info'] = params['top50_machine']['top50_contact']['extra_info']
-    @top50_contact.save!
     @top50_machine = Top50Machine.new(top50machine_params)
-    @top50_machine.contact_id = @top50_contact.id
-    @top50_machine.vendor_ids = [top50machine_params[:vendor_id]] + (params[:top50_machine][:vendor_ids] - [top50machine_params[:vendor_id], ""])
-    @top50_machine.is_valid = 2
-    @top50_machine.installation_date = Date.parse(format('%s-01-01', top50machine_params[:installation_date]))
-    if cond_params[:cond_accepted].to_i != 1
-      flash[:notice] = "Для подачи заявки необходимо подтвердить согласие на обработку данных."
-    end
-    if cond_params[:cond_accepted].to_i == 1 and @top50_machine.save
-      redirect_to top50_machines_new_form_url(@top50_machine)
+    @top50_machine[:is_valid] = 0
+    @top50_machine[:comment] = "Added type"
+    if @top50_machine.save
+      redirect_to :back
     else
       render :new
     end
@@ -1277,7 +1263,6 @@ end
     top50_relation.type_id = @rel_contain_id
     top50_nested_node = Top50Object.new
     top50_nested_node.type_id = @comp_node_id
-    top50_nested_node.save!
     top50_relation.sec_obj_id = top50_nested_node.id
     if top50_node_params[:top50_cpu][:sec_obj_qty].present? and top50_node_params[:top50_cpu][:sec_obj_qty].to_i > 0
         top50_cpu_relation = top50_nested_node.top50_relations.build
@@ -1292,20 +1277,14 @@ end
         top50_acc_id = Top50AttributeValDict.where(dict_elem_id: top50_node_params[:top50_acc][:model_dict_elem_id]).first.obj_id
         top50_acc_relation.type_id = @rel_contain_id
         top50_acc_relation.sec_obj_id = top50_acc_id
-        top50_acc_relation.save
     end
     
     top50_ram_attr = top50_nested_node.top50_attribute_val_dbvals.build
     @ram_size_attrid = Top50Attribute.where(name_eng: "RAM size (GB)").first.id
     top50_ram_attr.attr_id = @ram_size_attrid
     top50_ram_attr.value = top50_node_params[:top50_ram][:ram_size]
-    top50_ram_attr.save
     
-    if top50_relation.save and top50_cpu_relation.save
-      redirect_to top50_machines_new_form_url(@top50_machine)
-    else
-      render add_component_path(@top50_machine)
-    end
+    redirect_to top50_machines_app_form_step2_url
   end
 
   def default
@@ -1313,23 +1292,59 @@ end
     redirect_to :top50_machines
   end
   
-  def new_form
-    @top50_machine = Top50Machine.find(params[:id])
+  def app_form_step1
+    @top50_machine = Top50Machine.new
+    @top50_contact = Top50Contact.new
+  end
+
+  def app_form_step1_presave
+    flash.delete(:error)
+    @top50_contact = Top50Contact.new
+    @top50_contact['name'] = params['top50_machine']['top50_contact']['name']
+    @top50_contact['surname'] = params['top50_machine']['top50_contact']['surname']
+    @top50_contact['patronymic'] = params['top50_machine']['top50_contact']['patronymic']
+    @top50_contact['phone'] = params['top50_machine']['top50_contact']['phone']
+    @top50_contact['email'] = params['top50_machine']['top50_contact']['email']
+    @top50_contact['extra_info'] = params['top50_machine']['top50_contact']['extra_info']
+    @top50_machine = Top50Machine.new(top50machine_params)
+    @top50_machine.contact_id = @top50_contact.id
+    @top50_machine.vendor_ids = [top50machine_params[:vendor_id]] + (params[:top50_machine][:vendor_ids] - [top50machine_params[:vendor_id], ""])
+    @top50_machine.is_valid = 2
+    @top50_machine.installation_date = Date.parse(format('%s-01-01', top50machine_params[:installation_date]))
+    if cond_params[:cond_accepted].to_i != 1
+      app_form_step1_fail("Для подачи заявки необходимо подтвердить согласие на обработку данных.")
+      return
+    end
+    if cond_params[:cond_accepted].to_i == 1
+      redirect_to top50_machines_app_form_step2_url
+    else
+      render :new
+    end
+  end
+
+  def app_form_step1_fail(err_msg)
+    flash[:error] = err_msg
+    render :app_form_step1
+    return
+  end
+
+  def app_form_step2
+    @top50_machine = Top50Machine.new
     @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
     @comp_node_id = Top50ObjectType.where(name_eng: 'Compute node').first.id
     prepare_arch_attrs
   end
   
-  def new_form_3
-    @top50_machine = Top50Machine.find(params[:id])
+  def app_form_step3
+    @top50_machine = Top50Machine.new
     @app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
     @net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
     @tplg_dict_id = Top50Dictionary.where(name_eng: 'Topologies').first.id
     @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
   end
 
-  def new_form_3_save
-    @top50_machine = Top50Machine.find(params[:id])
+  def app_form_step3_presave
+    @top50_machine = Top50Machine.new
     com_net_attrid = Top50Attribute.where(name_eng: "Communication network").first.id
     serv_net_attrid = Top50Attribute.where(name_eng: "Service network").first.id
     tran_net_attrid = Top50Attribute.where(name_eng: "Transport network").first.id
@@ -1341,28 +1356,24 @@ end
       is_valid: 1,
       dict_elem_id: params['top50_machine']['top50_nets']['comm_net_dict_elem_id']
     })
-    cn.save!
     sn = Top50AttributeValDict.new({
       attr_id: serv_net_attrid,
       obj_id: @top50_machine.id,
       is_valid: 1,
       dict_elem_id: params['top50_machine']['top50_nets']['serv_net_dict_elem_id']
     })
-    sn.save!
     tn = Top50AttributeValDict.new({
       attr_id: tran_net_attrid,
       obj_id: @top50_machine.id,
       is_valid: 1,
       dict_elem_id: params['top50_machine']['top50_nets']['tran_net_dict_elem_id']
     })
-    tn.save!
     aa = Top50AttributeValDict.new({
       attr_id: app_area_attrid,
       obj_id: @top50_machine.id,
       is_valid: 1,
       dict_elem_id: params['top50_machine']['top50_app_area']['app_dict_elem_id']
     })
-    aa.save!
     if params['top50_machine']['top50_nets']['tplg_net_dict_elem_id'].present?
       tp = Top50AttributeValDict.new({
         attr_id: topo_attrid,
@@ -1370,20 +1381,19 @@ end
         is_valid: 1,
         dict_elem_id: params['top50_machine']['top50_nets']['tplg_net_dict_elem_id']
       })
-      tp.save!
     end
-    redirect_to top50_machines_new_form_4_url(@top50_machine)
+    redirect_to top50_machines_app_form_step4_url
   end
 
-  def new_form_4
-    @top50_machine = Top50Machine.find(params[:id])
+  def app_form_step4
+    @top50_machine = Top50Machine.new
     @app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
     @net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
     @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
   end
 
-  def new_form_4_save
-    @top50_machine = Top50Machine.find(params[:id])
+  def app_form_step4_presave
+    @top50_machine = Top50Machine.new
     @rmax_benchid = Top50Benchmark.where(name_eng: "Linpack").first.id
     @nmax_attrid = Top50Attribute.where(name_eng: "Linpack Nmax").first.id
     @rpeak_attrid = Top50Attribute.where(name_eng: "Rpeak (MFlop/s)").first.id
@@ -1392,24 +1402,21 @@ end
     rmax['machine_id'] = @top50_machine.id
     rmax['is_valid'] = 1
     rmax['result'] = params['top50_machine']['top50_perf']['rmax']
-    rmax.save!
     rp = Top50AttributeValDbval.new
     rp['attr_id'] = @rpeak_attrid
     rp['obj_id'] = @top50_machine.id
     rp['is_valid'] = 1
     rp['value'] = params['top50_machine']['top50_perf']['rpeak']
-    rp.save!
     nmax = Top50AttributeValDbval.new
     nmax['attr_id'] = @nmax_attrid
     nmax['obj_id'] = rmax.id
     nmax['is_valid'] = 1
     nmax['value'] = params['top50_machine']['top50_perf']['nmax']
-    nmax.save!
-    redirect_to top50_machines_new_form_5_url(@top50_machine)
+    redirect_to top50_machines_app_form_finish_url
   end
   
-  def new_form_5
-    @top50_machine = Top50Machine.find(params[:id])
+  def app_form_finish
+    @top50_machine = Top50Machine.new
   end
 
   

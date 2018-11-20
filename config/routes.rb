@@ -36,14 +36,18 @@ Octoshell::Application.routes.draw do
   get 'certificates/download', to: 'top50_machines#download_certificate', as: 'download_certificate'
 
   resource :profile
-  get 'top50_machines/:id/new_form', to: 'top50_machines#new_form', as:'top50_machines_new_form'
-  get 'top50_machines/:id/new_form_3', to: 'top50_machines#new_form_3', as:'top50_machines_new_form_3'
-  patch 'top50_machines/:id/new_form_3', to: 'top50_machines#new_form_3_save'
-  get 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4', as:'top50_machines_new_form_4'
-  patch 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4_save'
-  get 'top50_machines/:id/new_form_5', to: 'top50_machines#new_form_5', as:'top50_machines_new_form_5'
+  get 'top50_machines/application/step1', to: 'top50_machines#app_form_step1', as: 'top50_machines_app_form_step1'
+  post 'top50_machines/application/step1', to: 'top50_machines#app_form_step1_presave'
+  get 'top50_machines/application/step2', to: 'top50_machines#app_form_step2', as: 'top50_machines_app_form_step2'
+  post 'top50_machines/application/step2', to: 'top50_machines#app_form_step2_presave'
+  get 'top50_machines/application/step3', to: 'top50_machines#app_form_step3', as: 'top50_machines_app_form_step3'
+  post 'top50_machines/application/step3', to: 'top50_machines#app_form_step3_presave'
+  get 'top50_machines/application/step4', to: 'top50_machines#app_form_step4', as: 'top50_machines_app_form_step4'
+  post 'top50_machines/application/step4', to: 'top50_machines#app_form_step4_presave'
+  get 'top50_machines/application/finish', to: 'top50_machines#app_form_finish', as: 'top50_machines_app_form_finish'
+
   get 'top50_machines/new_list', to: 'top50_machines#new_list', as: 'top50_machines_new_list'
-  post 'top50_machines/new_list', to: 'top50_machines#submit_list', as: 'top50_machines_submit_list'
+  post 'eop50_machines/new_list', to: 'top50_machines#submit_list', as: 'top50_machines_submit_list'
   get 'top50_machines/delete_list/:id', to: 'top50_machines#destroy_list', as: 'top50_machines_destroy_list'
   get 'top50_machines/edit_list/:id', to: 'top50_machines#new_list', as: 'top50_machines_edit_list'
   post 'top50_machines/edit_list/:id', to: 'top50_machines#submit_list', as: 'top50_machines_save_list'
@@ -78,7 +82,6 @@ Octoshell::Application.routes.draw do
   resources :top50_measure_units
   resources :top50_measure_scales
   resources :top50_benchmarks
-#  resources :top50_attribute_dbval
   resources :top50_attribute_dbvals
   resources :top50_attribute_dicts
   
@@ -138,14 +141,6 @@ Octoshell::Application.routes.draw do
 
   get 'top50_machines/:id/benchmark_results/add', to: 'top50_machines#add_benchmark_result', as:'new_top50_machine_top50_benchmark_result'
   get 'top50_organizations/:org_id/suborgs', to: 'top50_organizations#suborg', as:'top50_organization_suborg'
-
-# get "top50_machines" => "top50_machines#index"
-# get "top50_machine" => "top50_machines#show"
-# get "edit_top50_machine" => "top50_machines#edit"
-# get "new_top50_machine" => "top50_machines#new"
-# patch "top50_machines" => "top50_machines#update"
-# post "top50_machines" => "top50_machines#create"
-# get "top50_attributes_dbval" => "top50_attribute_dbval#index"
 
   resources :newsfeed, only: [:new, :index]
   resources :newsfeed_settings, only: [:new, :create, :index]
