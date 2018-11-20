@@ -11,12 +11,12 @@ postgres=# `create user dbuser_dev;`<br />
 postgres=# `\password dbuser_dev`  # Password: `pass`<br />
 postgres=# `alter user dbuser_dev CREATEDB;`
 8. `rake db:setup`
-9. Аналогично создать юзера для production
+9. Аналогично создать пользователя БД postgres для production
 10. Установить плагин rbenv-vars для rbenv
 11. В папке с проектом создать и заполнить файл .rbenv-vars:<br />
 SECRET_KEY_BASE={секретный ключ, который можно сгенерировать командой rake secret}<br />
-APP_DB_USER={юзер, созданный для production на шаге 9}<br />
-APP_DB_PASSWORD={пароль юзера, созданного для production, заданный на шаге 9}<br />
+APP_DB_USER={пользователь БД, созданный для production на шаге 9}<br />
+APP_DB_PASSWORD={пароль пользователя БД, созданного для production, заданный на шаге 9}<br />
 12. `rake db:setup RAILS_ENV=production`
 13. `rake assets:precompile`
 14. Для запуска приложения после настройки, выполнить: `bundle exec puma`
