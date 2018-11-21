@@ -48,7 +48,7 @@ table border="0px"
 
 - if @posts.any?
   div width="100%" align="center"
-    = will_paginate @posts, renderer: BootstrapPagination::Rails, :previous_label => 'Назад', :next_label => 'Вперед'
+    = will_paginate @posts, renderer: BootstrapPagination::Rails, :previous_label => 'Назад', :next_label => 'Вперед', :params => { :controller => 'newsfeed', :action => 'index' }
 
 ruby:
   def all_tags
