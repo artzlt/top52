@@ -1,6 +1,9 @@
 ## Установка и запуск
 
 1. `git clone`
+2. `sudo apt-get install php7.2`
+2. `sudo apt-get install inkscape`
+2. `sudo apt-get install ghostscript`
 2. `sudo apt-get install openjdk-8-jdk` (найти текущую версию OpenJDK из `sudo apt-cache search openjdk`)
 3. `sudo apt-get install postgresql-9.6` (найти текущую версию Postgres из `sudo apt-cache search postgresql`)
 4. Поставить rbenv, установить jruby-9.1.10.0
