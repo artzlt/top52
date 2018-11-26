@@ -119,6 +119,8 @@ br
 
 - elsif @stat_section == "area"
   - chart_data_by_tp = {}
+
+  div id="chart"
   table class="table table-hover"
     tr
       th = "Редакция"
@@ -151,10 +153,15 @@ br
           = oth_cnt
     tr
 
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 50, stacked: true, height: "750px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        draw_area(data, "chart", "Область применения", "Date (MM.YY)", "Count of Machines")
+      /= area_chart @achart_data, max: 50, stacked: true, height: "750px"
       br
 
 - elsif @stat_section == "cpu_cnt" or @stat_section == "core_cnt"
@@ -659,13 +666,13 @@ br
         var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
 
       coffee:
-        draw_perfomance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", "Date (MM.YY)", "Performance (ПФлоп/с)")
+        draw_perfomance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", "Date (MM.YY)", "Performance (PFlops)")
       /= line_chart @achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
       br
 
     
 
-  div id="chart_2"  
+  div id="chart_2"
   - chart_data_by_tp = {}
   - chart_data_by_tp["#1"] = []
   - chart_data_by_tp["#25"] = []
@@ -714,7 +721,7 @@ br
         var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
 
       coffee:
-        draw_perfomance(data, "chart_2", "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", "Date (MM.YY)", "Performance (ПФлоп/с)")
+        draw_perfomance(data, "chart_2", "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", "Date (MM.YY)", "Performance (PFlops))")
       /= line_chart @achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
       br
 

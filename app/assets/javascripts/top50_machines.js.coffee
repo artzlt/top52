@@ -1,5 +1,3 @@
-COLORS = ["red", "green", "blue", "orange", "purple"]
-
 @test_fun = (text) ->
   #dsdfgdsfsa
   console.log("AAAAAAAAAAAAAAAAAAAAAAA" + text)
@@ -16,6 +14,7 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
       data[i].data[j][1] = +data[i].data[j][1]
 
   console.log(data)
+  console.log(d3.schemeSet1)
 
   func = () ->
     width = document.getElementById(src_id).offsetWidth
@@ -85,7 +84,7 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
     svg = container.append("svg").attr("style", "width:100%; height:" + height + "px").attr("id", "svg_" + src_id)
 
     add_legend_events(legend, svg, container, data, add_line_chart, margin, width, height, x_label, y_label)
-    add_axes(svg, data, margin, width, height, x_label, y_label)
+    add_axes(svg, container, data, margin, width, height, x_label, y_label)
     add_line_chart(svg, container, data, margin, width, height)
 
 
@@ -118,7 +117,7 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
                 .each(() -> data_to_draw.push(data[+d3.select(this).attr("number")]))
 
         add_legend_events(legend, svg, container, data, add_line_chart, margin, width, height, x_label, y_label)
-        add_axes(svg, data_to_draw, margin, width, height, x_label, y_label)
+        add_axes(svg, container, data_to_draw, margin, width, height, x_label, y_label)
         add_line_chart(svg, container, data_to_draw, margin, width, height)       
     )
 
@@ -164,7 +163,7 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
                 .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
 
         add_legend_events(legend, svg, container, temp, add_line_chart, margin, width, height, x_label)
-        add_axes(svg, data_to_draw, margin, width, height, x_label)
+        add_axes(svg, container, data_to_draw, margin, width, height, x_label)
         add_line_chart(svg, container, data_to_draw, margin, width, height)       
     )
 
@@ -211,8 +210,8 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
           for j in [0..data_to_draw.length - 1]
             bar_data[0].data[i][1] += data_to_draw[j].data[i][1]
 
-        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label)
-        add_axes(svg, bar_data, margin, width, height, x_label, y_label)
+        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label, true)
+        add_axes(svg, container, bar_data, margin, width, height, x_label, y_label)
         add_bar_chart(svg, container, data_to_draw, margin, width, height)
     )
 
@@ -287,6 +286,166 @@ COLORS = ["red", "green", "blue", "orange", "purple"]
       func()
   return 0
 
+
+@draw_area = (data, src_id, title, x_label, y_label) ->
+  for i in [0..data.length - 1]
+    #need for normal render, delete in prod
+    data[i].data.splice(23, 1)
+    #-------------------------
+    data[i].color = i
+    for j in [0..data[i].data.length - 1]
+      s = data[i].data[j][0].split(".")
+      data[i].data[j][0] = new Date(+s[2], +s[1], +s[0])
+      data[i].data[j][1] = +data[i].data[j][1]
+
+  console.log(data)
+
+  func = () ->
+    width = document.getElementById(src_id).offsetWidth
+    height = 550
+
+    margin =
+      top : 10
+      bottom : 80
+      right : 10
+      left : 80
+
+    container = d3.selectAll("div").filter(() -> d3.select(this).attr("id") == src_id)
+            
+    container.append("div")
+              .text(title)
+              .style("font-family", "Arial")
+              .style("font-size", "24px")
+              .style("border-radius", "7px")
+              .style("font-weight", "500")
+              .style("padding", "20px  0px")
+              .style("line-height", "25px")
+              .style("text-align", "center")
+              .style("float", "center")
+
+    legend = add_legend(container, data)
+
+    buttons = container.append("g").attr("id", "buttons")
+    bar_button = buttons.append("div")
+              .text("bar")
+              .attr("class", "button")
+              .style("background", "gray")
+              .style("float", "right")
+              .attr("name", "type")
+              .property("checked", "false")
+    pie_button = buttons.append("div")
+              .text("pie")
+              .attr("class", "button")
+              .style("background", "#6699CC")
+              .style("float", "right")
+              .attr("name", "type")
+              .property("checked", "true")
+
+    svg = container.append("svg").attr("style", "width:100%; height:" + height + "px").attr("id", "svg_" + src_id)
+
+    add_legend_events(legend, svg, container, data, add_bar_chart, margin, width, height, x_label, y_label, true)
+    add_pie_chart(svg, container, data, margin, width, height)
+
+    bar_button.on("click", () ->
+      buttons.selectAll("div[name='type']").each(() ->
+        if d3.select(this).property("checked")
+          d3.select(this)
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(500)
+            .style("background", "gray")
+      )
+      if d3.select(this).property("checked")
+        temp = []
+        for x, i in data
+          temp.push({})
+          temp[i].name = x.name
+          temp[i].color = x.color
+          temp[i].data = []
+          for y in x.data
+            temp[i].data.push([y[0], y[1]])
+
+        d3.select(this)
+          .transition()
+          .ease(d3.easeLinear)
+          .duration(500)
+          .style("background", "#6699CC")
+
+        svg.selectAll("g")
+            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+            .transition()
+            .duration(500)
+            .style("opacity", "0")
+            .remove()
+
+        data_to_draw = []
+        legend.selectAll("div")
+                .filter(() -> +d3.select(this).attr("active"))
+                .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
+
+        bar_data = [{"data" : []}]
+        for i in [0..data_to_draw[0].data.length - 1]
+          bar_data[0].data.push([data[0].data[i][0], 0])
+          for j in [0..data_to_draw.length - 1]
+            bar_data[0].data[i][1] += data_to_draw[j].data[i][1]
+
+        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label, true)
+        add_axes(svg, container, bar_data, margin, width, height, x_label, y_label)
+        add_bar_chart(svg, container, data_to_draw, margin, width, height)
+    )
+
+    pie_button.on("click", () ->
+      buttons.selectAll("div[name='type']").each(() ->
+        if d3.select(this).property("checked")
+          d3.select(this)
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(500)
+            .style("background", "gray")
+      )
+      if d3.select(this).property("checked")
+        temp = []
+        for x, i in data
+          temp.push({})
+          temp[i].name = x.name
+          temp[i].color = x.color
+          temp[i].data = []
+          for y in x.data
+            temp[i].data.push([y[0], y[1]])
+
+        d3.select(this)
+          .transition()
+          .ease(d3.easeLinear)
+          .duration(500)
+          .style("background", "#6699CC")
+
+        svg.selectAll("g")
+            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+            .transition()
+            .duration(500)
+            .style("opacity", "0")
+            .remove()
+
+        data_to_draw = []
+        legend.selectAll("div")
+                .filter(() -> +d3.select(this).attr("active"))
+                .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
+
+        add_legend_events(legend, svg, container, temp, add_pie_chart, margin, width, height, x_label, y_label, false, true)
+        add_pie_chart(svg, container, data_to_draw, margin, width, height)
+    )
+
+  oldonload = window.onload;
+  if typeof(window.onload) != "function"
+    window.onload = func
+  else
+    window.onload = () ->
+      if (oldonload)
+        oldonload()
+      func()
+  return 0
+
+
 add_legend = (container, data) ->
   legend = container.append("g").attr("id", "legend")
 
@@ -296,12 +455,12 @@ add_legend = (container, data) ->
           .attr("active", 1)
           .attr("number", i)
           .attr("class", "button")
-          .style("background", COLORS[i])
+          .style("background", d3.schemeSet1[i])
           .style("float", "left")
 
   return legend
 
-add_legend_events = (legend, svg, container, data, construct, margin, width, height, x_label, y_label) ->
+add_legend_events = (legend, svg, container, data, construct, margin, width, height, x_label, y_label, accumulation = false, pie = false) ->
   legend.selectAll("div")
     .on("click", () ->
           d3.select(this).attr("active", (+d3.select(this).attr("active") + 1) % 2)
@@ -309,7 +468,7 @@ add_legend_events = (legend, svg, container, data, construct, margin, width, hei
             .duration(500)
             .style("background", () -> 
               if +d3.select(this).attr("active")
-                return COLORS[+d3.select(this).attr("number")]
+                return d3.schemeSet1[+d3.select(this).attr("number")]
               return "gray"
             )
           temp = []
@@ -324,12 +483,21 @@ add_legend_events = (legend, svg, container, data, construct, margin, width, hei
               .style("opacity", "0")
               .remove()
 
-          add_axes(svg, temp, margin, width, height, x_label, y_label)
+          axes_data = temp
+          if accumulation
+            axes_data = [{"data" : []}]
+            for i in [0..temp[0].data.length - 1]
+              axes_data[0].data.push([data[0].data[i][0], 0])
+              for j in [0..temp.length - 1]
+                axes_data[0].data[i][1] += temp[j].data[i][1]
+
+          if !pie
+            add_axes(svg, container, axes_data, margin, width, height, x_label, y_label)
           construct(svg, container, temp, margin, width, height)
     )
 
 
-add_axes = (svg, data, margin, width, height, x_label, y_label) ->
+add_axes =  (svg, container, data, margin, width, height, x_label, y_label) ->
   xScale = d3.scaleTime()
             .domain([data[0].data[0][0], data[0].data[data[0].data.length - 1][0]])
             .range([margin.left, width - margin.right])
@@ -426,13 +594,12 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
     data[0].data.forEach((d, i) ->
       if d[0] > newXScale.domain()[0] && d[0] < newXScale.domain()[1]
         x_dates.push(d[0])
+        sum = 0
         for set in data
           if set.data[i][1] < y_domain[0]
             y_domain[0] = set.data[i][1]
           if set.data[i][1] > y_domain[1]
             y_domain[1] = set.data[i][1]
-        sum = 0
-        for set in data
           sum += set.data[i][1]
         if sum > bar_max
           bar_max = sum
@@ -514,7 +681,7 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
           )
 
     # scaling bar chart
-    rect_width = width / x_dates.length - 6
+    rect_width = width / (x_dates.length * 2)
     chart.selectAll("rect")
           .transition()
           .duration(100)
@@ -529,6 +696,7 @@ add_axes = (svg, data, margin, width, height, x_label, y_label) ->
             else
               d3.select(this).style("opacity", 1)
           )
+    add_bar_chart_event(svg, container, newXScale, newBarYScale)
 
   zoom = d3.zoom()
           .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
@@ -564,7 +732,7 @@ add_line_chart = (svg, container, data, margin, width, height) ->
 
     path = g.append("path")
       .attr("d", line(set.data))
-      .style("stroke", COLORS[set.color])
+      .style("stroke", d3.schemeSet1[set.color])
       .style("stroke-width", 3)
       .attr("fill", "none")
 
@@ -579,7 +747,7 @@ add_line_chart = (svg, container, data, margin, width, height) ->
       .attr("cx", (d) -> xScale(d[0]))
       .attr("cy", (d) -> yScale(d[1]))
       .attr("value", (d) -> Math.round(d[1] * 100) / 100)
-      .style("fill", COLORS[set.color])
+      .style("fill", d3.schemeSet1[set.color])
       .transition()
       .ease(d3.easeElastic)
       .delay((d, i) -> i * 40 + 500)
@@ -618,7 +786,7 @@ add_line_chart = (svg, container, data, margin, width, height) ->
             .ease(d3.easeElastic)
             .attr("r", 8)
             .style("fill", "white")
-            .style("stroke", () -> COLORS[d3.select(this).attr("color")])
+            .style("stroke", () -> d3.schemeSet1[d3.select(this).attr("color")])
             .style("stroke-width", 3)
         svg.selectAll("circle")
             .filter(() -> d3.select(this).attr("cx") != elem.attr("cx"))
@@ -633,7 +801,7 @@ add_line_chart = (svg, container, data, margin, width, height) ->
               .duration(300)
               .ease(d3.easeElastic)
               .style("opacity", 0.9)
-              .style("background", COLORS[d3.select(this).attr("color")])
+              .style("background", d3.schemeSet1[d3.select(this).attr("color")])
               .text(elem.attr("value"))
               .style("left", (+elem.attr("cx") + left) + "px")
               .style("top", (+elem.attr("cy") + top) + "px")
@@ -645,7 +813,7 @@ add_line_chart = (svg, container, data, margin, width, height) ->
             .duration(2000)
             .ease(d3.easeElastic)
             .attr("r", 5)
-            .style("fill", () -> COLORS[d3.select(this).attr("color")])
+            .style("fill", () -> d3.schemeSet1[d3.select(this).attr("color")])
             .style("stroke-width", 0)
 
         tooltip.transition()
@@ -656,10 +824,60 @@ add_line_chart = (svg, container, data, margin, width, height) ->
     )
   return chart
 
+add_bar_chart_event = (svg, container, xScale, yScale) ->
+  tooltip = container.selectAll("div")
+                    .filter(() -> d3.select(this).attr("id") == "tooltip_" + container.attr("id"))
+
+  svg.selectAll("rect")
+    .on("mouseover", () ->
+        elem = d3.select(this)
+
+        elem.transition()
+            .duration(1500)
+            .ease(d3.easeElastic)
+            .style("stroke-width", 0.05)
+
+        svg.selectAll("rect")
+            .filter(() -> d3.select(this).attr("x") != elem.attr("x") || d3.select(this).attr("y") != elem.attr("y"))
+            .transition()
+            .duration(1500)
+            .ease(d3.easeElastic)
+            .style("stroke-width", 8)
+
+        left = document.getElementById("svg_" + container.attr("id")).getBoundingClientRect().left - document.getElementById("tooltip_" + container.attr("id")).offsetWidth + 5
+        top = document.getElementById("svg_" + container.attr("id")).getBoundingClientRect().top - document.getElementById("tooltip_" + container.attr("id")).offsetHeight + 5
+        tooltip.transition()
+              .duration(300)
+              .ease(d3.easeElastic)
+              .style("opacity", 1)
+              .style("background", elem.style("fill"))
+              .text(elem.attr("value"))
+              .style("left", (+elem.attr("x") + left) + "px")
+              .style("top", (+elem.attr("y") + top) + "px")
+    )
+    .on("mouseout", () ->
+        xcord = d3.select(this).attr("cx");
+        svg.selectAll("rect")
+            .transition()
+            .duration(2000)
+            .ease(d3.easeElastic)
+            .style("stroke-width", 2)
+
+        tooltip.transition()
+            .duration(300)
+            .ease(d3.easeElastic)
+            .style("opacity", 0)
+            .style("top", "0px")
+    )
+
+
 add_bar_chart = (svg, container, data, margin, width, height) ->
+  months = 1000 * 60 * 60 * 24 * 30 * 4
+  right_date = new Date(data[0].data[data[0].data.length - 1][0])
   xScale = d3.scaleTime()
-            .domain([data[0].data[0][0], data[0].data[data[0].data.length - 1][0]])
+            .domain([data[0].data[0][0] - months, right_date.setTime(right_date.getTime() + months)])
             .range([margin.left, width - margin.right])
+  console.log(xScale.domain())
 
   stack = d3.stack()
             .keys([0..data.length - 1])
@@ -669,25 +887,34 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
     bar_data.push({"date" : data[0].data[i][0]})
     for j in [0..data.length - 1]
       bar_data[i][j] = data[j].data[i][1]
+  
+  bar_max = 0
+  data[0].data.forEach((d, i) ->
+    sum = 0
+    for set in data
+      sum += set.data[i][1]
+    if sum > bar_max
+      bar_max = sum
+  )
 
   bar_data = stack(bar_data)
   console.log(bar_data)
 
   yScale = d3.scaleLinear()
-              .domain([0, bar_data[bar_data.length - 1][bar_data[bar_data.length - 1].length - 1][1]])
+              .domain([0, bar_max])
               .range([height - margin.bottom, margin.top])
 
   loc_colors = data.map((d) -> d.color)
 
   chart = svg.append("g").attr("id", "chart")
 
-  rect_width = width / data[0].data.length - 6
+  rect_width = width / (data[0].data.length * 2)
 
   chart.selectAll("g")
         .data(bar_data)
         .enter()
         .append("g")
-        .style("fill", (d, i) -> COLORS[loc_colors[i]])
+        .style("fill", (d, i) -> d3.schemeSet1[loc_colors[i]])
         .selectAll("rect")
         .data((d) -> d)
         .enter()
@@ -698,6 +925,8 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
         .attr("rx", 4)
         .attr("ry", 4)
         .attr("y", height - margin.bottom)
+        .style("stroke", "white")
+        .style("stroke-width", 2)
         .transition()
         .duration(1000)
         .ease(d3.easeLinear)
@@ -717,29 +946,87 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
                     .style("float", "right")
                     .style("border-style", "solid")
                     .style("border-width", "3px")
-                    .style("border-color", "whit")
+                    .style("border-color", "white")
 
-  svg.selectAll("rect")
+  add_bar_chart_event(svg, container, xScale, yScale)
+  return chart
+
+
+add_pie_chart = (svg, container, data, margin, width, height) ->
+  chart = svg.append("g").attr("id", "chart")
+
+  pie = d3.pie().value((d) -> d.data[d.data.length - 1][1])
+  loc_colors = data.map((d) -> d.color)
+  outer_radius = Math.max(width - margin.left - margin.right, height - margin.top - margin.bottom) / 4
+  arc = d3.arc().innerRadius(0.01).outerRadius(outer_radius)
+  big_arc = d3.arc().innerRadius(outer_radius / 3).outerRadius(outer_radius * 4 / 3).padAngle(0.04)
+  tip = d3.arc().innerRadius(outer_radius).outerRadius(outer_radius * 4 / 3).padAngle(0.04)
+  center =
+    left : (width - margin.left - margin.right) / 2 + margin.left
+    top : (height - margin.top - margin.bottom) / 2 + margin.top
+
+  chart.selectAll("path")
+        .data(pie(data))
+        .enter()
+        .append("path")
+        .attr("value", (d) -> d.value)
+        .attr("redaction", data[0].data.length - 1)
+        .attr("fill", (d, i) -> d3.schemeSet1[loc_colors[i]])
+        .attr('transform', "translate(-" + outer_radius + ",-" + outer_radius + ")")
+        .transition()
+        .duration(1000)
+        .ease(d3.easeBackOut)
+        .attr('transform', "translate(" + center.left + "," + center.top + ")")
+        .attr("d", arc)
+        .attrTween("d", (d) ->
+            i = d3.interpolate(0, d.endAngle)
+            j = d3.interpolate(0, d.startAngle)
+            pad = d3.interpolate(d.padAngle, 0)
+            return (t) ->
+                d.endAngle = i(t)
+                d.startAngle = j(t)
+                d.padAngle = pad(t)
+                return arc(d)
+        )
+
+  tooltip = container.append("div")
+                    .attr("id", "tooltip_" + container.attr("id"))
+                    .style("opacity", 0)
+                    .style("position", "fixed")
+                    .style("padding", "2px 10px")
+                    .style("color", "white")
+                    .style("border-radius", "7px 7px 0px 7px")
+                    .style("font-family", "Arial")
+                    .style("font-size", "14px")
+                    .style("font-weight", "600")
+                    .style("float", "right")
+                    .style("border-style", "solid")
+                    .style("border-width", "3px")
+                    .style("border-color", "white")
+
+  init_date = data[0].data[data[0].data.length - 1][0]
+  init_date_str = data[0].data.length + "-я редакция (" + (init_date.getMonth() + 1) + "." + init_date.getFullYear() + ")"
+  chart.append("text")
+        .attr("transform", "translate(" + center.left + ", " + (height + margin.bottom) + ")")
+        .style("background", "white")
+        .transition()
+        .duration(300)
+        .attr("transform", "translate(" + center.left + ", " + (height - margin.bottom / 2) + ")")
+        .style("text-anchor", "middle")
+        .style("font-family", "Arial")
+        .style("font-size", "16px")
+        .style("font-weight", "500")
+        .text(init_date_str)
+
+  chart.selectAll("path")
     .on("mouseover", () ->
         elem = d3.select(this)
+        rel_pos = []
 
         elem.transition()
-            .duration(1500)
-            .ease(d3.easeElastic)
-            .style("stroke", () -> d3.select(this.parentNode).style("fill"))
-            .style("stroke-width", 5)
-            .attr("width", rect_width + 2)
-            .attr("x", (d) -> xScale(d.data.date) - 1 - rect_width / 2)
-            .attr("height", (d) -> yScale(d[0]) - yScale(d[1]) + 6)
-            .attr("y", (d) -> yScale(d[1]) - 3)
-
-        svg.selectAll("rect")
-            .filter(() -> d3.select(this).attr("x") != elem.attr("x") || d3.select(this).attr("y") != elem.attr("y"))
-            .transition()
-            .duration(1500)
-            .ease(d3.easeElastic)
-            .attr("width", 16)
-            .attr("x", (d) -> xScale(d.data.date) - 8)
+            .duration(300)
+            .attr("d", big_arc)
+            .each((d) -> rel_pos = tip.centroid(d))
 
         left = document.getElementById("svg_" + container.attr("id")).getBoundingClientRect().left - document.getElementById("tooltip_" + container.attr("id")).offsetWidth + 5
         top = document.getElementById("svg_" + container.attr("id")).getBoundingClientRect().top - document.getElementById("tooltip_" + container.attr("id")).offsetHeight + 5
@@ -748,22 +1035,16 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
               .ease(d3.easeElastic)
               .style("opacity", 1)
               .style("background", elem.style("fill"))
-              .text(elem.attr("value"))
-              .style("left", (+elem.attr("x") + left) + "px")
-              .style("top", (+elem.attr("y") + top) + "px")
+              .text(elem.attr("value") + ", " + (+elem.attr("value") * 100 / 50) + "%")
+              .style("left", (rel_pos[0] + left + center.left) + "px")
+              .style("top", (rel_pos[1] + top + center.top) + "px")
     )
     .on("mouseout", () ->
-        xcord = d3.select(this).attr("cx");
-        svg.selectAll("rect")
-            .transition()
-            .duration(2000)
-            .ease(d3.easeElastic)
-            .style("fill", () -> d3.select(this.parentNode).attr("color"))
-            .style("stroke-width", 0)
-            .attr("width", rect_width)
-            .attr("height", (d) -> yScale(d[0]) - yScale(d[1]))
-            .attr("x", (d) -> xScale(d.data.date) - rect_width / 2)
-            .attr("y", (d) -> yScale(d[1]))
+        elem = d3.select(this)
+
+        elem.transition()
+            .duration(300)
+            .attr("d", arc)
 
         tooltip.transition()
             .duration(300)
@@ -771,8 +1052,34 @@ add_bar_chart = (svg, container, data, margin, width, height) ->
             .style("opacity", 0)
             .style("top", "0px")
     )
-  return chart
+  zoom_func = () ->
+    scale_step = 0.5 / (data[0].data.length - 1)
+    cur_number = Math.floor((d3.event.transform.k - 1) / scale_step)
+    if cur_number != +chart.select("path").attr("redaction")
+      console.log(d3.event.transform.k + " " + scale_step)
+      pie.value((d) -> d.data[cur_number][1])
+      chart.selectAll("path")
+            .data(pie(data))
+            .attr("value", (d) -> d.value)
+            .attr("redaction", cur_number)
+            .transition()
+            .duration(300)
+            .attr("d", arc)
+      date = data[0].data[cur_number][0]
+      date_str = (cur_number + 1) + "-я редакция (" + (date.getMonth() + 1) + "." + date.getFullYear() + ")"
+      chart.select("text")
+            .transition()
+            .duration(300)
+            .text(date_str)
 
+
+  zoom = d3.zoom()
+            .scaleExtent([1, 1.5])
+            .on("zoom", zoom_func)
+
+  svg.call(zoom)
+
+  return chart
 
 $ ->
   $("#add-form-link").click ->	
