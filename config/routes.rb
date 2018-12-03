@@ -146,10 +146,12 @@ Octoshell::Application.routes.draw do
   resources :newsfeed_settings, only: [:new, :create, :index]
   resources :newsfeed_local, only: [:new, :create, :index]
 
+  get '/newsfeed', to: 'newsfeed#index', as: 'newsfeed'
   post '/newsfeed/', to: 'newsfeed#create', as: 'newsfeed_create'
   patch '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_patch'
   put '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_put'
 
+  get '/newsfeed_edit_import', to: 'newsfeed_edit_import#index', as: 'newsfeed_edit_import'
   post '/newsfeed_edit_import/', to: 'newsfeed_edit_import#create', as: 'newsfeed_edit_import_create'
   patch '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_patch'
   put '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_put'
