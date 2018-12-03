@@ -25,9 +25,6 @@ Octoshell::Application.routes.draw do
 
   mount Announcements::Engine, :at => "/announcements"
 
-  root 'newsfeed#index'
-  #root :to => redirect('/newsfeed')
-
   resources :users do
     get :login_as, on: :member
     get :return_to_self, on: :member
@@ -146,10 +143,12 @@ Octoshell::Application.routes.draw do
   resources :newsfeed_settings, only: [:new, :create, :index]
   resources :newsfeed_local, only: [:new, :create, :index]
 
+  get '/newsfeed', to: 'newsfeed#index', as: 'newsfeed'
   post '/newsfeed/', to: 'newsfeed#create', as: 'newsfeed_create'
   patch '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_patch'
   put '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_put'
 
+  get '/newsfeed_edit_import', to: 'newsfeed_edit_import#index', as: 'newsfeed_edit_import'
   post '/newsfeed_edit_import/', to: 'newsfeed_edit_import#create', as: 'newsfeed_edit_import_create'
   patch '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_patch'
   put '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_put'
@@ -169,6 +168,9 @@ Octoshell::Application.routes.draw do
   patch '/newsfeed_import/:id', to: 'newsfeed_import#update', as: 'patch_newsfeed_import'
   put '/newsfeed_import/:id', to: 'newsfeed_import#update', as: 'put_newsfeed_import'
   # get '/newsfeed_import/:id', to: 'newsfeed_import#show', as: 'show_newsfeed_import'
+
+  root 'newsfeed#index'
+  #root :to => redirect('/newsfeed')
 
   namespace :admin do
     mount Sidekiq::Web => "/sidekiq", :constraints => AdminConstraint.new
