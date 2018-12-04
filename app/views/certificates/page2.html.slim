@@ -1,0 +1,58 @@
+= form_tag(action: :scr) do
+  = label_tag(:machine_name, "Название системы:")
+  br
+  = text_field_tag(:machine_name, @machine_name)
+  br
+  = label_tag(:firm_proc, "Производитель процессоров:")
+  br
+  = text_field_tag(:firm_proc, @firm_proc)
+  br
+  = label_tag(:proc_name, "Модели процессоров:")
+  br
+  = text_field_tag(:proc_name, @proc_name)
+  br
+  = label_tag(:firm_acc, "Производитель ускорителей:")
+  br
+  = text_field_tag(:firm_acc, @firm_acc)
+  br
+  = label_tag(:acc_name, "Модели ускорителей:")
+  br
+  = text_field_tag(:acc_name, @acc_name)
+  br
+  = label_tag(:network_name, "Название вычислительной сети:")
+  br
+  = text_field_tag(:network_name, @network_name)
+  br
+  = label_tag(:uni, "Место установки:")
+  br
+  = text_field_tag(:uni, @uni)
+  br
+  = label_tag(:division, "Подразделение:")
+  br
+  = text_field_tag(:division, @division)
+  br
+  = label_tag(:position, "Позиция:")
+  br
+  = text_field_tag(:position, @position)
+  br
+  = label_tag(:testpeak, "Результат на тесте linpack:")
+  br
+  = text_field_tag(:testpeak, @testpeak)
+  br
+  = label_tag(:reliz, "Номер редакции:")
+  br
+  = text_field_tag(:reliz, @reliz)
+  br
+  = label_tag(:reliz_name, "Имя конференции:")
+  br
+  = text_field_tag(:reliz_name, @reliz_name, required: true)
+  br
+  = label_tag(:reliz_type, "Описание конференции:")
+  br
+  = text_field_tag(:reliz_type, @reliz_type, required: true)
+  br
+  = label_tag(:year, "Дата:")
+  br
+  = text_field_tag(:year, @year)
+  br
+  = submit_tag('Создать сертификат')
