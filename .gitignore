@@ -29,6 +29,8 @@ public/uploads/
 public/system/
 public/system_archive.tar.gz
 public/assets
+public/cert_create/certificates
+public/cert_create/records
 
 # Ignore secret vars
 /.rbenv-vars

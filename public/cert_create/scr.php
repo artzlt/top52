@@ -1,30 +1,30 @@
 <?php
-	$record = array($argv[1], 
-			$argv[2], 
-			$argv[3], 
-			$argv[4],
-			$argv[5], 
-			$argv[6], 
-			$argv[7],
-			$argv[8],
-			$argv[9],
-			$argv[10],
-			$argv[11],
-			$argv[12],
+  $record = array($argv[1], 
+      $argv[2], 
+      $argv[3], 
+      $argv[4],
+      $argv[5], 
+      $argv[6], 
+      $argv[7],
+      $argv[8],
+      $argv[9],
+      $argv[10],
+      $argv[11],
+      $argv[12],
       $argv[13],
       $argv[14]);
-	
-	$reliz_file = $argv[11];
-	$position_file = $argv[9];
-	
-	if($reliz_file < 10)
-		$reliz_file = "0" . $reliz_file;
-	if($position_file < 10)
-		$position_file = "0" . $position_file;
-	
-	$handle = fopen("public/cert_create/records/rev" . $reliz_file . "_" . $position_file . ".csv", "w");
-	fputcsv($handle, $record);
-	fclose($handle);
+  
+  $reliz_file = $argv[11];
+  $position_file = $argv[9];
+  
+  if($reliz_file < 10)
+    $reliz_file = "0" . $reliz_file;
+  if($position_file < 10)
+    $position_file = "0" . $position_file;
+  
+  $handle = fopen("public/cert_create/records/rev" . $reliz_file . "_" . $position_file . ".csv", "w");
+  fputcsv($handle, $record);
+  fclose($handle);
 ?>    
 
 <?php
@@ -63,14 +63,14 @@
                 if($argv[4] !== " " and $argv[4] !== "")
                     $pro_name .= ", ускорителей " . $argv[4] . " " . str_replace("@", ", ", $argv[5]); 
 
-				$div_name = $argv[8];
-				if($div_name == '' or $div_name == ' '){
-					$div_name = '<br>';
+                $div_name = $argv[8];
+                if($div_name == '' or $div_name == ' '){
+                    $div_name = '<br>';
                     $uni_name = $argv[7]."</br>";
                 }
                 else 
                     $uni_name = $argv[7];
-					//$div_name = '<xs:element name="Summa" type="N15.2" default="/n"/>';
+                //$div_name = '<xs:element name="Summa" type="N15.2" default="/n"/>';
                 $net_name = $argv[6];             
                 $pos = $argv[9];
                 $red = $argv[11];
@@ -111,7 +111,7 @@
                 //    -T     — служит для преобразования текста в кривые (для нормальной поддержки шрифтов)
                 //    -P    — указывает на необходимость преобразования в PostScript-файл
                 system("inkscape -T $tmp_svg_file -P $tmp_ps_file" ,$success);
-            //    system(
+                //    system(
 
                    //в случае неудачного выполнения преобразования формируем исключение
                 if($success!=0)
@@ -143,7 +143,7 @@
                 // передаем сгенерированный файл
                 //readfile($pdf_file);
                // flush();
-		//echo($tmp_pdf_file);
+              //echo($tmp_pdf_file);
                 //echo($tmp_pdf_file);
 
                 //удаляем временные файлы
@@ -158,4 +158,4 @@
       //  $tpl->parse('ERROR', 'error');
         $tpl->FastPrint('ERROR');
     }
-    ?>
+?>
