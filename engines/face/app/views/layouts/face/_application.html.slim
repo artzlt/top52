@@ -34,17 +34,17 @@ html
             a class="navbar-brand" href="/top50_machines_archive" Архив
           ul class="nav navbar-nav"
             a class="navbar-brand" href="/top50_stats" Статистика			
-          ul class="nav navbar-nav"
-            a class="navbar-brand" href="/certificates/page1" Создать сертификат
+          - if current_user && current_user.may_manage_certs?
+            ul class="nav navbar-nav"
+              a class="navbar-brand" href="/certificates/page1" Создать сертификат
           /!
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/auth/session/new" Войти
           ul class="nav navbar-nav"
             a class="navbar-brand" href="http://top50.supercomputers.ru/?page=application" Подать заявку
-          - if current_user
-            - if current_user.may_edit_top50?
-              ul class="nav navbar-nav"
-                = link_to 'Новая редакция', top50_machines_new_list_path, class: "navbar-brand"
+          - if current_user && current_user.may_edit_top50?
+            ul class="nav navbar-nav"
+              = link_to 'Новая редакция', top50_machines_new_list_path, class: "navbar-brand"
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/auth/session" Выйти (#{current_user.email})
 

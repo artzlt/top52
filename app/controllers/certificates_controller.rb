@@ -1,6 +1,9 @@
 class CertificatesController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: [:page1, :page2, :scr]
-  befsore_action :is_admin
+  before_action :require_cert_moder_rights
+
+  # Prevent CSRF attacks by raising an exception.
+  # For APIs, you may want to use :null_session instead.
+  protect_from_forgery with: :exception
 
   def page1
     n = Top50Benchmark.where("top50_benchmarks.name_eng LIKE 'Top50 position (#%)'").count
@@ -180,8 +183,9 @@ class CertificatesController < ApplicationController
 
   private
 
-  def is_admin
-    unless User.superadmins.include? current_user
+  def require_cert_moder_rights
+    unless current_user.may_manage_certs?
+      flash[:error] = "Недостаточно полномочий для доступа к сертификатам"
       redirect_to :back
     end
   end

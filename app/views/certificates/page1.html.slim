@@ -1,17 +1,17 @@
-<form action='page2' method='POST'>
-	Номер редакции:<br>
-	<select name='reliz'>
-		<% @n_relizes.each do |n| %>
-		<option value= <%= n %> > <%= n %> </option>
-		<% end %>
-	</select><br>
-	Место в топе:<br>
-	<select name='position'>
-		<% @n_places.each do |n| %>
-		<option value= <%= n %> > <%= n %> </option>
-		<% end %>
-	</select><br>
-	Использовать сохраненные данные:<br>
-	<input type='checkbox' name='if_csv'><br>
-	<input type='submit' value='Получить данные'>
-</form><br>
+= form_tag(action: :page2) do
+  = label_tag(:reliz, "Номер редакции:")
+  br
+  = select_tag(:reliz, options_for_select(@n_relizes.map { |n| [n, n] }))
+  br
+  br
+  = label_tag(:position, "Место в топе:")
+  br
+  = select_tag(:position, options_for_select(@n_places.map { |n| [n, n] }))
+  br
+  br
+  = label_tag(:if_csv, "Использовать сохраненные данные:")
+  br
+  = check_box_tag(:if_csv)
+  br
+  = submit_tag('Получить данные')
+  br

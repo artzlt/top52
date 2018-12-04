@@ -11,8 +11,8 @@
 			$argv[10],
 			$argv[11],
 			$argv[12],
-            $argv[13],
-            $argv[14]);
+      $argv[13],
+      $argv[14]);
 	
 	$reliz_file = $argv[11];
 	$position_file = $argv[9];
