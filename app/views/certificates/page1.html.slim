@@ -1,5 +1,5 @@
 = bootstrap_form_tag url: '/certificates/page2' do |f|
-  = f.select :reliz, options_for_select(@n_relizes.map { |n| [n, n] }), label: "Номер редакции: "
+  = f.select :reliz, options_for_select(@n_relizes.sort.reverse.map { |n| [n, n] }), label: "Номер редакции: "
   br
   = f.select :position, options_for_select(@n_places.map { |n| [n, n] }), label: "Место в топе: "
   br
