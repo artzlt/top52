@@ -1,7 +1,7 @@
 # encoding: UTF-8
 class Top50MachinesController < Top50BaseController
-  skip_before_filter :require_login, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats, :download_certificate]
-  skip_before_filter :require_admin_rights, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats, :download_certificate]
+  skip_before_filter :require_login, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats, :download_certificate, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
+  skip_before_filter :require_admin_rights, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats, :download_certificate, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
   def index
     @top50_machines = Top50Machine.all
   end
@@ -43,13 +43,12 @@ class Top50MachinesController < Top50BaseController
   end
 
   def calc_machine_attrs
-	
-	list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
+    list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
     @num_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
-	list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
+    list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
     @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
-	
-	@rmax_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(name_eng: "Linpack"))
+
+    @rmax_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(name_eng: "Linpack"))
     cpu_qty_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Number of CPUs"))
     @cpu_qty_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(cpu_qty_attrs)
     core_qty_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Number of cores"))
@@ -72,31 +71,31 @@ class Top50MachinesController < Top50BaseController
     @cpu_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_vendor_attrs)
     gpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU model"))
     @gpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(gpu_model_attrs)
-	gpu_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU Vendor"))
+    gpu_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU Vendor"))
     @gpu_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(gpu_vendor_attrs)
-	cop_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor model"))
+    cop_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor model"))
     @cop_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cop_model_attrs)
-	cop_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor Vendor"))
+    cop_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor Vendor"))
     @cop_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cop_vendor_attrs)
     @cop_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Coprocessor"))
     @cpu_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "CPU"))
     @gpu_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "GPU"))
-	@acc_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Accelerator").first.top50_object_types)
-	comp_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where("name_eng LIKE '% model'"))
+    @acc_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Accelerator").first.top50_object_types)
+    comp_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where("name_eng LIKE '% model'"))
     @comp_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(comp_model_attrs)
-	comp_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where("name_eng LIKE '% Vendor'"))
+    comp_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where("name_eng LIKE '% Vendor'"))
     @comp_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(comp_vendor_attrs)
-	nmax_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Linpack Nmax"))
+    nmax_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Linpack Nmax"))
     @nmax_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(nmax_attrs)
-	prec_relation = Top50Relation.all.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Precedes"))
+    prec_relation = Top50Relation.all.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Precedes"))
     @prec_machines = prec_relation.joins(:top50_object).merge(Top50Object.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Machine")))
-	
-	gpucore_qty_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Number of GPU cores"))
+
+    gpucore_qty_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Number of GPU cores"))
     @gpucore_qty_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(gpucore_qty_attrs)
     
     @name_eng_attrid = get_name_eng_attr_id
     @rel_contain_id = get_rel_contain_id
-  	@top50_bunch_id = get_bunch_id
+    @top50_bunch_id = get_bunch_id
     @top50_preview_bunch_id = get_preview_bunch_id
     @top50_benchmarks = Top50Relation.where(prim_obj_id: get_avail_bunches, type_id: @rel_contain_id).pluck(:sec_obj_id)
     @top50_published_benchmarks = Top50Relation.where(prim_obj_id: @top50_bunch_id, type_id: @rel_contain_id).pluck(:sec_obj_id)
@@ -105,7 +104,7 @@ class Top50MachinesController < Top50BaseController
     @ed_date_attrid = Top50Attribute.where(name_eng: "Edition date").first.id
     @cpu_typeid = Top50ObjectType.where(name_eng: "CPU").first.id
     @acc_typeid = Top50ObjectType.where(name_eng: "Accelerator").first.id
-    @acc_all_typeids = Top50ObjectType.where(parent_id: @acc_type_id).pluck(:id)
+    @acc_all_typeids = Top50ObjectType.where(parent_id: @acc_typeid).pluck(:id)
     @gpu_typeid = Top50ObjectType.where(name_eng: "GPU").first.id
     @cop_typeid = Top50ObjectType.where(name_eng: "Coprocessor").first.id
     @ram_size_attrid = Top50Attribute.where(name_eng: "RAM size (GB)").first.id
@@ -134,12 +133,12 @@ class Top50MachinesController < Top50BaseController
     @rated_pos = Top50BenchmarkResult.where(benchmark_id: edition_id).order(result: :asc)
     ed_num = (Top50AttributeValDbval.where(attr_id: @ed_num_attrid, obj_id: edition_id).first.value).to_i
 
-	if ed_num == 1
-	  ed_num = 2
-	end
+    if ed_num == 1
+      ed_num = 2
+    end
     top50_prev_id = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id, encode(top50_attribute_val_dbvals.value, 'escape') as num").
       where(attr_id: @ed_num_attrid, obj_id: @top50_benchmarks, value: "#{ed_num - 1}").first.obj_id
-	@prev_rated_pos = Top50BenchmarkResult.where(benchmark_id: top50_prev_id)
+    @prev_rated_pos = Top50BenchmarkResult.where(benchmark_id: top50_prev_id)
     
     @mach_x_l1 = Top50BenchmarkResult.select("top50_benchmark_results.machine_id as id, top50_benchmark_results.result as pos, ar.sec_obj_id as l1_id, ar.sec_obj_qty as l1_cnt, ao.type_id as l1_typeid").
       joins("join top50_relations ar on ar.prim_obj_id = top50_benchmark_results.machine_id and ar.type_id = #{@rel_contain_id}").
@@ -267,580 +266,573 @@ class Top50MachinesController < Top50BaseController
 
   end
 
-def new_list
-	top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id in (?)", get_bunch_id).pluck(:id)
-	list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
-  @list_nums = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
-	list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
-  @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
-	@top50_slists = Top50Benchmark.where("name_eng like 'Top50 position%' and id not in (?)", top50_lists).order("updated_at, created_at")
+  def new_list
+    top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id in (?)", get_bunch_id).pluck(:id)
+    list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
+    @list_nums = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
+    list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
+    @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
+    @top50_slists = Top50Benchmark.where("name_eng like 'Top50 position%' and id not in (?)", top50_lists).order("updated_at, created_at")
 
-  calc_machine_attrs
-  if params.include?(:id)
-    top50_current_id = params[:id].to_i
-    @editing = true
-    @ed_num = (Top50AttributeValDbval.where(attr_id: @ed_num_attrid, obj_id: top50_current_id).first.value).to_i
-    @pdate = Date.strptime(Top50AttributeValDbval.where(attr_id: @ed_date_attrid, obj_id: top50_current_id).first.value, '%d.%m.%Y')
-    top50_prev = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id, encode(top50_attribute_val_dbvals.value, 'escape') as num").
-      where("attr_id = ? and obj_id in (?) and cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) < ?", @ed_num_attrid, @top50_benchmarks, @ed_num).
-      order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc").first
-    if top50_prev.present?
-      top50_prev_id = top50_prev.obj_id
+    calc_machine_attrs
+    if params.include?(:id)
+      top50_current_id = params[:id].to_i
+      @editing = true
+      @ed_num = (Top50AttributeValDbval.where(attr_id: @ed_num_attrid, obj_id: top50_current_id).first.value).to_i
+      @pdate = Date.strptime(Top50AttributeValDbval.where(attr_id: @ed_date_attrid, obj_id: top50_current_id).first.value, '%d.%m.%Y')
+      top50_prev = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id, encode(top50_attribute_val_dbvals.value, 'escape') as num").
+        where("attr_id = ? and obj_id in (?) and cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) < ?", @ed_num_attrid, @top50_benchmarks, @ed_num).
+        order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc").first
+      if top50_prev.present?
+        top50_prev_id = top50_prev.obj_id
+      else
+        top50_prev_id = 0
+      end
+      @bench = Top50Benchmark.find(top50_current_id)
     else
-      top50_prev_id = 0
-    end
-    @bench = Top50Benchmark.find(top50_current_id)
-  else
-    top50_prev = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id, encode(top50_attribute_val_dbvals.value, 'escape') as num").
-      where(attr_id: @ed_num_attrid, obj_id: @top50_benchmarks).
-      order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc").first
-    if top50_prev.present?
-      top50_prev_id = top50_prev.obj_id
-    else
-      top50_prev_id = 0
+      top50_prev = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id, encode(top50_attribute_val_dbvals.value, 'escape') as num").
+        where(attr_id: @ed_num_attrid, obj_id: @top50_benchmarks).
+        order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc").first
+      if top50_prev.present?
+        top50_prev_id = top50_prev.obj_id
+      else
+        top50_prev_id = 0
+      end
+
+      @ed_num = (Top50AttributeValDbval.where(attr_id: @ed_num_attrid, obj_id: top50_prev_id).first.value).to_i + 1
+      @pdate = Date.today
+      @bench = Top50Benchmark.find(top50_prev_id)
     end
 
-    @ed_num = (Top50AttributeValDbval.where(attr_id: @ed_num_attrid, obj_id: top50_prev_id).first.value).to_i + 1
-    @pdate = Date.today
-    @bench = Top50Benchmark.find(top50_prev_id)
-  end
-
-  @prev_rated_pos = Top50BenchmarkResult.where(benchmark_id: top50_prev_id)
-  
-  @mach_x_l1 = Top50Machine.select("top50_machines.id as id, 0 as pos, top50_machines.is_valid as status, ar.sec_obj_id as l1_id, ar.sec_obj_qty as l1_cnt, ao.type_id as l1_typeid").
-    joins("join top50_relations ar on ar.prim_obj_id = top50_machines.id and ar.type_id = #{@rel_contain_id}").
-    joins("join top50_objects ao on ao.id = ar.sec_obj_id").
-    where("top50_machines.is_valid > 0").
-    map(&:attributes)
-  
-  _nested_obj = Struct.new('NestedObject', :id, :type_id, :cnt)
-  @mach_l1_hash = Hash.new{|h, k| h[k] = []}
-  @l1_objects = []
-  @mach_x_l1.each do |rec|
-    @mach_l1_hash[rec["id"]] << _nested_obj.new(rec["l1_id"], rec["l1_typeid"], rec["l1_cnt"])
-    @l1_objects << rec["l1_id"]
-  end
-  
-  @l1_x_l2 = Top50Relation.select("top50_relations.prim_obj_id as l1_id, top50_relations.sec_obj_id as l2_id, top50_relations.sec_obj_qty as l2_cnt, o.type_id as l2_typeid").
-    joins("join top50_objects o on o.id = top50_relations.sec_obj_id").
-    where("top50_relations.type_id = #{@rel_contain_id} AND top50_relations.prim_obj_id IN (?)", @l1_objects).
-    map(&:attributes)
-  
-  @l1_l2_hash = Hash.new{|h, k| h[k] = []}
-  @l2_objects = []
-  @l1_x_l2.each do |rec|
-    @l1_l2_hash[rec["l1_id"]] << _nested_obj.new(rec["l2_id"], rec["l2_typeid"], rec["l2_cnt"])
-    @l2_objects << rec["l2_id"]
-  end
-  
-  @mach_x_attrd = Top50Machine.select("top50_machines.id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name").
-    joins("join top50_attribute_val_dicts avd on avd.obj_id = top50_machines.id").
-    joins("join top50_attributes on top50_attributes.id = avd.attr_id").
-    joins("join top50_dictionary_elems dict_elems on dict_elems.id = avd.dict_elem_id").
-    where("top50_machines.is_valid > 0").
-    map(&:attributes)
-  
-  _attrd_val = Struct.new('AttrDictValue', :attr_id, :attr_name, :elem_id, :elem_name)
-  @mach_attrd_hash = Hash.new{|h, k| h[k] = []}
-  @mach_x_attrd.each do |rec|
-    @mach_attrd_hash[rec["id"]] << _attrd_val.new(rec["attr_id"], rec["attr_name"], rec["elem_id"], rec["elem_name"])
-  end
-  
-  @mach_x_attrdb = Top50Machine.select("top50_machines.id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, avd.value").
-    joins("join top50_attribute_val_dbvals avd on avd.obj_id = top50_machines.id").
-    joins("join top50_attributes on top50_attributes.id = avd.attr_id").
-    where("top50_machines.is_valid > 0").
-    map(&:attributes)
+    @prev_rated_pos = Top50BenchmarkResult.where(benchmark_id: top50_prev_id)
     
-  _attrdb_val = Struct.new('AttrDbValue', :attr_id, :attr_name, :value)
-  @mach_attrdb_hash = Hash.new{|h, k| h[k] = []}
-  @mach_x_attrdb.each do |rec|
-    @mach_attrdb_hash[rec["id"]] << _attrdb_val.new(rec["attr_id"], rec["attr_name"], rec["value"])
-  end
-  
-  @l1_x_attrd = Top50AttributeValDict.select("top50_attribute_val_dicts.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name").
-    joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dicts.attr_id").
-    joins("join top50_dictionary_elems dict_elems on dict_elems.id = top50_attribute_val_dicts.dict_elem_id").
-    where("top50_attribute_val_dicts.obj_id in (?)", @l1_objects).
-    map(&:attributes)
-  
-  @l1_attrd_hash = Hash.new{|h, k| h[k] = []}
-  @l1_x_attrd.each do |rec|
-    @l1_attrd_hash[rec["id"]] << _attrd_val.new(rec["attr_id"], rec["attr_name"], rec["elem_id"], rec["elem_name"])
-  end
-  
-  @l1_x_attrdb = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, top50_attribute_val_dbvals.value").
-    joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id").
-    where("top50_attribute_val_dbvals.obj_id in (?)", @l1_objects).
-    map(&:attributes)
-
-  @l1_attrdb_hash = Hash.new{|h, k| h[k] = []}
-  @l1_x_attrdb.each do |rec|
-    @l1_attrdb_hash[rec["id"]] << _attrdb_val.new(rec["attr_id"], rec["attr_name"], rec["value"])
-  end
-  
-  @l2_x_attrd = Top50AttributeValDict.select("top50_attribute_val_dicts.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name").
-    joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dicts.attr_id").
-    joins("join top50_dictionary_elems dict_elems on dict_elems.id = top50_attribute_val_dicts.dict_elem_id").
-    where("top50_attribute_val_dicts.obj_id in (?)", @l2_objects).
-    map(&:attributes)
-  
-  @l2_attrd_hash = Hash.new{|h, k| h[k] = []}
-  @l2_x_attrd.each do |rec|
-    @l2_attrd_hash[rec["id"]] << _attrd_val.new(rec["attr_id"], rec["attr_name"], rec["elem_id"], rec["elem_name"])
-  end
-  
-  @l2_x_attrdb = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, top50_attribute_val_dbvals.value").
-    joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id").
-    where("top50_attribute_val_dbvals.obj_id in (?)", @l2_objects).
-    map(&:attributes)
-
-  @l2_attrdb_hash = Hash.new{|h, k| h[k] = []}
-  @l2_x_attrdb.each do |rec|
-    @l2_attrdb_hash[rec["id"]] << _attrdb_val.new(rec["attr_id"], rec["attr_name"], rec["value"])
-  end
-  
-  if params.include?(:id)
-    @rated_pos_hash = Top50BenchmarkResult.where(benchmark_id: top50_current_id).map(&:attributes)
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result, 1 as in_top50").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
-      order("ed_results.result desc").
-      where("(top50_machines.is_valid > 0 and (top50_machines.start_date is null or top50_machines.start_date <= '#{@pdate}') and (top50_machines.end_date is null or top50_machines.end_date > '#{@pdate}')) or top50_machines.id in (?)", @rated_pos_hash.collect{ |x| x['machine_id'] }).
-      limit(50).
+    @mach_x_l1 = Top50Machine.select("top50_machines.id as id, 0 as pos, top50_machines.is_valid as status, ar.sec_obj_id as l1_id, ar.sec_obj_qty as l1_cnt, ao.type_id as l1_typeid").
+      joins("join top50_relations ar on ar.prim_obj_id = top50_machines.id and ar.type_id = #{@rel_contain_id}").
+      joins("join top50_objects ao on ao.id = ar.sec_obj_id").
+      where("top50_machines.is_valid > 0").
       map(&:attributes)
-    @top50_machines.concat(Top50Machine.select("top50_machines.*, ed_results.result, 0 as in_top50").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
-      order("ed_results.result desc").
-      where("((top50_machines.is_valid > 1 and (top50_machines.start_date is null or top50_machines.start_date <= '#{@pdate}') and (top50_machines.end_date is null or top50_machines.end_date > '#{@pdate}')) or top50_machines.id in (?)) and top50_machines.id not in (?)", @rated_pos_hash.collect{ |x| x['machine_id'] }, @top50_machines.collect{ |x| x['id'] }).
-      map(&:attributes)
-    )
-  else    
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result, 1 as in_top50").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
-      order("ed_results.result desc").
-      where("top50_machines.is_valid > 0 and (top50_machines.start_date is null or top50_machines.start_date <= NOW()) and (top50_machines.end_date is null or top50_machines.end_date > NOW())").
-      limit(50).
-      map(&:attributes)
-    @top50_machines.concat(Top50Machine.select("top50_machines.*, coalesce(ed_results.result, 0) as result, 0 as in_top50").
-      joins("left join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
-      order("coalesce(ed_results.result, 0) desc").
-      where("(top50_machines.is_valid > 1 and (top50_machines.start_date is null or top50_machines.start_date <= NOW()) and (top50_machines.end_date is null or top50_machines.end_date > NOW())) and top50_machines.id not in (?)", @top50_machines.collect{ |x| x['id'] }).
-      map(&:attributes)
-    )
-  end
-end
-
-def submit_list_fail(err_msg)
-  flash[:error] = err_msg
-  new_list
-  render :new_list
-  return
-end
-
-def moderate
-  if params.include?(:id)
-    @top50_machine = Top50Machine.find(params[:id].to_i)
-    if @top50_machine.contact_id.present?
-      @contact = Top50Contact.find(@top50_machine.contact_id)
+    
+    _nested_obj = Struct.new('NestedObject', :id, :type_id, :cnt)
+    @mach_l1_hash = Hash.new{|h, k| h[k] = []}
+    @l1_objects = []
+    @mach_x_l1.each do |rec|
+      @mach_l1_hash[rec["id"]] << _nested_obj.new(rec["l1_id"], rec["l1_typeid"], rec["l1_cnt"])
+      @l1_objects << rec["l1_id"]
     end
-    @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
-    @nodes = Top50Relation.select("top50_relations.id as rel_id, ao.id as id, 0 as fake_id, top50_relations.sec_obj_qty as cnt, ao.type_id as type_id, 1 as existing").
-      joins("join top50_objects ao on ao.id = top50_relations.sec_obj_id").
-      where("top50_relations.prim_obj_id = #{@top50_machine.id} and top50_relations.type_id = #{@rel_contain_id}").
+    
+    @l1_x_l2 = Top50Relation.select("top50_relations.prim_obj_id as l1_id, top50_relations.sec_obj_id as l2_id, top50_relations.sec_obj_qty as l2_cnt, o.type_id as l2_typeid").
+      joins("join top50_objects o on o.id = top50_relations.sec_obj_id").
+      where("top50_relations.type_id = #{@rel_contain_id} AND top50_relations.prim_obj_id IN (?)", @l1_objects).
+      map(&:attributes)
+    
+    @l1_l2_hash = Hash.new{|h, k| h[k] = []}
+    @l2_objects = []
+    @l1_x_l2.each do |rec|
+      @l1_l2_hash[rec["l1_id"]] << _nested_obj.new(rec["l2_id"], rec["l2_typeid"], rec["l2_cnt"])
+      @l2_objects << rec["l2_id"]
+    end
+    
+    @mach_x_attrd = Top50Machine.select("top50_machines.id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name").
+      joins("join top50_attribute_val_dicts avd on avd.obj_id = top50_machines.id").
+      joins("join top50_attributes on top50_attributes.id = avd.attr_id").
+      joins("join top50_dictionary_elems dict_elems on dict_elems.id = avd.dict_elem_id").
+      where("top50_machines.is_valid > 0").
+      map(&:attributes)
+    
+    _attrd_val = Struct.new('AttrDictValue', :attr_id, :attr_name, :elem_id, :elem_name)
+    @mach_attrd_hash = Hash.new{|h, k| h[k] = []}
+    @mach_x_attrd.each do |rec|
+      @mach_attrd_hash[rec["id"]] << _attrd_val.new(rec["attr_id"], rec["attr_name"], rec["elem_id"], rec["elem_name"])
+    end
+    
+    @mach_x_attrdb = Top50Machine.select("top50_machines.id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, avd.value").
+      joins("join top50_attribute_val_dbvals avd on avd.obj_id = top50_machines.id").
+      joins("join top50_attributes on top50_attributes.id = avd.attr_id").
+      where("top50_machines.is_valid > 0").
       map(&:attributes)
       
-    @comps = Top50Relation.select("top50_relations.id as rel_id, top50_relations.prim_obj_id as node_id, 0 as fake_node_id, ao.id as id, 0 as fake_id, top50_relations.sec_obj_qty as cnt, ao.type_id as type_id, 1 as existing").
-      joins("join top50_objects ao on ao.id = top50_relations.sec_obj_id").
-      where("top50_relations.type_id = #{@rel_contain_id} AND top50_relations.prim_obj_id IN (?)", @nodes.collect{ |x| x['id'] }).
-      map(&:attributes)
-
-    all_obj_ids = [@top50_machine.id] + @nodes.collect{ |x| x['id'] } + @comps.collect{ |x| x['id'] }
-
-    all_obj_x_attrd = Top50AttributeValDict.select("top50_attribute_val_dicts.obj_id as obj_id, 0 as fake_obj_id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name, 1 as existing").
+    _attrdb_val = Struct.new('AttrDbValue', :attr_id, :attr_name, :value)
+    @mach_attrdb_hash = Hash.new{|h, k| h[k] = []}
+    @mach_x_attrdb.each do |rec|
+      @mach_attrdb_hash[rec["id"]] << _attrdb_val.new(rec["attr_id"], rec["attr_name"], rec["value"])
+    end
+    
+    @l1_x_attrd = Top50AttributeValDict.select("top50_attribute_val_dicts.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name").
       joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dicts.attr_id").
       joins("join top50_dictionary_elems dict_elems on dict_elems.id = top50_attribute_val_dicts.dict_elem_id").
-      where("top50_attribute_val_dicts.obj_id in (?)", all_obj_ids).
+      where("top50_attribute_val_dicts.obj_id in (?)", @l1_objects).
       map(&:attributes)
     
-    all_obj_x_attrdb = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id as obj_id, 0 as fake_obj_id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, top50_attribute_val_dbvals.value, 1 as existing").
+    @l1_attrd_hash = Hash.new{|h, k| h[k] = []}
+    @l1_x_attrd.each do |rec|
+      @l1_attrd_hash[rec["id"]] << _attrd_val.new(rec["attr_id"], rec["attr_name"], rec["elem_id"], rec["elem_name"])
+    end
+    
+    @l1_x_attrdb = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, top50_attribute_val_dbvals.value").
       joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id").
-      where("top50_attribute_val_dbvals.obj_id in (?)", all_obj_ids).
+      where("top50_attribute_val_dbvals.obj_id in (?)", @l1_objects).
+      map(&:attributes)
+
+    @l1_attrdb_hash = Hash.new{|h, k| h[k] = []}
+    @l1_x_attrdb.each do |rec|
+      @l1_attrdb_hash[rec["id"]] << _attrdb_val.new(rec["attr_id"], rec["attr_name"], rec["value"])
+    end
+    
+    @l2_x_attrd = Top50AttributeValDict.select("top50_attribute_val_dicts.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name").
+      joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dicts.attr_id").
+      joins("join top50_dictionary_elems dict_elems on dict_elems.id = top50_attribute_val_dicts.dict_elem_id").
+      where("top50_attribute_val_dicts.obj_id in (?)", @l2_objects).
       map(&:attributes)
     
-    @mach_x_attrd = all_obj_x_attrd.select{ |x| x['obj_id'] == @top50_machine.id }
-    @nodes_x_attrd =  all_obj_x_attrd.select{ |x| (@nodes.collect{ |y| y['id'] }).include?(x['obj_id']) }
-    @comps_x_attrd = all_obj_x_attrd.select{ |x| (@comps.collect{ |y| y['id'] }).include?(x['obj_id']) }
- 
-    @mach_x_attrdb = all_obj_x_attrdb.select{ |x| x['obj_id'] == @top50_machine.id }
-    @nodes_x_attrdb =  all_obj_x_attrdb.select{ |x| (@nodes.collect{ |y| y['id'] }).include?(x['obj_id']) }
-    @comps_x_attrdb = all_obj_x_attrdb.select{ |x| (@comps.collect{ |y| y['id'] }).include?(x['obj_id']) }
+    @l2_attrd_hash = Hash.new{|h, k| h[k] = []}
+    @l2_x_attrd.each do |rec|
+      @l2_attrd_hash[rec["id"]] << _attrd_val.new(rec["attr_id"], rec["attr_name"], rec["elem_id"], rec["elem_name"])
+    end
     
-    @cpu_typeid = Top50ObjectType.where(name_eng: "CPU").first.id
-    @acc_typeid = Top50ObjectType.where(name_eng: "Accelerator").first.id
-    @acc_all_typeids = Top50ObjectType.where(parent_id: @acc_type_id).pluck(:id)
-    @gpu_typeid = Top50ObjectType.where(name_eng: "GPU").first.id
-    @cop_typeid = Top50ObjectType.where(name_eng: "Coprocessor").first.id
-    @ram_size_attrid = Top50Attribute.where(name_eng: "RAM size (GB)").first.id
-    @com_net_attrid = Top50Attribute.where(name_eng: "Communication network").first.id
-    @serv_net_attrid = Top50Attribute.where(name_eng: "Service network").first.id
-    @tran_net_attrid = Top50Attribute.where(name_eng: "Transport network").first.id
-    @rpeak_attrid = Top50Attribute.where(name_eng: "Rpeak (MFlop/s)").first.id
-    @app_area_attrid = Top50Attribute.where(name_eng: "Application area").first.id
-    @cpu_qty_attrid = Top50Attribute.where(name_eng: "Number of CPUs").first.id
-    @core_qty_attrid = Top50Attribute.where(name_eng: "Number of cores").first.id
-    @gpucore_qty_attrid = Top50Attribute.where(name_eng: "Number of GPU cores").first.id
-    @cpu_model_attrid = Top50Attribute.where(name_eng: "CPU model").first.id
-    @cpu_vendor_attrid = Top50Attribute.where(name_eng: "CPU Vendor").first.id
-    @gpu_model_attrid = Top50Attribute.where(name_eng: "GPU model").first.id
-    @gpu_vendor_attrid = Top50Attribute.where(name_eng: "GPU Vendor").first.id
-    @cop_model_attrid = Top50Attribute.where(name_eng: "Coprocessor model").first.id
-    @cop_vendor_attrid = Top50Attribute.where(name_eng: "Coprocessor Vendor").first.id
+    @l2_x_attrdb = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id as id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, top50_attribute_val_dbvals.value").
+      joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id").
+      where("top50_attribute_val_dbvals.obj_id in (?)", @l2_objects).
+      map(&:attributes)
 
-  else
-    @top50_machine = Top50Machine.new
-  end
-
-end
-
-def set_attr(o, k, v)
-  if v.present?
-    o[k] = v
-  else
-    o[k] = nil
-  end
-end
-  
-
-def set_attrs_from_hash(o, h)
-  h.each do |k, v|
-    set_attr(o, k, v)
-  end
-end
-
-def pre_save
-  @obj_to_destroy = params['obj_to_destroy']
-  if not @obj_to_destroy.present?
-    @obj_to_destroy = []
-  end
-  moderate
-  set_attrs_from_hash(@top50_machine, params['machine'])
-  if params.include? 'contact'
-    if not @contact.present?
-      @contact = Top50Contact.new
+    @l2_attrdb_hash = Hash.new{|h, k| h[k] = []}
+    @l2_x_attrdb.each do |rec|
+      @l2_attrdb_hash[rec["id"]] << _attrdb_val.new(rec["attr_id"], rec["attr_name"], rec["value"])
     end
-    set_attrs_from_hash(@contact, params['contact'])
-  end
-  case params[:commit]
-  when 'Добавить контактное лицо'
-    @contact = Top50Contact.new
-  when 'Удалить контактное лицо'
-    if @contact.id.present?
-      @contact.destroy
-      @top50_machine[:contact_id] = nil
-    end
-    @contact = nil
-  when 'Добавить группу узлов'
-    @nodes.append({
-      'rel_id' => nil,
-      'id' => nil,
-      'fake_id' => nil,
-      'cnt' => 0,
-      'type_id' => Top50ObjectType.where(name_eng: "CPU").first.id,
-      'existing' => 0
-    })      
-  end
-
-  render :moderate
-  return
-end
-
-def change
-end
-
-def add_preview_list
-  list = Top50Benchmark.find(params[:id])
-  Top50Relation.create(
-    type_id: get_rel_contain_id,
-    prim_obj_id: get_preview_bunch_id,
-    sec_obj_id: list.id,
-  )
-  redirect_to proc { top50_machines_archive_path(list.id) }
-end
-
-def delete_preview_list
-  list = Top50Benchmark.find(params[:id])
-  r = Top50Relation.find_by(
-    type_id: get_rel_contain_id,
-    prim_obj_id: get_preview_bunch_id,
-    sec_obj_id: list.id,
-  )
-  if r.present?
-    r.destroy
-  end
-  redirect_to proc { top50_machines_archive_path(list.id) }
-end
-
-def publish_list
-  list = Top50Benchmark.find(params[:id])
-  r = Top50Relation.find_by(
-    type_id: get_rel_contain_id,
-    prim_obj_id: get_preview_bunch_id,
-    sec_obj_id: list.id,
-  )
-  if r.present?
-    r.destroy
-  end
-  Top50Relation.create(
-    type_id: get_rel_contain_id,
-    prim_obj_id: get_bunch_id,
-    sec_obj_id: list.id,
-  )
-  redirect_to proc { top50_machines_archive_path(list.id) }
-end
-
-def unpublish_list
-  list = Top50Benchmark.find(params[:id])
-  r = Top50Relation.find_by(
-    type_id: get_rel_contain_id,
-    prim_obj_id: get_bunch_id,
-    sec_obj_id: list.id,
-  )
-  if r.present?
-    r.destroy
-  end
-  redirect_to proc { top50_machines_archive_path(list.id) }
-end
-
-def destroy_list
-  list = Top50Benchmark.find(params[:id])
-  list.destroy
-  redirect_to :top50_machines_archive_lists
-end
-
-def submit_list
-  flash.delete(:error)
-  @pdate = Date.parse(params[:list_date])
-  @ldate = @pdate.strftime("%d.%m.%Y")
-  @new_ed_num = params[:list_num].to_i
-  @pos_hash = params['pos']
-  @status_hash = params['status']
-  res_hash = {}
-  params['status'].each do |id, val|
-    if not [1, 3, 0].include? val.to_i
-      submit_list_fail('При подтверждении списка все системы должны иметь статус 0, 1 или 3')
-      return
-    end
-    if val.to_i == 3 and params['pos'][id].to_i <= 0
-      submit_list_fail('Системе со статусом 3 должно быть присвоено место в списке! (от 1 до 50)')
-      return
+    
+    if params.include?(:id)
+      @rated_pos_hash = Top50BenchmarkResult.where(benchmark_id: top50_current_id).map(&:attributes)
+      @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result, 1 as in_top50").
+        joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
+        order("ed_results.result desc").
+        where("(top50_machines.is_valid > 0 and (top50_machines.start_date is null or top50_machines.start_date <= '#{@pdate}') and (top50_machines.end_date is null or top50_machines.end_date > '#{@pdate}')) or top50_machines.id in (?)", @rated_pos_hash.collect{ |x| x['machine_id'] }).
+        limit(50).
+        map(&:attributes)
+      @top50_machines.concat(Top50Machine.select("top50_machines.*, ed_results.result, 0 as in_top50").
+        joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
+        order("ed_results.result desc").
+        where("((top50_machines.is_valid > 1 and (top50_machines.start_date is null or top50_machines.start_date <= '#{@pdate}') and (top50_machines.end_date is null or top50_machines.end_date > '#{@pdate}')) or top50_machines.id in (?)) and top50_machines.id not in (?)", @rated_pos_hash.collect{ |x| x['machine_id'] }, @top50_machines.collect{ |x| x['id'] }).
+        map(&:attributes)
+      )
+    else    
+      @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result, 1 as in_top50").
+        joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
+        order("ed_results.result desc").
+        where("top50_machines.is_valid > 0 and (top50_machines.start_date is null or top50_machines.start_date <= NOW()) and (top50_machines.end_date is null or top50_machines.end_date > NOW())").
+        limit(50).
+        map(&:attributes)
+      @top50_machines.concat(Top50Machine.select("top50_machines.*, coalesce(ed_results.result, 0) as result, 0 as in_top50").
+        joins("left join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
+        order("coalesce(ed_results.result, 0) desc").
+        where("(top50_machines.is_valid > 1 and (top50_machines.start_date is null or top50_machines.start_date <= NOW()) and (top50_machines.end_date is null or top50_machines.end_date > NOW())) and top50_machines.id not in (?)", @top50_machines.collect{ |x| x['id'] }).
+        map(&:attributes)
+      )
     end
   end
+
+  def submit_list_fail(err_msg)
+    flash[:error] = err_msg
+    new_list
+    render :new_list
+    return
+  end
+
+  def moderate
+    if params.include?(:id)
+      @top50_machine = Top50Machine.find(params[:id].to_i)
+      if @top50_machine.contact_id.present?
+        @contact = Top50Contact.find(@top50_machine.contact_id)
+      end
+      @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+      @nodes = Top50Relation.select("top50_relations.id as rel_id, ao.id as id, 0 as fake_id, top50_relations.sec_obj_qty as cnt, ao.type_id as type_id, 1 as existing").
+        joins("join top50_objects ao on ao.id = top50_relations.sec_obj_id").
+        where("top50_relations.prim_obj_id = #{@top50_machine.id} and top50_relations.type_id = #{@rel_contain_id}").
+        map(&:attributes)
+        
+      @comps = Top50Relation.select("top50_relations.id as rel_id, top50_relations.prim_obj_id as node_id, 0 as fake_node_id, ao.id as id, 0 as fake_id, top50_relations.sec_obj_qty as cnt, ao.type_id as type_id, 1 as existing").
+        joins("join top50_objects ao on ao.id = top50_relations.sec_obj_id").
+        where("top50_relations.type_id = #{@rel_contain_id} AND top50_relations.prim_obj_id IN (?)", @nodes.collect{ |x| x['id'] }).
+        map(&:attributes)
+
+      all_obj_ids = [@top50_machine.id] + @nodes.collect{ |x| x['id'] } + @comps.collect{ |x| x['id'] }
+
+      all_obj_x_attrd = Top50AttributeValDict.select("top50_attribute_val_dicts.obj_id as obj_id, 0 as fake_obj_id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, dict_elems.id as elem_id, dict_elems.name as elem_name, 1 as existing").
+        joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dicts.attr_id").
+        joins("join top50_dictionary_elems dict_elems on dict_elems.id = top50_attribute_val_dicts.dict_elem_id").
+        where("top50_attribute_val_dicts.obj_id in (?)", all_obj_ids).
+        map(&:attributes)
       
-  params['pos'].each do |id, val|
-    pos = val.to_i 
-    if pos < 0 or pos > 50
-      submit_list_fail(format('Позиция системы в списке не может иметь значние %d', pos))
-      return
+      all_obj_x_attrdb = Top50AttributeValDbval.select("top50_attribute_val_dbvals.obj_id as obj_id, 0 as fake_obj_id, top50_attributes.id as attr_id, top50_attributes.name as attr_name, top50_attribute_val_dbvals.value, 1 as existing").
+        joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id").
+        where("top50_attribute_val_dbvals.obj_id in (?)", all_obj_ids).
+        map(&:attributes)
+      
+      @mach_x_attrd = all_obj_x_attrd.select{ |x| x['obj_id'] == @top50_machine.id }
+      @nodes_x_attrd =  all_obj_x_attrd.select{ |x| (@nodes.collect{ |y| y['id'] }).include?(x['obj_id']) }
+      @comps_x_attrd = all_obj_x_attrd.select{ |x| (@comps.collect{ |y| y['id'] }).include?(x['obj_id']) }
+   
+      @mach_x_attrdb = all_obj_x_attrdb.select{ |x| x['obj_id'] == @top50_machine.id }
+      @nodes_x_attrdb =  all_obj_x_attrdb.select{ |x| (@nodes.collect{ |y| y['id'] }).include?(x['obj_id']) }
+      @comps_x_attrdb = all_obj_x_attrdb.select{ |x| (@comps.collect{ |y| y['id'] }).include?(x['obj_id']) }
+      
+      @cpu_typeid = Top50ObjectType.where(name_eng: "CPU").first.id
+      @acc_typeid = Top50ObjectType.where(name_eng: "Accelerator").first.id
+      @acc_all_typeids = Top50ObjectType.where(parent_id: @acc_typeid).pluck(:id)
+      @gpu_typeid = Top50ObjectType.where(name_eng: "GPU").first.id
+      @cop_typeid = Top50ObjectType.where(name_eng: "Coprocessor").first.id
+      @ram_size_attrid = Top50Attribute.where(name_eng: "RAM size (GB)").first.id
+      @com_net_attrid = Top50Attribute.where(name_eng: "Communication network").first.id
+      @serv_net_attrid = Top50Attribute.where(name_eng: "Service network").first.id
+      @tran_net_attrid = Top50Attribute.where(name_eng: "Transport network").first.id
+      @rpeak_attrid = Top50Attribute.where(name_eng: "Rpeak (MFlop/s)").first.id
+      @app_area_attrid = Top50Attribute.where(name_eng: "Application area").first.id
+      @cpu_qty_attrid = Top50Attribute.where(name_eng: "Number of CPUs").first.id
+      @core_qty_attrid = Top50Attribute.where(name_eng: "Number of cores").first.id
+      @gpucore_qty_attrid = Top50Attribute.where(name_eng: "Number of GPU cores").first.id
+      @cpu_model_attrid = Top50Attribute.where(name_eng: "CPU model").first.id
+      @cpu_vendor_attrid = Top50Attribute.where(name_eng: "CPU Vendor").first.id
+      @gpu_model_attrid = Top50Attribute.where(name_eng: "GPU model").first.id
+      @gpu_vendor_attrid = Top50Attribute.where(name_eng: "GPU Vendor").first.id
+      @cop_model_attrid = Top50Attribute.where(name_eng: "Coprocessor model").first.id
+      @cop_vendor_attrid = Top50Attribute.where(name_eng: "Coprocessor Vendor").first.id
+
+    else
+      @top50_machine = Top50Machine.new
     end
-    if pos > 0
-      if res_hash.has_key? pos
-        submit_list_fail(format('Позиция %d присвоена нескольким системам!', pos))
-        return
-      end
-      if not [1, 3].include? params['status'][id].to_i
-        submit_list_fail(format('Система с позицией %d не может иметь статус %d', pos, params['status'][id].to_i))
-        return
-      end
-      t = Top50BenchmarkResult.new
-      t[:machine_id] = id
-      t[:result] = pos
-      t[:is_valid] = 1
-      t[:comment] = format('Top50 place for edition %d', @new_ed_num)
-      res_hash[pos] = t
-    end
+
   end
 
-  for i in 1..50
-    if not res_hash.has_key? i
-      submit_list_fail(format('Позиция %d не присвоена ни одной из систем!', i))
-      return
+  def set_attr(o, k, v)
+    if v.present?
+      o[k] = v
+    else
+      o[k] = nil
     end
   end
-
-  ed_num_attrid = Top50Attribute.where(name_eng: "Edition number").first.id
-  ed_date_attrid = Top50Attribute.where(name_eng: "Edition date").first.id
-  if params.include?(:id)
-    @list_id = params[:id]
-    Top50AttributeValDbval.where({ attr_id: ed_num_attrid, obj_id: @list_id }).delete_all
-    Top50AttributeValDbval.where({ attr_id: ed_date_attrid, obj_id: @list_id }).delete_all
-  else
-    new_list = Top50Benchmark.new 
-    new_list[:comment] = format('New Top50 list no. %d by %s', @new_ed_num, @ldate)
-    new_list[:name] = format('Позиция в Top50 (#%d)', @new_ed_num)
-    new_list[:name_eng] = format('Top50 position (#%d)', @new_ed_num)
-    new_list[:is_valid] = 1
-    new_list[:measure_id] = Top50MeasureUnit.where(name_eng: 'place').first.id
-    new_list.save!
     
-    @list_id = new_list.id
-  end
-  ed_attr = Top50AttributeValDbval.new
-  ed_attr[:attr_id] = ed_num_attrid
-  ed_attr[:obj_id] = @list_id
-  ed_attr[:value] = format('%d', @new_ed_num)
-  ed_attr[:is_valid] = 1
 
-
-  d_attr = Top50AttributeValDbval.new
-  d_attr[:attr_id] = ed_date_attrid
-  d_attr[:obj_id] = @list_id
-  d_attr[:value] = @ldate
-  d_attr[:is_valid] = 1
-
-  if not ed_attr.save or not d_attr.save
-    if new_list.present?
-      new_list.destroy
+  def set_attrs_from_hash(o, h)
+    h.each do |k, v|
+      set_attr(o, k, v)
     end
-    raise 'Attribute setting failed!'
   end
 
-  if not params.include?(:id)
-    res_hash.each do |k, v|
-      v[:benchmark_id] = new_list.id
-      if not v.save
-        new_list.destroy
-        raise 'Result saving failed!'
+  def pre_save
+    @obj_to_destroy = params['obj_to_destroy']
+    if not @obj_to_destroy.present?
+      @obj_to_destroy = []
+    end
+    moderate
+    set_attrs_from_hash(@top50_machine, params['machine'])
+    if params.include? 'contact'
+      if not @contact.present?
+        @contact = Top50Contact.new
+      end
+      set_attrs_from_hash(@contact, params['contact'])
+    end
+    case params[:commit]
+    when 'Добавить контактное лицо'
+      @contact = Top50Contact.new
+    when 'Удалить контактное лицо'
+      if @contact.id.present?
+        @contact.destroy
+        @top50_machine[:contact_id] = nil
+      end
+      @contact = nil
+    when 'Добавить группу узлов'
+      @nodes.append({
+        'rel_id' => nil,
+        'id' => nil,
+        'fake_id' => nil,
+        'cnt' => 0,
+        'type_id' => Top50ObjectType.where(name_eng: "CPU").first.id,
+        'existing' => 0
+      })      
+    end
+
+    render :moderate
+    return
+  end
+
+  def change
+  end
+
+  def add_preview_list
+    list = Top50Benchmark.find(params[:id])
+    Top50Relation.create(
+      type_id: get_rel_contain_id,
+      prim_obj_id: get_preview_bunch_id,
+      sec_obj_id: list.id,
+    )
+    redirect_to proc { top50_machines_archive_path(list.id) }
+  end
+
+  def delete_preview_list
+    list = Top50Benchmark.find(params[:id])
+    r = Top50Relation.find_by(
+      type_id: get_rel_contain_id,
+      prim_obj_id: get_preview_bunch_id,
+      sec_obj_id: list.id,
+    )
+    if r.present?
+      r.destroy
+    end
+    redirect_to proc { top50_machines_archive_path(list.id) }
+  end
+
+  def publish_list
+    list = Top50Benchmark.find(params[:id])
+    r = Top50Relation.find_by(
+      type_id: get_rel_contain_id,
+      prim_obj_id: get_preview_bunch_id,
+      sec_obj_id: list.id,
+    )
+    if r.present?
+      r.destroy
+    end
+    Top50Relation.create(
+      type_id: get_rel_contain_id,
+      prim_obj_id: get_bunch_id,
+      sec_obj_id: list.id,
+    )
+    redirect_to proc { top50_machines_archive_path(list.id) }
+  end
+
+  def unpublish_list
+    list = Top50Benchmark.find(params[:id])
+    r = Top50Relation.find_by(
+      type_id: get_rel_contain_id,
+      prim_obj_id: get_bunch_id,
+      sec_obj_id: list.id,
+    )
+    if r.present?
+      r.destroy
+    end
+    redirect_to proc { top50_machines_archive_path(list.id) }
+  end
+
+  def destroy_list
+    list = Top50Benchmark.find(params[:id])
+    list.destroy
+    redirect_to :top50_machines_archive_lists
+  end
+
+  def submit_list
+    flash.delete(:error)
+    @pdate = Date.parse(params[:list_date])
+    @ldate = @pdate.strftime("%d.%m.%Y")
+    @new_ed_num = params[:list_num].to_i
+    @pos_hash = params['pos']
+    @status_hash = params['status']
+    res_hash = {}
+    params['status'].each do |id, val|
+      if not [1, 3, 0].include? val.to_i
+        submit_list_fail('При подтверждении списка все системы должны иметь статус 0, 1 или 3')
+        return
+      end
+      if val.to_i == 3 and params['pos'][id].to_i <= 0
+        submit_list_fail('Системе со статусом 3 должно быть присвоено место в списке! (от 1 до 50)')
+        return
       end
     end
+        
+    params['pos'].each do |id, val|
+      pos = val.to_i 
+      if pos < 0 or pos > 50
+        submit_list_fail(format('Позиция системы в списке не может иметь значние %d', pos))
+        return
+      end
+      if pos > 0
+        if res_hash.has_key? pos
+          submit_list_fail(format('Позиция %d присвоена нескольким системам!', pos))
+          return
+        end
+        if not [1, 3].include? params['status'][id].to_i
+          submit_list_fail(format('Система с позицией %d не может иметь статус %d', pos, params['status'][id].to_i))
+          return
+        end
+        t = Top50BenchmarkResult.new
+        t[:machine_id] = id
+        t[:result] = pos
+        t[:is_valid] = 1
+        t[:comment] = format('Top50 place for edition %d', @new_ed_num)
+        res_hash[pos] = t
+      end
+    end
+
+    for i in 1..50
+      if not res_hash.has_key? i
+        submit_list_fail(format('Позиция %d не присвоена ни одной из систем!', i))
+        return
+      end
+    end
+
+    ed_num_attrid = Top50Attribute.where(name_eng: "Edition number").first.id
+    ed_date_attrid = Top50Attribute.where(name_eng: "Edition date").first.id
+    if params.include?(:id)
+      @list_id = params[:id]
+      Top50AttributeValDbval.where({ attr_id: ed_num_attrid, obj_id: @list_id }).delete_all
+      Top50AttributeValDbval.where({ attr_id: ed_date_attrid, obj_id: @list_id }).delete_all
+    else
+      new_list = Top50Benchmark.new 
+      new_list[:comment] = format('New Top50 list no. %d by %s', @new_ed_num, @ldate)
+      new_list[:name] = format('Позиция в Top50 (#%d)', @new_ed_num)
+      new_list[:name_eng] = format('Top50 position (#%d)', @new_ed_num)
+      new_list[:is_valid] = 1
+      new_list[:measure_id] = Top50MeasureUnit.where(name_eng: 'place').first.id
+      new_list.save!
+      
+      @list_id = new_list.id
+    end
+    ed_attr = Top50AttributeValDbval.new
+    ed_attr[:attr_id] = ed_num_attrid
+    ed_attr[:obj_id] = @list_id
+    ed_attr[:value] = format('%d', @new_ed_num)
+    ed_attr[:is_valid] = 1
+
+
+    d_attr = Top50AttributeValDbval.new
+    d_attr[:attr_id] = ed_date_attrid
+    d_attr[:obj_id] = @list_id
+    d_attr[:value] = @ldate
+    d_attr[:is_valid] = 1
+
+    if not ed_attr.save or not d_attr.save
+      if new_list.present?
+        new_list.destroy
+      end
+      raise 'Attribute setting failed!'
+    end
+
+    if not params.include?(:id)
+      res_hash.each do |k, v|
+        v[:benchmark_id] = new_list.id
+        if not v.save
+          new_list.destroy
+          raise 'Result saving failed!'
+        end
+      end
+    end
+
+    params['status'].each do |id, value|
+      Top50Machine.update(id.to_i, is_valid: value.to_i)
+    end
+
   end
 
-  params['status'].each do |id, value|
-    Top50Machine.update(id.to_i, is_valid: value.to_i)
+  def archive_lists
+    @top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id in (?)", get_avail_bunches)
+    list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
+      @list_nums = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
+    list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
+      @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
+    @top50_slists = @top50_lists.select("top50_benchmarks.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmarks.id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int)")
   end
-
-end
-
-def archive_lists
-	@top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id in (?)", get_avail_bunches)
-	list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
-    @list_nums = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
-	list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
-    @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
-	@top50_slists = @top50_lists.select("top50_benchmarks.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmarks.id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int)")
-	
-end
-	
   
   def archive
-	calc_machine_attrs
+    calc_machine_attrs
     eid = params[:eid].to_i
     if not ((current_user and current_user.may_edit_top50?) or @top50_benchmarks.include? eid)
       eid = 0
     end
-	prepare_archive(eid)
+    prepare_archive(eid)
     
     @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{eid}").
       order("ed_results.result asc").
       map(&:attributes)
-	
   end
-  
-  
-   def archive_by_vendor
-   
-	@vendor = Top50Vendor.find(params[:vid])
-	
-	calc_machine_attrs
-	prepare_archive(params[:eid])
-	
+    
+    
+  def archive_by_vendor
+     
+    @vendor = Top50Vendor.find(params[:vid])
+    calc_machine_attrs
+    prepare_archive(params[:eid])
+
     @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
       where("#{@vendor.id} = ANY(top50_machines.vendor_ids)").
       order("ed_results.result asc").
       map(&:attributes)
-	
+
   end
-  
+    
   def archive_by_vendor_excl
-   
-	@vendor = Top50Vendor.find(params[:vid])
-	
-	calc_machine_attrs
-	prepare_archive(params[:eid])
-	
+     
+    @vendor = Top50Vendor.find(params[:vid])
+
+    calc_machine_attrs
+    prepare_archive(params[:eid])
+
     @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
       where("#{@vendor.id} = ALL(top50_machines.vendor_ids)").
       order("ed_results.result asc").
       map(&:attributes)
-	
   end
 
-  
-  def archive_by_org
-   
-	@org = Top50Organization.find(params[:oid])
-	
-	calc_machine_attrs
-	prepare_archive(params[:eid])
-	
     
+  def archive_by_org
+     
+    @org = Top50Organization.find(params[:oid])
+    
+    calc_machine_attrs
+    prepare_archive(params[:eid])
+      
     @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
       where("top50_machines.org_id in (select #{@org.id} union all select sec_obj_id from top50_relations a where a.prim_obj_id = #{@org.id} and a.type_id = #{@rel_contain_id})").
       order("ed_results.result asc").
       map(&:attributes)
-	
+
   end
-  
+    
   def archive_by_comp
-   
-	@comp = Top50Object.find(params[:oid])
-	
-	calc_machine_attrs
-	prepare_archive(params[:eid])
-	
+     
+    @comp = Top50Object.find(params[:oid])
+
+    calc_machine_attrs
+    prepare_archive(params[:eid])
+    
     @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
       where("exists(select 1 from top50_relations a join top50_relations b on b.prim_obj_id = a.sec_obj_id where b.sec_obj_id = #{@comp.id} and a.prim_obj_id = top50_machines.id and a.type_id = #{@rel_contain_id} and b.type_id = #{@rel_contain_id})").
       order("ed_results.result asc").
       map(&:attributes)
-	
+
   end  
-  
+    
   def archive_by_comp_attrd
 
     @dict_elem = Top50DictionaryElem.find(params[:elid])
-	
-	calc_machine_attrs
-	prepare_archive(params[:eid])
-	
-	@top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
+
+    calc_machine_attrs
+    prepare_archive(params[:eid])
+
+    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
       where("exists(select 1 from top50_relations a join top50_relations b on b.prim_obj_id = a.sec_obj_id join top50_attribute_val_dicts d on d.obj_id = b.sec_obj_id where d.dict_elem_id = #{@dict_elem.id} and a.prim_obj_id = top50_machines.id and a.type_id = #{@rel_contain_id} and b.type_id = #{@rel_contain_id})").
       order("ed_results.result asc").
       map(&:attributes)
-	
-  end  
-  
-  def archive_by_attr_dict
-   
-	@attr = Top50Attribute.find(params[:aid])
-	@dict_elem = Top50DictionaryElem.find(params[:elid])
-	
-	calc_machine_attrs
-	prepare_archive(params[:eid])
 
-	@top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
+  end  
+    
+  def archive_by_attr_dict
+     
+    @attr = Top50Attribute.find(params[:aid])
+    @dict_elem = Top50DictionaryElem.find(params[:elid])
+    
+    calc_machine_attrs
+    prepare_archive(params[:eid])
+
+    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
       joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
       where("exists(select 1 from top50_attribute_val_dicts where dict_elem_id = #{@dict_elem.id} and obj_id = top50_machines.id)").
       order("ed_results.result asc").
       map(&:attributes)
-	
+
   end
  
-  
   def benchmark_results
     @top50_machine = Top50Machine.find(params[:id])
   end
@@ -867,51 +859,51 @@ end
 
   def tree_prec_sql(obj_id)
     "with recursive r as (
-	 select prim_obj_id, sec_obj_id, rel.id, 1 as level
-	 from top50_relations rel
-	 join top50_relation_types rel_t on rel_t.id = rel.type_id and rel_t.name_eng = 'Precedes'
-	 where sec_obj_id = #{obj_id}
+     select prim_obj_id, sec_obj_id, rel.id, 1 as level
+     from top50_relations rel
+     join top50_relation_types rel_t on rel_t.id = rel.type_id and rel_t.name_eng = 'Precedes'
+     where sec_obj_id = #{obj_id}
 
-	 union all
+     union all
 
-	 select rel.prim_obj_id, rel.sec_obj_id, rel.id, r.level + 1 as level
-	 from top50_relations rel
-	 join top50_relation_types rel_t on rel_t.id = rel.type_id and rel_t.name_eng = 'Precedes'
-	 join r
-	 on rel.sec_obj_id = r.prim_obj_id
-	 )
-	 select prim_obj_id from r
-	 union all
-	 select #{obj_id}"
+     select rel.prim_obj_id, rel.sec_obj_id, rel.id, r.level + 1 as level
+     from top50_relations rel
+     join top50_relation_types rel_t on rel_t.id = rel.type_id and rel_t.name_eng = 'Precedes'
+     join r
+     on rel.sec_obj_id = r.prim_obj_id
+     )
+     select prim_obj_id from r
+     union all
+     select #{obj_id}"
   end
   
   
   def show
     @top50_machine = Top50Machine.find(params[:id])
-  	calc_machine_attrs
+    calc_machine_attrs
     @perf_measured_attrs = [@rpeak_attrid]
-	
-	  @top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches)
-	  list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
+
+    @top50_lists = Top50Benchmark.select("top50_benchmarks.*").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches)
+    list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
     @list_nums = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
-	  list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
+    list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
     @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
-	  @top50_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(@top50_lists)
-	  @top50_incl = @top50_res.select("top50_benchmark_results.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmark_results.benchmark_id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").where("top50_benchmark_results.machine_id IN (#{tree_prec_sql(@top50_machine.id)})").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int)")
-	
+    @top50_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(@top50_lists)
+    @top50_incl = @top50_res.select("top50_benchmark_results.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmark_results.benchmark_id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").where("top50_benchmark_results.machine_id IN (#{tree_prec_sql(@top50_machine.id)})").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int)")
+
   end
 
   def stats_common
 
-	@top50_lists = Top50Benchmark.all.joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches)
+    @top50_lists = Top50Benchmark.all.joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches)
 
-	@top50_slists = @top50_lists.select("top50_benchmarks.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmarks.id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc")
-	
-	all_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(@top50_lists)
+    @top50_slists = @top50_lists.select("top50_benchmarks.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmarks.id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc")
+
+    all_res = Top50BenchmarkResult.all.joins(:top50_benchmark).merge(@top50_lists)
     
     list_num_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition number"))
     @num_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_num_attrs)
-	list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
+    list_date_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Edition date"))
     @date_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(list_date_attrs)
     
   end
@@ -965,7 +957,7 @@ end
       @mach_approved = Top50BenchmarkResult.where(:benchmark_id => @list_id).pluck(:machine_id)
     end
     @top50_lists = Top50Benchmark.all.joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches)
-	@top50_slists = @top50_lists.select("top50_benchmarks.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmarks.id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc")
+    @top50_slists = @top50_lists.select("top50_benchmarks.*, encode(top50_attribute_val_dbvals.value, 'escape') as num").joins("join top50_attribute_val_dbvals on top50_attribute_val_dbvals.obj_id = top50_benchmarks.id").joins("join top50_attributes on top50_attributes.id = top50_attribute_val_dbvals.attr_id and top50_attributes.name_eng = 'Edition number'").order("cast(encode(top50_attribute_val_dbvals.value, 'escape') as int) desc")
     if @stat_section == 'hybrid_inter'
       comp_node_id = Top50ObjectType.where(name_eng: 'Compute node').first.id
       @hybrid_mach = Top50Machine.select("top50_machines.id").
@@ -1067,8 +1059,8 @@ end
       end
       
       @top50_vendors = Top50Vendor.all.select("coalesce(v2.id, top50_vendors.id) as id, coalesce(v2.name, top50_vendors.name) as name, count(1) cnt").joins("left join (select prim_obj_id, sec_obj_id from top50_relations join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Precedes') pr_v on top50_vendors.id = pr_v.prim_obj_id").joins("left join top50_vendors v2 on v2.id = pr_v.sec_obj_id").joins("join top50_machines on top50_vendors.id = ANY(top50_machines.vendor_ids)").joins("join top50_benchmark_results on top50_benchmark_results.machine_id = top50_machines.id").joins("join top50_benchmarks on top50_benchmarks.id = top50_benchmark_results.benchmark_id").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches).group("coalesce(v2.id, top50_vendors.id), coalesce(v2.name, top50_vendors.name)").order("cnt desc").having("count(1) > 70")
-	
-	  prec_relation = Top50Relation.all.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Precedes"))
+
+      prec_relation = Top50Relation.all.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Precedes"))
       @prec_vendors = prec_relation.joins(:top50_object).merge(Top50Object.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Vendor")))
     elsif  @stat_section == 'type'
       @top50_mtypes = Top50MachineType.all.select("top50_machine_types.id, top50_machine_types.name, count(1) cnt").joins("join top50_machines on top50_machine_types.id = top50_machines.type_id").joins("join top50_benchmark_results on top50_benchmark_results.machine_id = top50_machines.id").joins("join top50_benchmarks on top50_benchmarks.id = top50_benchmark_results.benchmark_id").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches).group("top50_machine_types.id, top50_machine_types.name").order("cnt desc").having("count(1) > 0")
@@ -1170,7 +1162,7 @@ end
         end
         @cnet_id_hash[rec["cnet_id"]] << rec["mach_id"]
       end
-    end	
+    end
   end
   
   def ext_stats
@@ -1179,7 +1171,7 @@ end
     @top50_mtypes = Top50MachineType.all.select("top50_machine_types.id, top50_machine_types.name, count(1) cnt").joins("join top50_machines on top50_machine_types.id = top50_machines.type_id").joins("join top50_benchmark_results on top50_benchmark_results.machine_id = top50_machines.id").joins("join top50_benchmarks on top50_benchmarks.id = top50_benchmark_results.benchmark_id").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").joins("join top50_relation_types on top50_relation_types.id = top50_relations.type_id and top50_relation_types.name_eng = 'Contains'").where("top50_relations.prim_obj_id IN (?)", get_avail_bunches).group("top50_machine_types.id, top50_machine_types.name").order("cnt desc").having("count(1) > 0")
     
   end
-		
+
   def new
     @top50_machine = Top50Machine.new
   end
@@ -1205,11 +1197,6 @@ end
     redirect_to :top50_machines
   end
 
-  #def destroy
-  #  @top50_machine = Top50Machine.find(params[:id])
-  #  @top50_machine.destroy
-  #end
-
   def destroy
     @top50_machine = Top50Machine.find(params[:id])
     @top50_machine.destroy
@@ -1225,11 +1212,11 @@ end
     @cpu_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_vendor_attrs)
     gpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU model"))
     @gpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(gpu_model_attrs)
-	gpu_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU Vendor"))
+    gpu_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU Vendor"))
     @gpu_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(gpu_vendor_attrs)
-	cop_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor model"))
+    cop_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor model"))
     @cop_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cop_model_attrs)
-	cop_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor Vendor"))
+    cop_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Coprocessor Vendor"))
     @cop_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cop_vendor_attrs)
     @cop_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Coprocessor"))
     @cpu_objects = Top50Object.all.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "CPU"))
@@ -1287,134 +1274,592 @@ end
     redirect_to top50_machines_app_form_step2_url
   end
 
+  helper_method :ext_url
+
+  def ext_url(s)
+    if s.downcase.start_with? "http"
+      return s
+    else
+      return "http://" + s
+    end
+  end
+
   def default
     Top50Machine.default!
     redirect_to :top50_machines
   end
   
-  def app_form_step1
-    @top50_machine = Top50Machine.new
-    @top50_contact = Top50Contact.new
+  helper_method :get_cur
+
+  def get_cur(param)
+    if @cur_data.present?
+      return @cur_data.fetch(param, nil)
+    end
   end
 
+  helper_method :get_cur2
+
+  def get_cur2(param, nested_param)
+    if @cur_data.present?
+      return @cur_data.fetch(param, {}).fetch(nested_param, nil)
+    end
+  end
+
+  helper_method :is_focused
+
+  def is_focused(k, k2)
+    if @focus_fields.present?
+      return @focus_fields.fetch([k, k2], false)
+    end
+    return false
+  end
+
+  def fetch_cur_data
+    params.reject {|k,v| ["step1_data", "step2_data", "step3_data", "step4_data"].include? k}
+  end
+
+  def fetch_by_sym(data_sym)
+    params.fetch(:sym, nil) == data_sym.to_s ? fetch_cur_data : params.fetch(data_sym, {})
+  end
+
+  def fetch_all_data_from_params
+    @step1_data = fetch_by_sym(:step1_data)
+    @step2_data = fetch_by_sym(:step2_data)
+    @step3_data = fetch_by_sym(:step3_data) 
+    @step4_data = fetch_by_sym(:step4_data)
+  end
+
+  def check_param(p_name, cd, data_errs)
+    if cd.keys.any? {|x| params.has_key? x}
+      cd.keys.each do |k|
+        if cd[k].is_a? Hash
+          cd[k].keys.each do |k2|
+            if not params.fetch(k, {}).fetch(k2, nil).present?
+              data_errs.append(cd[k][k2])
+            end
+          end
+        else
+          if not params.fetch(k, nil).present?
+            data_errs.append(cd[k])
+          end
+        end
+      end
+    else
+      data_errs.append(p_name)
+    end  
+  end
+
+  def validate_req_params(step)
+    req_params = {
+      step1: {
+        vendor_id: "Основной производитель системы",
+        installation_date: "Год установки вычислительной системы",
+        type_id: "Тип вычислительной системы",
+        org_id: "Организация (место установки системы)",
+        custom_suborg: {
+          name: "Название подразделения",
+          name_eng: "Название подразделения на английском",
+          country: "Страна, в которой расположено подразделение",
+          city: "Город расположения подразделения"
+        },
+        contact: {
+          surname: "Фамилия контактного лица",
+          name: "Имя контактного лица",
+          email: "Email контактного лица"
+        }
+      },
+      step2: {
+      },
+      step3: {
+        app_area: {
+          app_dict_elem_id: "Область применения вычислительной системы"
+        },
+        nets: {
+          comm_net_dict_elem_id: "Основная коммуникационная (вычислительная) сеть",
+          tplg_dict_elem_id: "Топология коммуникационной сети"
+        }
+      },
+      step4: {
+        top50_perf: {
+          rpeak: "Rpeak",
+          rmax: "Rmax",
+          msize: "Размер матрицы, на котором было достигнута указанная производительность"
+        }
+      },
+      confirm: {
+        step1_data: "Шаг 1",
+        step2_data: "Шаг 2",
+        step3_data: "Шаг 3",
+        step4_data: "Шаг 4"
+      }
+    }
+    custom_req_params = {
+      step1: {
+        vendor_id: {
+          custom_vendor: {
+            name: "Название производителя",
+            name_eng: "Название производителя на английском"
+          }
+        },
+        type_id: {
+          custom_type: {
+            name: "Название типа системы",
+            name_eng: "Название типа системы на английском"
+          }
+        },
+        org_id: {
+          custom_org: {
+            name: "Название организации",
+            name_eng: "Название организации на английском",
+            country: "Страна, в которой расположена организация",
+            city: "Город расположения организации"
+          }
+        }
+      },
+      step3: {
+        app_area: {
+          app_dict_elem_id: {
+            app_area: {
+              custom_app: "Область применения вычислительной системы"
+            }
+          }
+        },
+        nets: {
+          comm_net_dict_elem_id: {
+            nets: {
+              custom_comm_net: "Основная коммуникационная (вычислительная) сеть"
+            }
+          },
+          tplg_dict_elem_id: {
+            nets: {
+              custom_tplg: "Топология коммуникационной сети"
+            }
+          }
+        }
+      }
+    }
+    data_errs = []
+    data = req_params.fetch(step, {})
+    custom_data = custom_req_params.fetch(step, {})
+    case step
+    when :step1
+      if params[:org_id].present? and params[:suborg_id].present?
+        if not Top50Relation.where(type_id: get_rel_contain_id, prim_obj_id: params[:org_id].to_i).pluck(:sec_obj_id).include? params[:suborg_id].to_i
+          return "Выбранное подразделение не соответствует организации"
+        end
+      end
+      add_vendors = params.select {|k,v| k.starts_with? 'add_vendor_'}
+      data.update(add_vendors.merge(add_vendors) {
+        |k,v,x| {
+          name: "Название участвующего производителя",
+          name_eng: "Название участвующего производителя на английском"
+        }
+      })
+    when :step2
+      if params[:node_group_cnt].to_i == 0
+        return "Не указано ни одной группы узлов вычислительной системы"
+      end
+      node_groups = params.select {|k,v| k.starts_with? 'top50_node_'}
+      node_groups.keys.each do |node|
+        data[node] = {
+          node_cnt: "Количество вычислительных узлов в группе",
+          ram_size: "Объем оперативной памяти"
+        }
+        custom_data[node] = {}
+        if params[node][:cpu_model_obj_id].present? or params[node][:custom_cpu_model].present?
+          data[node].update({
+            cpu_cnt: "Количество процессоров на одном узле"
+          })
+        end
+        if params[node][:custom_cpu_model].present?
+          data[node].update({
+            custom_cpu_vendor_id: "Производитель процессора",
+            custom_cpu_freq: "Тактовая частота процессора",
+            custom_cpu_core_cnt: "Количество ядер процессора"
+          })
+          custom_data[node].update({
+            custom_cpu_vendor_id: {node => {
+              custom_cpu_vendor: "Производитель процессора"
+            }}
+          })
+        end
+        if params[node][:acc_model_obj_id].present? or params[node][:custom_acc_model].present?
+          data[node].update({
+            acc_cnt: "Количество ускорителей на одном узле"
+          })
+        end
+        if params[node][:custom_acc_model].present?
+          data[node].update({
+            custom_acc_type_id: "Тип ускорителя",
+            custom_acc_vendor_id: "Производитель ускорителя",
+            custom_acc_core_cnt: "Количество ядер/мультипроцессоров/мультипроцессорных блоков"
+          })
+          custom_data[node].update({
+            custom_acc_type_id: {node => {
+              custom_acc_type: "Тип ускорителя",
+            }},
+            custom_acc_vendor_id: {node => {
+              custom_acc_vendor_id: "Производитель ускорителя"
+            }}
+          })
+        end
+        if params[node][:acc_only].to_i == 0
+          data[node].update({
+            cpu_cnt: "Количество процессоров на одном узле",
+            cpu_model_obj_id: "Модель процессора"
+          })
+          custom_data[node].update({
+            cpu_model_obj_id: {node => {
+              custom_cpu_model: "Модель процессора"
+            }}
+          })
+          if not params[node][:cpu_model_obj_id].present? and params[node].has_key? :custom_cpu_model
+            data[node].update({
+              custom_cpu_vendor_id: "Производитель процессора",
+              custom_cpu_model: "Название модели процессора",
+              custom_cpu_freq: "Тактовая частота процессора",
+              custom_cpu_core_cnt: "Количество ядер процессора"
+            })
+            custom_data[node].update({
+              custom_cpu_vendor_id: {node => {
+                custom_cpu_vendor: "Производитель процессора"
+              }}
+            })
+          end
+        else
+          data[node].update({
+            acc_cnt: "Количество ускорителей на одном узле",
+            acc_model_obj_id: "Модель ускорителя"
+          })
+          custom_data[node].update({
+            acc_model_obj_id: {node => {
+              custom_acc_model: "Модель ускорителя"
+            }}
+          })
+          if not params[node][:acc_model_obj_id].present? and params[node].has_key? :custom_acc_model
+            data[node].update({
+              custom_acc_type_id: "Тип ускорителя",
+              custom_acc_vendor_id: "Производитель ускорителя",
+              custom_acc_model: "Название модели ускорителя",
+              custom_acc_core_cnt: "Количество ядер/мультипроцессоров/мультипроцессорных блоков"
+            })
+            custom_data[node].update({
+              custom_acc_type_id: {node => {
+                custom_acc_type: "Тип ускорителя",
+              }},
+              custom_acc_vendor_id: {node => {
+                custom_acc_vendor_id: "Производитель ускорителя"
+              }}
+            })
+          end
+        end
+      end
+    end
+    data.keys.each do |k|
+      if not params.has_key? k and step != :confirm
+        next
+      end
+      if data[k].is_a? Hash
+        data[k].keys.each do |k2|
+          if not params.fetch(k, {}).fetch(k2, nil).present?
+            cd = custom_data.fetch(k, {}).fetch(k2, {})
+            check_param(data[k][k2], cd, data_errs)
+          end
+        end
+      else
+        if not params.fetch(k, nil).present?
+          cd = custom_data.fetch(k, {})
+          check_param(data[k], cd, data_errs)
+        end
+      end
+    end
+    if data_errs.empty?
+      return nil
+    else
+      return "Не заполнены необходимые поля: " + data_errs.join(", ")
+    end
+  end
+
+  def app_form_step1
+    @rel_contain_id = get_rel_contain_id
+    fetch_all_data_from_params
+    @cur_data = @step1_data
+  end
+ 
   def app_form_step1_presave
     flash.delete(:error)
-    @top50_contact = Top50Contact.new
-    @top50_contact['name'] = params['top50_machine']['top50_contact']['name']
-    @top50_contact['surname'] = params['top50_machine']['top50_contact']['surname']
-    @top50_contact['patronymic'] = params['top50_machine']['top50_contact']['patronymic']
-    @top50_contact['phone'] = params['top50_machine']['top50_contact']['phone']
-    @top50_contact['email'] = params['top50_machine']['top50_contact']['email']
-    @top50_contact['extra_info'] = params['top50_machine']['top50_contact']['extra_info']
-    @top50_machine = Top50Machine.new(top50machine_params)
-    @top50_machine.contact_id = @top50_contact.id
-    @top50_machine.vendor_ids = [top50machine_params[:vendor_id]] + (params[:top50_machine][:vendor_ids] - [top50machine_params[:vendor_id], ""])
-    @top50_machine.is_valid = 2
-    @top50_machine.installation_date = Date.parse(format('%s-01-01', top50machine_params[:installation_date]))
-    if cond_params[:cond_accepted].to_i != 1
-      app_form_step1_fail("Для подачи заявки необходимо подтвердить согласие на обработку данных.")
-      return
-    end
-    if cond_params[:cond_accepted].to_i == 1
-      redirect_to top50_machines_app_form_step2_url
+    case params[:commit]
+    when "Добавить производителя"
+      app_form_step1
+      @cur_data[:custom_vendor] = {}
+      @cur_data[:vendor_id] = nil
+      @focus_fields = {[:custom_vendor, :name] => true}
+      render :app_form_step1
+    when "Добавить ещё одного участвующего производителя"
+      app_form_step1
+      @cur_data[format("add_vendor_%d", @cur_data[:add_vendors_cnt].to_i + 1)] = {}
+      @focus_fields = {[format("add_vendor_%d", @cur_data[:add_vendors_cnt].to_i + 1), :name] => true}
+      render :app_form_step1
+    when "Добавить новый тип"
+      app_form_step1
+      @cur_data[:custom_type] = {}
+      @cur_data[:type_id] = nil
+      @focus_fields = {[:custom_type, :name] => true}
+      render :app_form_step1
+    when "Добавить организацию"
+      app_form_step1
+      @cur_data[:custom_org] = {}
+      @cur_data[:org_id] = nil
+      @focus_fields = {[:custom_org, :name] => true}
+      render :app_form_step1
+    when "Добавить новое подразделение"
+      app_form_step1
+      @cur_data[:custom_suborg] = {}
+      @cur_data[:suborg_id] = nil
+      @focus_fields = {[:custom_suborg, :name] => true}
+      render :app_form_step1
+    when "Указать подразделение"
+      if not params[:org_id].present? and not params.has_key? :custom_org
+        @focus_fields = {[:form, :org_id] => true}
+        app_form_step1_fail("Для указания подазделения необходимо сначала указать организацию")
+        return
+      end
+      app_form_step1
+      @cur_data[:suborg_id] = nil
+      @focus_fields = {[:form, :suborg_id] => true}
+      if params.has_key? :custom_org and not params[:org_id].present?
+        @cur_data[:custom_suborg] = {}
+        @focus_fields = {[:custom_suborg, :name] => true}
+      end
+      render :app_form_step1
+    when "Далее"
+      x = validate_req_params(:step1)
+      if x.present?
+        app_form_step1_fail(x)
+        return
+      end
+      if params[:cond_accepted].to_i != 1
+        app_form_step1_fail("Для подачи заявки необходимо подтвердить согласие на обработку данных.")
+        return
+      end
+      app_form_step2
+      render :app_form_step2
     else
-      render :new
+      app_form_step1
+      @cur_data.reject! {|k,v| v.is_a? Hash and v.fetch(:commit, "").starts_with? "Убрать"}
+      render :app_form_step1
     end
+    return
   end
 
   def app_form_step1_fail(err_msg)
     flash[:error] = err_msg
+    app_form_step1
     render :app_form_step1
     return
   end
 
   def app_form_step2
-    @top50_machine = Top50Machine.new
     @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
-    @comp_node_id = Top50ObjectType.where(name_eng: 'Compute node').first.id
-    prepare_arch_attrs
-  end
+    @cpu_typeid = Top50ObjectType.where(name_eng: 'CPU').first.id
+    @cpu_dict_id = Top50Dictionary.where(name_eng: 'CPU model').first.id
+    @cpu_vendor_dict_id = Top50Dictionary.where(name_eng: 'CPU Vendor').first.id
+    @cpu_gen_dict_id = Top50Dictionary.where(name_eng: 'CPU generations').first.id
+    @cpu_family_dict_id = Top50Dictionary.where(name_eng: 'CPU families').first.id
+    @gpu_dict_id = Top50Dictionary.where(name_eng: 'GPU model').first.id
+    @gpu_vendor_dict_id = Top50Dictionary.where(name_eng: 'GPU Vendor').first.id
+    @cop_dict_id = Top50Dictionary.where(name_eng: 'Coprocessor model').first.id
+    @cop_vendor_dict_id = Top50Dictionary.where(name_eng: 'Coprocessor Vendor').first.id
+    @acc_dict_id = [@gpu_dict_id, @cop_dict_id]
+    @acc_vendor_dict_id = [@cop_vendor_dict_id, @gpu_vendor_dict_id]
+    @acc_typeid = Top50ObjectType.where(name_eng: "Accelerator").first.id
+    @acc_all_typeids = Top50ObjectType.where(parent_id: @acc_typeid).pluck(:id)
+
+    cpu_model_attrid = Top50Attribute.where(name_eng: "CPU model").first.id
+    cpu_vendor_attrid = Top50Attribute.where(name_eng: "CPU Vendor").first.id
+    @cpu_objects = Top50Object.select("top50_objects.id, dv.name || ' ' || dm.name as name").
+      joins("join top50_attribute_val_dicts av on av.obj_id = top50_objects.id and av.attr_id = #{cpu_vendor_attrid}").
+      joins("join top50_dictionary_elems dv on dv.id = av.dict_elem_id and dv.dict_id = #{@cpu_vendor_dict_id}").
+      joins("join top50_attribute_val_dicts am on am.obj_id = top50_objects.id and am.attr_id = #{cpu_model_attrid}").
+      joins("join top50_dictionary_elems dm on dm.id = am.dict_elem_id and dm.dict_id = #{@cpu_dict_id}").
+      where("top50_objects.type_id = ? and top50_objects.is_valid = 1", @cpu_typeid).
+      order("dv.name, dm.name")
   
+    gpu_model_attrid = Top50Attribute.where(name_eng: "GPU model").first.id
+    gpu_vendor_attrid = Top50Attribute.where(name_eng: "GPU Vendor").first.id
+    cop_model_attrid = Top50Attribute.where(name_eng: "Coprocessor model").first.id
+    cop_vendor_attrid = Top50Attribute.where(name_eng: "Coprocessor Vendor").first.id
+    @acc_objects = Top50Object.select("top50_objects.id, dv.name || ' ' || dm.name as name").
+      joins("join top50_attribute_val_dicts av on av.obj_id = top50_objects.id").
+      joins("join top50_dictionary_elems dv on dv.id = av.dict_elem_id").
+      joins("join top50_attribute_val_dicts am on am.obj_id = top50_objects.id").
+      joins("join top50_dictionary_elems dm on dm.id = am.dict_elem_id").
+      where("top50_objects.type_id in (?) and top50_objects.is_valid = 1 and av.attr_id in (?) and dv.dict_id in (?) and am.attr_id in (?) and dm.dict_id in (?)",
+        @acc_all_typeids, [gpu_vendor_attrid, cop_vendor_attrid], @acc_vendor_dict_id, [gpu_model_attrid, cop_model_attrid], @acc_dict_id).
+      order("dv.name, dm.name")
+
+    fetch_all_data_from_params
+    @cur_data = @step2_data
+  end
+ 
+  def app_form_step2_presave
+    flash.delete(:error)
+    case params[:commit]
+    when "Добавить группу узлов"
+      app_form_step2
+      @cur_data[format("top50_node_%d", @cur_data[:node_group_cnt].to_i + 1)] = {}
+      @focus_fields = {[format("top50_node_%d", @cur_data[:node_group_cnt].to_i + 1), :node_cnt] => true}
+      render :app_form_step2
+    when "Назад"
+      app_form_step1
+      render :app_form_step1
+    when "Далее"
+      x = validate_req_params(:step2)
+      if x.present?
+        app_form_step2_fail(x)
+        return
+      end
+      app_form_step3
+      render :app_form_step3
+    else
+      app_form_step2
+      @cur_data.reject! {|k,v| v.is_a? Hash and v.fetch(:commit, "").starts_with? "Удалить"}
+      @cur_data.select {|k,v| k.starts_with? 'top50_node_'}.keys.sort.each do |node|
+        case @cur_data[node].fetch(:commit, nil)
+        when "Добавить модель процессора"
+          @cur_data[node][:custom_cpu_model] = nil
+          @cur_data[node][:cpu_model_obj_id] = nil
+          @focus_fields = {[node, :custom_cpu_model] => true}
+        when "Добавить модель ускорителя"
+          @cur_data[node][:custom_acc_model] = nil
+          @cur_data[node][:acc_model_obj_id] = nil
+          @focus_fields = {[node, :custom_acc_model] => true}
+        end
+      end
+      render :app_form_step2
+    end
+    return
+  end
+ 
+  def app_form_step2_fail(err_msg)
+    flash[:error] = err_msg
+    app_form_step2
+    render :app_form_step2
+    return
+  end
+
   def app_form_step3
-    @top50_machine = Top50Machine.new
     @app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
     @net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
     @tplg_dict_id = Top50Dictionary.where(name_eng: 'Topologies').first.id
     @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+    fetch_all_data_from_params
+    @cur_data = @step3_data
   end
 
   def app_form_step3_presave
-    @top50_machine = Top50Machine.new
-    com_net_attrid = Top50Attribute.where(name_eng: "Communication network").first.id
-    serv_net_attrid = Top50Attribute.where(name_eng: "Service network").first.id
-    tran_net_attrid = Top50Attribute.where(name_eng: "Transport network").first.id
-    app_area_attrid = Top50Attribute.where(name_eng: "Application area").first.id
-    topo_attrid = Top50Attribute.where(name_eng: "Topology").first.id
-    cn = Top50AttributeValDict.new({
-      attr_id: com_net_attrid,
-      obj_id: @top50_machine.id,
-      is_valid: 1,
-      dict_elem_id: params['top50_machine']['top50_nets']['comm_net_dict_elem_id']
-    })
-    sn = Top50AttributeValDict.new({
-      attr_id: serv_net_attrid,
-      obj_id: @top50_machine.id,
-      is_valid: 1,
-      dict_elem_id: params['top50_machine']['top50_nets']['serv_net_dict_elem_id']
-    })
-    tn = Top50AttributeValDict.new({
-      attr_id: tran_net_attrid,
-      obj_id: @top50_machine.id,
-      is_valid: 1,
-      dict_elem_id: params['top50_machine']['top50_nets']['tran_net_dict_elem_id']
-    })
-    aa = Top50AttributeValDict.new({
-      attr_id: app_area_attrid,
-      obj_id: @top50_machine.id,
-      is_valid: 1,
-      dict_elem_id: params['top50_machine']['top50_app_area']['app_dict_elem_id']
-    })
-    if params['top50_machine']['top50_nets']['tplg_net_dict_elem_id'].present?
-      tp = Top50AttributeValDict.new({
-        attr_id: topo_attrid,
-        obj_id: @top50_machine.id,
-        is_valid: 1,
-        dict_elem_id: params['top50_machine']['top50_nets']['tplg_net_dict_elem_id']
-      })
+    flash.delete(:error)
+    case params[:commit]
+    when "Назад"
+      app_form_step2
+      render :app_form_step2
+    when "Далее"
+      x = validate_req_params(:step3)
+      if x.present?
+        app_form_step3_fail(x)
+        return
+      end
+      app_form_step4
+      render :app_form_step4
     end
-    redirect_to top50_machines_app_form_step4_url
+    return
+  end
+
+  def app_form_step3_fail(err_msg)
+    flash[:error] = err_msg
+    app_form_step3
+    render :app_form_step3
+    return
   end
 
   def app_form_step4
-    @top50_machine = Top50Machine.new
     @app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
     @net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
     @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+    fetch_all_data_from_params
+    @cur_data = @step4_data
   end
 
   def app_form_step4_presave
-    @top50_machine = Top50Machine.new
-    @rmax_benchid = Top50Benchmark.where(name_eng: "Linpack").first.id
-    @nmax_attrid = Top50Attribute.where(name_eng: "Linpack Nmax").first.id
-    @rpeak_attrid = Top50Attribute.where(name_eng: "Rpeak (MFlop/s)").first.id
-    rmax = Top50BenchmarkResult.new
-    rmax['benchmark_id'] = @rmax_benchid
-    rmax['machine_id'] = @top50_machine.id
-    rmax['is_valid'] = 1
-    rmax['result'] = params['top50_machine']['top50_perf']['rmax']
-    rp = Top50AttributeValDbval.new
-    rp['attr_id'] = @rpeak_attrid
-    rp['obj_id'] = @top50_machine.id
-    rp['is_valid'] = 1
-    rp['value'] = params['top50_machine']['top50_perf']['rpeak']
-    nmax = Top50AttributeValDbval.new
-    nmax['attr_id'] = @nmax_attrid
-    nmax['obj_id'] = rmax.id
-    nmax['is_valid'] = 1
-    nmax['value'] = params['top50_machine']['top50_perf']['nmax']
-    redirect_to top50_machines_app_form_finish_url
+    flash.delete(:error)
+    case params[:commit]
+    when "Назад"
+      app_form_step3
+      render :app_form_step3
+    when "Далее"
+      x = validate_req_params(:step4)
+      if x.present?
+        app_form_step4_fail(x)
+        return
+      end
+      app_form_confirm
+      render :app_form_confirm
+    end
+    return
   end
-  
+
+  def app_form_step4_fail(err_msg)
+    flash[:error] = err_msg
+    app_form_step4
+    render :app_form_step4
+    return
+  end
+
+  def app_form_confirm
+    core_qty_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Number of cores"))
+    @core_qty_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(core_qty_attrs)
+    microcore_qty_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Number of GPU cores"))
+    @microcore_qty_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(microcore_qty_attrs)
+    cpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "CPU model"))
+    @cpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_model_attrs)
+    cpu_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "CPU Vendor"))
+    @cpu_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_vendor_attrs)
+    comp_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where("name_eng LIKE '% model'"))
+    @comp_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(comp_model_attrs)
+    comp_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where("name_eng LIKE '% Vendor'"))
+    @comp_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(comp_vendor_attrs)
+
+    fetch_all_data_from_params
+  end
+ 
+  def app_form_confirm_post
+    flash.delete(:error)
+    case params[:commit]
+    when "Назад"
+      app_form_step4
+      render :app_form_step4
+    when "Перейти в начало"
+      app_form_step1
+      render :app_form_step1
+    when "Отправить заявку"
+      x = validate_req_params(:confirm)
+      if x.present?
+        app_form_confirm_fail(x)
+        return
+      end
+      app_form_finish 
+      render :app_form_finish
+    end
+    return
+  end
+ 
+ def app_form_confirm_fail(err_msg)
+    flash[:error] = err_msg
+    app_form_confirm
+    render :app_form_confirm
+    return
+  end
+
   def app_form_finish
     @top50_machine = Top50Machine.new
   end
@@ -1422,10 +1867,6 @@ end
   
   private
   
-  def cond_params
-    params.require(:cond).permit(:cond_accepted)
-  end
-
   def top50machine_params
     params.require(:top50_machine).permit(:name, :name_eng, :type_id, :vendor_id, :org_id, :contact_id, :website, :top50_contact)
   end

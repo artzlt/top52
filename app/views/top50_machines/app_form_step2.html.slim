@@ -1,64 +1,89 @@
-div class="page-header"
-  h3 = "Добавление заявки в Top50 (Шаг 2 из 4)"
+h3 = "Добавление заявки в Top50 (Шаг 2 из 4)"
+h4 = "Вычислительные узлы системы"
+br
+
+= bootstrap_form_tag url: top50_machines_app_form_step2_post_path do |f|
+  - node_idx = 0
+  - @cur_data.select {|k,v| k.starts_with? 'top50_node_'}.keys.sort.each do |node|
+    - node_idx += 1
+    div class="panel panel-default"
+      div class="panel-heading"
+        h4 = format("Группа узлов %d", node_idx)
+      div class="panel-body"
+        = f.fields_for format('top50_node_%d', node_idx) do |f2|
+          = f2.number_field :node_cnt, label: "Количество вычислительных узлов в группе (*)", value: get_cur2(node, :node_cnt), min: 1, autofocus: is_focused(node, :node_cnt)
+          div class="panel panel-default"
+            div class="panel-heading"
+              = "Сведения об основном процессоре:"
+            div class="panel-body"
+              = f2.number_field :cpu_cnt, label: "Количество процессоров на одном узле (*)", value: get_cur2(node, :cpu_cnt), min: 1
+              = f2.collection_select :cpu_model_obj_id, @cpu_objects, :id, :name, {label: "Модель процессора (*)", include_blank: true, selected: get_cur2(node, :cpu_model_obj_id)}
+              - if get_cur(node).has_key? :custom_cpu_model and not get_cur2(node, :cpu_model_obj_id).present?
+                div class="panel panel-default"
+                  div class="panel-heading"
+                    = "Добавление нового процессора"
+                  div class="panel-body"
+                    = f2.collection_select :custom_cpu_vendor_id, Top50DictionaryElem.where(dict_id: @cpu_vendor_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Производитель процессора (*)", include_blank: true, selected: get_cur2(node, :custom_cpu_vendor_id)}
+                    = "Отсутствует в списке? Указать:"
+                    = f2.text_field :custom_cpu_vendor, value: get_cur2(node, :custom_cpu_vendor), skip_label: true
+                    = f2.collection_select :custom_cpu_gen_id, Top50DictionaryElem.where(dict_id: @cpu_gen_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Поколение процессоров", include_blank: true, selected: get_cur2(node, :custom_cpu_gen_id)}
+                    = "Отсутствует в списке? Указать: "
+                    = f2.text_field :custom_cpu_gen, value: get_cur2(node, :custom_cpu_gen), skip_label: true
+                    = f2.collection_select :custom_cpu_family_id, Top50DictionaryElem.where(dict_id: @cpu_family_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Семейство процессоров", include_blank: true, selected: get_cur2(node, :custom_cpu_family_id)}
+                    = "Отсутствует в списке? Указать: "
+                    = f2.text_field :custom_cpu_family, value: get_cur2(node, :custom_cpu_family), skip_label: true
+                    br
+                    = f2.text_field :custom_cpu_model, label: "Название модели процессора (*)", value: get_cur2(node, :custom_cpu_model), autofocus: is_focused(node, :custom_cpu_model)
+                    = f2.number_field :custom_cpu_freq, label: "Тактовая частота процессора (МГц) (*)", value: get_cur2(node, :custom_cpu_freq), min: 1
+                    = f2.number_field :custom_cpu_core_cnt, label: "Количество ядер (*)", value: get_cur2(node, :custom_cpu_core_cnt), min: 1
+              - else
+                = "Отсутствует в списке? "
+                = f2.submit "Добавить модель процессора", class: "a", name: format("%s[commit]", node)
+              br
+          div class="panel panel-default"
+            div class="panel-heading"
+              = "Оперативная память (RAM):"
+            div class="panel-body"
+              = f2.number_field :ram_size, label: "Объем оперативной памяти на одном узле (в ГБ) (*)", step: :any, value: get_cur2(node, :ram_size)
+            br
+          = f2.check_box :acc_only, checked: (get_cur2(node, :acc_only).to_i != 0), label: "Ускоритель выполняет роль CPU (bootable)"
+          div class="panel panel-default"
+            div class="panel-heading"
+              = "Ускорители (при наличии):"
+            div class="panel-body"
+              = f2.number_field :acc_cnt, label: "Количество ускорителей на одном узле", value: get_cur2(node, :acc_cnt), min: 1
+              = f2.collection_select :acc_model_obj_id, @acc_objects, :id, :name, {label: "Модель ускорителя", include_blank: true, selected: get_cur2(node, :acc_model_obj_id)}
+              - if get_cur(node).has_key? :custom_acc_model and not get_cur2(node, :acc_model_obj_id).present?
+                div class="panel panel-default"
+                  div class="panel-heading"
+                    = "Добавление нового ускорителя"
+                  div class="panel-body"
+                    = f2.collection_select :custom_acc_type_id, Top50ObjectType.where(id: @acc_all_typeids, is_valid: 1).order(:name), :id, :name, {label: "Тип ускорителя (*)", include_blank: true, selected: get_cur2(node, :custom_acc_type_id)}
+                    = "Отсутствует в списке? Указать:"
+                    = f2.text_field :custom_acc_type, value: get_cur2(node, :custom_acc_type), skip_label: true
+                    = f2.collection_select :custom_acc_vendor_id, Top50DictionaryElem.where(dict_id: @acc_vendor_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Производитель ускорителя (*)", include_blank: true, selected: get_cur2(node, :custom_acc_vendor_id)}
+                    = "Отсутствует в списке? Указать:"
+                    = f2.text_field :custom_acc_vendor, value: get_cur2(node, :custom_acc_vendor), skip_label: true
+                    br
+                    = f2.text_field :custom_acc_model, label: "Название модели ускорителя (*)", value: get_cur2(node, :custom_acc_model), autofocus: is_focused(node, :custom_acc_model)
+                    = f2.number_field :custom_acc_freq, label: "Тактовая частота ускорителя (МГц)", value: get_cur2(node, :custom_acc_freq), min: 1
+                    = f2.number_field :custom_acc_core_cnt, label: "Количество ядер/мультипроцессоров/мультипроцессорных блоков (*)", value: get_cur2(node, :custom_acc_core_cnt), min: 1
+                    = f2.number_field :custom_acc_microcore_cnt, label: "Количество микроядер/CUDA-ядер", value: get_cur2(node, :custom_acc_microcore_cnt), min: 1
+              - else
+                = "Отсутствует в списке? "
+                = f2.submit "Добавить модель ускорителя", class: "a", name: format("%s[commit]", node)
+              br
+          br
+          = f2.submit "Удалить эту группу узлов", class: "a", name: format("%s[commit]", node)
+  = f.hidden_field :node_group_cnt, value: node_idx
+  = f.submit "Добавить группу узлов"
   br
   br
-  h4 = "Архитектура вычислительной системы"
-
-div class="panel panel-default"
-  div class="panel-heading"
-    = "Указанные вычислительные узлы системы:"
-  div class="panel-body"
-    - counter = 0
-    - top50_nodes = @top50_machine.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))
-	- top50_nodes.each do |top50_node| 
-      - counter += 1
-	  - top50_cpu = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects).first
-	  - top50_gpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects)
-	  - top50_cops = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects)
-	  - if top50_node.sec_obj_qty > 0
-		= "Группа узлов ##{counter}: #{top50_node.sec_obj_qty} x "
-	  = "["
-	  - if top50_cpu.present?
-		- if top50_cpu.sec_obj_qty > 0 
-		  = "#{top50_cpu.sec_obj_qty}x "
-		- cpu_vendor = @cpu_vendor_attr_vals.find_by(obj_id: top50_cpu.top50_object)
-		- if cpu_vendor.present?
-		  = cpu_vendor.top50_dictionary_elem.name
-		  = " "
-		= link_to @cpu_model_attr_vals.find_by(obj_id: top50_cpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_cpu.top50_object)
-	  - ram_size_val = @ram_size_attr_vals.find_by(obj_id: top50_node.top50_object)
-	  - if ram_size_val.present? and ram_size_val.value.to_f > 0
-		  - if top50_cpu.present?
-			= ", "
-		  = "#{number_with_precision(@ram_size_attr_vals.find_by(obj_id: top50_node.top50_object).value.to_f, precision: 3, strip_insignificant_zeros: true)} GB RAM"
-	  - if top50_gpus.any? or top50_cops.any?
-		- if top50_gpus.any?
-		  - top50_gpu = top50_gpus.first
-		  = "; "
-		  = "Acc: "
-		  - if top50_gpu.sec_obj_qty > 0 
-			= "#{top50_gpu.sec_obj_qty}x "
-		  - gpu_vendor = @gpu_vendor_attr_vals.find_by(obj_id: top50_gpu.top50_object)
-		  - if gpu_vendor.present?
-			= gpu_vendor.top50_dictionary_elem.name
-			= " "				  
-		  = link_to @gpu_model_attr_vals.find_by(obj_id: top50_gpu.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_gpu.top50_object)
-		- if top50_cops.any?			
-		  - top50_cop = top50_cops.first
-		  = "; "
-		  = "Acc: "
-		  - if top50_cop.sec_obj_qty > 0 
-			= "#{top50_cop.sec_obj_qty}x "
-		  - cop_vendor = @cop_vendor_attr_vals.find_by(obj_id: top50_cop.top50_object)
-		  - if cop_vendor.present?
-			= cop_vendor.top50_dictionary_elem.name
-			= " "				  
-		  = link_to @cop_model_attr_vals.find_by(obj_id: top50_cop.top50_object).top50_dictionary_elem.name, top50_objects_show_info_path(top50_cop.top50_object)
-	  = "]"	
-	  br
-      br
-
-= link_to "Добавить данные об еще одной группе узлов", add_top50_machine_component_path(@top50_machine), class: "btn btn-default"
-br
-br
-= link_to "Готово", top50_machines_app_form_step3_path class: "btn btn-default" 
+  br
+  = f.text_area :comment, label: "Комментарии и уточнения"
+  br
+  = render "hidden_saved_data"
+  = f.hidden_field :sym, value: :step2_data
+  = f.submit "Назад"
+  = "&nbsp;&nbsp;".html_safe
+  = f.submit "Далее"

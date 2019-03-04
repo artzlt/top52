@@ -1,0 +1,12 @@
+- [@step1_data, @step2_data, @step3_data, @step4_data].each do |step_data|
+  - if step_data.present?
+    - step_data.keys.each do |k|
+      - if step_data[k].is_a? Array
+        - step_data[k].each do |ik|
+          = hidden_field step_data[:sym], k, multiple: true, value: ik
+      - elsif step_data[k].is_a? Hash
+        - step_data[k].keys.each do |kk|
+          = hidden_field step_data[:sym], format("%s[%s]", k, kk), value: step_data[k][kk]
+      - else
+          = hidden_field step_data[:sym], k, value: step_data[k]
+

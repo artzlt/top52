@@ -39,13 +39,15 @@ Octoshell::Application.routes.draw do
 
   resource :profile
   get 'top50_machines/application/step1', to: 'top50_machines#app_form_step1', as: 'top50_machines_app_form_step1'
-  post 'top50_machines/application/step1', to: 'top50_machines#app_form_step1_presave'
+  post 'top50_machines/application/step1', to: 'top50_machines#app_form_step1_presave', as: 'top50_machines_app_form_step1_post'
   get 'top50_machines/application/step2', to: 'top50_machines#app_form_step2', as: 'top50_machines_app_form_step2'
-  post 'top50_machines/application/step2', to: 'top50_machines#app_form_step2_presave'
+  post 'top50_machines/application/step2', to: 'top50_machines#app_form_step2_presave', as: 'top50_machines_app_form_step2_post'
   get 'top50_machines/application/step3', to: 'top50_machines#app_form_step3', as: 'top50_machines_app_form_step3'
-  post 'top50_machines/application/step3', to: 'top50_machines#app_form_step3_presave'
+  post 'top50_machines/application/step3', to: 'top50_machines#app_form_step3_presave', as: 'top50_machines_app_form_step3_post'
   get 'top50_machines/application/step4', to: 'top50_machines#app_form_step4', as: 'top50_machines_app_form_step4'
-  post 'top50_machines/application/step4', to: 'top50_machines#app_form_step4_presave'
+  post 'top50_machines/application/step4', to: 'top50_machines#app_form_step4_presave', as: 'top50_machines_app_form_step4_post'
+  get 'top50_machines/application/confirm', to: 'top50_machines#app_form_confirm', as: 'top50_machines_app_form_confirm'
+  post 'top50_machines/application/confirm', to: 'top50_machines#app_form_confirm_post', as: 'top50_machines_app_form_confirm_post'
   get 'top50_machines/application/finish', to: 'top50_machines#app_form_finish', as: 'top50_machines_app_form_finish'
 
   get 'top50_machines/new_list', to: 'top50_machines#new_list', as: 'top50_machines_new_list'

@@ -22,7 +22,7 @@
 - if @top50_machine.website.present? and @top50_machine.website.length > 0
   p
     strong = "Веб-сайт: "
-    = link_to @top50_machine.website, @top50_machine.website
+    = link_to nil, ext_url(@top50_machine.website)
     
 - top50_org = @top50_machine.top50_organization
 - if top50_org.present?

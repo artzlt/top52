@@ -1,46 +1,47 @@
-div class="page-header"
-  h3 = "Добавление заявки в Top50 (Шаг 3 из 4)"
-  br
-  br
-  h4 = "Дополнительные характеристики системы"
+h3 = "Добавление заявки в Top50 (Шаг 3 из 4)"
+h4 = "Дополнительные характеристики системы"
+br
 
-= bootstrap_form_for @top50_machine, url: top50_machines_app_form_step3_path do |f|
+= bootstrap_form_tag url: top50_machines_app_form_step3_post_path do |f|
   div class="panel panel-default"
     div class="panel-heading"
       = "Область применения"
     div class="panel-body"
-      = f.fields_for :top50_app_area do |f3| 
-        = f3.collection_select :app_dict_elem_id, Top50DictionaryElem.where(dict_id: @app_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Область применения вычислительной системы (*)", include_blank: true}, {required: true}
-        = "Отсутствует в списке? "
-        = link_to "Добавить область применения", new_top50_dictionary_top50_dictionary_elem_path(@app_dict_id)
+      = f.fields_for :app_area do |f3| 
+        = f3.collection_select :app_dict_elem_id, Top50DictionaryElem.where(dict_id: @app_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Область применения вычислительной системы (*)", include_blank: true, selected: get_cur2(:app_area, :app_dict_elem_id)}
+        = "Отсутствует в списке? Указать область применения: "
+        = f3.text_field :custom_app, value: get_cur2(:app_area, :custom_app), skip_label: true
   
   div class="panel panel-default"
     div class="panel-heading"
       = "Сведения о сетевой инфраструктуре"
     div class="panel-body"
-      = f.fields_for :top50_nets do |f3| 
-        = f3.collection_select :comm_net_dict_elem_id, Top50DictionaryElem.where(dict_id: @net_dict_id, is_valid: 1), :id, :name, {label: "Основная коммуникационная (вычислительная) сеть (*)", include_blank: true}, {required: true}
-        = "Отсутствует в списке? "
-        = link_to "Добавить тип сети", new_top50_dictionary_top50_dictionary_elem_path(@net_dict_id)
+      = f.fields_for :nets do |f3| 
+        = f3.collection_select :comm_net_dict_elem_id, Top50DictionaryElem.where(dict_id: @net_dict_id, is_valid: 1), :id, :name, {label: "Основная коммуникационная (вычислительная) сеть (*)", include_blank: true, selected: get_cur2(:nets, :comm_net_dict_elem_id)}
+        = "Отсутствует в списке? Указать тип коммуникационной сети: "
+        = f3.text_field :custom_comm_net, value: get_cur2(:nets, :custom_comm_net), skip_label: true
         br
         br
-        = f3.collection_select :tplg_dict_elem_id, Top50DictionaryElem.where(dict_id: @tplg_dict_id, is_valid: 1), :id, :name, {label: "Топология коммуникационной сети (*)", include_blank: true}
-        = "Отсутствует в списке? "
-        = link_to "Добавить тип топологии", new_top50_dictionary_top50_dictionary_elem_path(@tplg_dict_id)
+        = f3.collection_select :tplg_dict_elem_id, Top50DictionaryElem.where(dict_id: @tplg_dict_id, is_valid: 1), :id, :name, {label: "Топология коммуникационной сети (*)", include_blank: true, selected: get_cur2(:nets, :tplg_dict_elem_id)}
+        = "Отсутствует в списке? Указать тип топологии: "
+        = f3.text_field :custom_tplg, value: get_cur2(:nets, :custom_tplg), skip_label: true
         br
         br
-        = f3.collection_select :tran_net_dict_elem_id, Top50DictionaryElem.where(dict_id: @net_dict_id, is_valid: 1), :id, :name, label: "Транспортная сеть", include_blank: true
-        = "Отсутствует в списке? "
-        = link_to "Добавить тип сети", new_top50_dictionary_top50_dictionary_elem_path(@net_dict_id)
+        = f3.collection_select :tran_net_dict_elem_id, Top50DictionaryElem.where(dict_id: @net_dict_id, is_valid: 1), :id, :name, label: "Транспортная сеть", include_blank: true, selected: get_cur2(:nets, :tran_net_dict_elem_id)
+        = "Отсутствует в списке? Указать тип транспортной сети: "
+        = f3.text_field :custom_tran_net, value: get_cur2(:nets, :custom_tran_net), skip_label: true
         br
         br
-        = f3.collection_select :serv_net_dict_elem_id, Top50DictionaryElem.where(dict_id: @net_dict_id, is_valid: 1), :id, :name, label: "Сервисная сеть (для ввода-вывода и пр.)", include_blank: true
-        = "Отсутствует в списке? "
-        = link_to "Добавить тип сети", new_top50_dictionary_top50_dictionary_elem_path(@net_dict_id)
+        = f3.collection_select :serv_net_dict_elem_id, Top50DictionaryElem.where(dict_id: @net_dict_id, is_valid: 1), :id, :name, label: "Сервисная сеть (для ввода-вывода и пр.)", include_blank: true, selected: get_cur2(:nets, :serv_net_dict_elem_id)
+        = "Отсутствует в списке? Указать тип сервисной сети: "
+        = f3.text_field :custom_serv_net, value: get_cur2(:nets, :custom_serv_net), skip_label: true
   br
   br
-  = f.text_area :comment, label: "Комментарии и уточнения"
+  = f.text_area :comment, label: "Комментарии и уточнения", value: get_cur(:comment)
   br
   br
-  = f.form_group do
-    = f.submit "Готово"
+  = render "hidden_saved_data"
+  = f.hidden_field :sym, value: :step3_data
+  = f.submit "Назад"
+  = "&nbsp;&nbsp;".html_safe
+  = f.submit "Далее"
