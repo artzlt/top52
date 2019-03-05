@@ -879,7 +879,11 @@ class Top50MachinesController < Top50BaseController
   
   
   def show
-    @top50_machine = Top50Machine.find(params[:id])
+    if current_user and current_user.may_preview?
+      @top50_machine = Top50Machine.find(params[:id])
+    else
+      @top50_machine = Top50Machine.where(is_valid: 1).find(params[:id])
+    end
     calc_machine_attrs
     @perf_measured_attrs = [@rpeak_attrid]
 
@@ -1385,12 +1389,6 @@ class Top50MachinesController < Top50BaseController
           rmax: "Rmax",
           msize: "Размер матрицы, на котором было достигнута указанная производительность"
         }
-      },
-      confirm: {
-        step1_data: "Шаг 1",
-        step2_data: "Шаг 2",
-        step3_data: "Шаг 3",
-        step4_data: "Шаг 4"
       }
     }
     custom_req_params = {
@@ -1556,7 +1554,7 @@ class Top50MachinesController < Top50BaseController
       end
     end
     data.keys.each do |k|
-      if not params.has_key? k and step != :confirm
+      if not params.has_key? k
         next
       end
       if data[k].is_a? Hash
@@ -1752,7 +1750,7 @@ class Top50MachinesController < Top50BaseController
     @app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
     @net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
     @tplg_dict_id = Top50Dictionary.where(name_eng: 'Topologies').first.id
-    @rel_contain_id = Top50RelationType.where(name_eng: 'Contains').first.id
+    @rel_contain_id = get_rel_contain_id
     fetch_all_data_from_params
     @cur_data = @step3_data
   end
@@ -1861,7 +1859,501 @@ class Top50MachinesController < Top50BaseController
   end
 
   def app_form_finish
-    @top50_machine = Top50Machine.new
+    fetch_all_data_from_params
+    if @step1_data[:vendor_id].present?
+      vendor_id = @step1_data[:vendor_id].to_i
+    else
+      vendor_id = Top50Vendor.create(
+        name: @step1_data[:custom_vendor][:name],
+        name_eng: @step1_data[:custom_vendor][:name_eng],
+        website: @step1_data[:custom_vendor][:website],
+        is_valid: 2
+      ).id
+    end
+    vendor_ids = @step1_data[:vendor_ids]
+    vendor_ids.delete("")
+    vendor_ids.collect! {|x| x.to_i}
+    vendor_ids = ([vendor_id] + vendor_ids).uniq
+    (@step1_data.select {|k,v| k.starts_with? 'add_vendor_'}).keys.each do |vendor|
+      vendor_ids.append(Top50Vendor.create(
+        name: @step1_data[vendor][:name],
+        name_eng: @step1_data[vendor][:name_eng],
+        website: @step1_data[vendor][:website],
+        is_valid: 2
+      ).id)
+    end
+    if @step1_data[:org_id].present?
+      first_org_id = @step1_data[:org_id].to_i
+    else
+      city = Top50City.find_by(name: @step1_data[:custom_org][:city])
+      if city.present?
+        city_id = city.id
+      else
+        city_id = Top50City.create(
+          name: @step1_data[:custom_org][:city],
+          is_valid: 2,
+          comment: @step1_data[:custom_org][:country]
+        ).id
+      end
+      first_org_id = Top50Organization.create(
+        name: @step1_data[:custom_org][:name],
+        name_eng: @step1_data[:custom_org][:name_eng],
+        city_id: city_id,
+        is_valid: 2
+      ).id
+    end
+    if @step1_data[:suborg_id].present?
+      org_id = @step1_data[:suborg_id].to_i
+    elsif @step1_data[:custom_suborg].present?
+      city = Top50City.find_by(name: @step1_data[:custom_suborg][:city])
+      if city.present?
+        city_id = city.id
+      else
+         city_id = Top50City.create(
+          name: @step1_data[:custom_suborg][:city],
+          is_valid: 2,
+          comment: @step1_data[:custom_suborg][:country]
+        ).id
+      end
+      org_id = Top50Organization.create(
+        name: @step1_data[:custom_suborg][:name],
+        name_eng: @step1_data[:custom_suborg][:name_eng],
+        city_id: city_id,
+        is_valid: 2
+      ).id
+      Top50Relation.create(
+        prim_obj_id: first_org_id,
+        sec_obj_id: org_id,
+        type_id: get_rel_contain_id,
+        is_valid: 2,
+        comment: format("%d is parent org for %d", first_org_id, org_id)
+      )
+    else
+      org_id = first_org_id
+    end
+    if @step1_data[:type_id].present?
+      type_id = @step1_data[:type_id].to_i
+    else
+      type_id = Top50MachineType.create(
+        name: @step1_data[:custom_type][:name],
+        name_eng: @step1_data[:custom_type][:name_eng],
+        is_valid: 2
+      ).id
+    end
+    contact_id = Top50Contact.create(
+      name: @step1_data[:contact][:name],
+      surname: @step1_data[:contact][:surname],
+      patronymic: @step1_data[:contact][:patronymic],
+      phone: @step1_data[:contact][:phone],
+      email: @step1_data[:contact][:email],
+      extra_info: @step1_data[:contact][:extra_info],
+      is_valid: 2
+    ).id
+    @top50_machine = Top50Machine.create(
+      name: @step1_data[:name],
+      name_eng: @step1_data[:name_eng],
+      website: @step1_data[:website],
+      installation_date: Date.parse(format("%s-01-01", @step1_data[:installation_date])),
+      vendor_id: vendor_id,
+      vendor_ids: vendor_ids,
+      org_id: org_id,
+      type_id: type_id,
+      contact_id: contact_id,
+      is_valid: 2,
+      comment: format('{"step2": "%s", "step3": "%s", "step4": "%s"}', @step2_data[:comment], @step4_data[:comment], @step4_data[:comment])
+    )
+
+    gpu_typeid = Top50ObjectType.where(name_eng: "GPU").first.id
+    cop_typeid = Top50ObjectType.where(name_eng: "Coprocessor").first.id
+    comp_node_id = Top50ObjectType.where(name_eng: 'Compute node').first.id
+    cpu_type_id = Top50ObjectType.where(name_eng: 'CPU').first.id
+    acc_parent_type_id = Top50ObjectType.where(name_eng: 'Accelerator').first.id
+
+    cpu_dict_id = Top50Dictionary.where(name_eng: 'CPU model').first.id
+    cpu_vendor_dict_id = Top50Dictionary.where(name_eng: 'CPU Vendor').first.id
+    cpu_gen_dict_id = Top50Dictionary.where(name_eng: 'CPU generations').first.id
+    cpu_fam_dict_id = Top50Dictionary.where(name_eng: 'CPU families').first.id
+    gpu_dict_id = Top50Dictionary.where(name_eng: 'GPU model').first.id
+    gpu_vendor_dict_id = Top50Dictionary.where(name_eng: 'GPU Vendor').first.id
+    cop_dict_id = Top50Dictionary.where(name_eng: 'Coprocessor model').first.id
+    cop_vendor_dict_id = Top50Dictionary.where(name_eng: 'Coprocessor Vendor').first.id
+    acc_dict_id = Top50Dictionary.where(name_eng: 'Accelerator model').first.id
+    acc_vendor_dict_id = Top50Dictionary.where(name_eng: 'Accelerator Vendor').first.id
+
+    freq_attrid = Top50Attribute.where(name_eng: "Clock frequency (MHz)").first.id
+    cores_attrid = Top50Attribute.where(name_eng: "Number of cores").first.id
+    microcores_attrid = Top50Attribute.where(name_eng: "Number of GPU cores").first.id
+    cpu_model_attrid = Top50Attribute.where(name_eng: "CPU model").first.id
+    cpu_vendor_attrid = Top50Attribute.where(name_eng: "CPU Vendor").first.id
+    cpu_fam_attrid = Top50Attribute.where(name_eng: "CPU family").first.id
+    cpu_gen_attrid = Top50Attribute.where(name_eng: "CPU generation").first.id
+    gpu_model_attrid = Top50Attribute.where(name_eng: "GPU model").first.id
+    gpu_vendor_attrid = Top50Attribute.where(name_eng: "GPU Vendor").first.id
+    cop_model_attrid = Top50Attribute.where(name_eng: "Coprocessor model").first.id
+    cop_vendor_attrid = Top50Attribute.where(name_eng: "Coprocessor Vendor").first.id
+    acc_model_attrid = Top50Attribute.where(name_eng: "Accelerator model").first.id
+    acc_vendor_attrid = Top50Attribute.where(name_eng: "Accelerator Vendor").first.id
+    ram_size_attrid = Top50Attribute.where(name_eng: "RAM size (GB)").first.id
+
+    @step2_data.select {|k,v| k.starts_with? 'top50_node_'}.values.each do |top50_node|
+      node_id = Top50Object.create(
+        type_id: comp_node_id,
+        is_valid: 2,
+        comment: format("belongs to machine %d", @top50_machine.id)
+      ).id
+      Top50Relation.create(
+        prim_obj_id: @top50_machine.id,
+        sec_obj_id: node_id,
+        type_id: get_rel_contain_id,
+        sec_obj_qty: top50_node[:node_cnt],
+        is_valid: 2
+      )
+      if top50_node[:cpu_model_obj_id].present? or top50_node[:custom_cpu_model].present?
+        if top50_node[:cpu_model_obj_id].present?
+          cpu_obj_id = top50_node[:cpu_model_obj_id].to_i
+        else
+          cpu_obj_id = Top50Object.create(
+            type_id: cpu_type_id,
+            is_valid: 2,
+            comment: format("new CPU for machine %d", @top50_machine.id)
+          ).id
+          if top50_node[:custom_cpu_vendor_id].present? or top50_node[:custom_cpu_vendor].present?
+            if top50_node[:custom_cpu_vendor_id].present?
+              cpu_vendor_dict_elem_id = top50_node[:custom_cpu_vendor_id].to_i
+            else
+              cpu_vendor_dict_elem_id = Top50DictionaryElem.create(
+                name: top50_node[:custom_cpu_vendor], 
+                dict_id: cpu_vendor_dict_id,
+                is_valid: 2,
+                comment: format("new cpu vendor for machine %d", @top50_machine.id)
+              ).id
+            end
+            Top50AttributeValDict.create(
+              attr_id: cpu_vendor_attrid,
+              obj_id: cpu_obj_id,
+              dict_elem_id: cpu_vendor_dict_elem_id,
+              is_valid: 2,
+              comment: format("cpu vendor for machine %d", @top50_machine.id)
+            )
+          end
+          if top50_node[:custom_cpu_gen_id].present? or top50_node[:custom_cpu_gen].present?
+            if top50_node[:custom_cpu_gen_id].present?
+              cpu_gen_dict_elem_id = top50_node[:custom_cpu_gen_id].to_i
+            else
+              cpu_gen_dict_elem_id = Top50DictionaryElem.create(
+                name: top50_node[:custom_cpu_gen], 
+                dict_id: cpu_gen_dict_id,
+                is_valid: 2,
+                comment: format("new cpu generation for machine %d", @top50_machine.id)
+              ).id
+            end
+            Top50AttributeValDict.create(
+              attr_id: cpu_gen_attrid,
+              obj_id: cpu_obj_id,
+              dict_elem_id: cpu_gen_dict_elem_id,
+              is_valid: 2,
+              comment: format("cpu generation for machine %d", @top50_machine.id)
+            )
+          end
+          if top50_node[:custom_cpu_family_id].present? or top50_node[:custom_cpu_family].present?
+            if top50_node[:custom_cpu_family_id].present?
+              cpu_fam_dict_elem_id = top50_node[:custom_cpu_family_id].to_i
+            else
+              cpu_fam_dict_elem_id = Top50DictionaryElem.create(
+                name: top50_node[:custom_cpu_family],
+                dict_id: cpu_fam_dict_id,
+                is_valid: 2,
+                comment: format("new cpu family for machine %d", @top50_machine.id)
+              ).id
+            end
+            Top50AttributeValDict.create(
+              attr_id: cpu_fam_attrid,
+              obj_id: cpu_obj_id,
+              dict_elem_id: cpu_fam_dict_elem_id,
+              is_valid: 2,
+              comment: format("cpu family for machine %d", @top50_machine.id)
+            )
+          end
+          cpu_model_dict_elem_id = Top50DictionaryElem.create(
+            name: top50_node[:custom_cpu_model],
+            dict_id: cpu_dict_id,
+            is_valid: 2,
+            comment: format("new cpu model for machine %d", @top50_machine.id)
+          ).id
+          Top50AttributeValDict.create(
+            attr_id: cpu_model_attrid,
+            obj_id: cpu_obj_id,
+            dict_elem_id: cpu_model_dict_elem_id,
+            is_valid: 2,
+            comment: format("cpu model for machine %d", @top50_machine.id)
+          )
+          if top50_node[:custom_cpu_freq].present?
+            Top50AttributeValDbval.create(
+              attr_id: freq_attrid,
+              obj_id: cpu_obj_id,
+              value: top50_node[:custom_cpu_freq],
+              is_valid: 2,
+              comment: format("cpu frequency for machine %d", @top50_machine.id)
+            )
+          end
+          if top50_node[:custom_cpu_core_cnt].present?
+            Top50AttributeValDbval.create(
+              attr_id: cores_attrid,
+              obj_id: cpu_obj_id,
+              value: top50_node[:custom_cpu_core_cnt],
+              is_valid: 2,
+              comment: format("cpu cores for machine %d", @top50_machine.id)
+            )
+          end
+        end
+        Top50Relation.create(
+          prim_obj_id: node_id,
+          sec_obj_id: cpu_obj_id,
+          type_id: get_rel_contain_id,
+          sec_obj_qty: top50_node[:cpu_cnt],
+          is_valid: 2
+        )
+      end
+      if top50_node[:acc_model_obj_id].present? or top50_node[:custom_acc_model].present?
+        if top50_node[:acc_model_obj_id].present?
+          acc_obj_id = top50_node[:acc_model_obj_id].to_i
+        else
+          if top50_node[:custom_acc_type_id].present?
+            type_id = top50_node[:custom_acc_type_id].to_i
+          else
+            type_id = Top50ObjectType.create(
+              name: top50_node[:custom_acc_type],
+              parent_id: acc_parent_type_id,
+              is_valid: 2
+            ).id
+          end
+          acc_obj_id = Top50Object.create(
+            type_id: type_id,
+            is_valid: 2,
+            comment: format("new acc for machine %d", @top50_machine.id)
+          ).id
+          case type_id
+          when gpu_typeid
+            cur_acc_dict_id = gpu_dict_id
+            cur_acc_vendor_dict_id = gpu_vendor_dict_id
+            cur_acc_model_attrid = gpu_model_attrid
+            cur_acc_vendor_attrid = gpu_vendor_attrid
+          when cop_typeid
+            cur_acc_dict_id = cop_dict_id
+            cur_acc_vendor_dict_id = cop_vendor_dict_id
+            cur_acc_model_attrid = cop_model_attrid
+            cur_acc_vendor_attrid = cop_vendor_attrid
+          else
+            cur_acc_dict_id = acc_dict_id
+            cur_acc_vendor_dict_id = acc_vendor_dict_id
+            cur_acc_model_attrid = acc_model_attrid
+            cur_acc_vendor_attrid = acc_vendor_attrid
+          end
+          if top50_node[:custom_acc_vendor_id].present? or top50_node[:custom_acc_vendor].present?
+            if top50_node[:custom_acc_vendor_id].present?
+              acc_vendor_dict_elem_id = top50_node[:custom_acc_vendor_id].to_i
+            else
+              acc_vendor_dict_elem_id = Top50DictionaryElem.create(
+                name: top50_node[:custom_acc_vendor],
+                dict_id: cur_acc_vendor_dict_id,
+                is_valid: 2,
+                comment: format("new acc vendor for machine %d", @top50_machine.id)
+              ).id
+            end
+            Top50AttributeValDict.create(
+              attr_id: cur_acc_vendor_attrid,
+              obj_id: acc_obj_id,
+              dict_elem_id: acc_vendor_dict_elem_id,
+              is_valid: 2,
+              comment: format("acc vendor for machine %d", @top50_machine.id)
+            )
+          end
+          acc_model_dict_elem_id = Top50DictionaryElem.create(
+            name: top50_node[:custom_acc_model],
+            dict_id: cur_acc_dict_id,
+            is_valid: 2,
+            comment: format("new acc model for machine %d", @top50_machine.id)
+          ).id
+          Top50AttributeValDict.create(
+            attr_id: cur_acc_model_attrid,
+            obj_id: acc_obj_id,
+            dict_elem_id: acc_model_dict_elem_id,
+            is_valid: 2,
+            comment: format("acc model for machine %d", @top50_machine.id)
+          )
+          if top50_node[:custom_acc_freq].present?
+            Top50AttributeValDbval.create(
+              attr_id: freq_attrid,
+              obj_id: acc_obj_id,
+              value: top50_node[:custom_acc_freq],
+              is_valid: 2,
+              comment: format("acc frequency for machine %d", @top50_machine.id)
+            )
+          end
+          if top50_node[:custom_acc_core_cnt].present?
+            Top50AttributeValDbval.create(
+              attr_id: cores_attrid,
+              obj_id: acc_obj_id,
+              value: top50_node[:custom_acc_core_cnt],
+              is_valid: 2,
+              comment: format("acc cores for machine %d", @top50_machine.id)
+            )
+          end
+          if top50_node[:custom_acc_microcore_cnt].present?
+            Top50AttributeValDbval.create(
+              attr_id: microcores_attrid,
+              obj_id: acc_obj_id,
+              value: top50_node[:custom_acc_microcore_cnt],
+              is_valid: 2,
+              comment: format("acc micro cores for machine %d", @top50_machine.id)
+            )
+          end
+        end
+        Top50Relation.create(
+          prim_obj_id: node_id,
+          sec_obj_id: acc_obj_id,
+          type_id: get_rel_contain_id,
+          sec_obj_qty: top50_node[:acc_cnt],
+          is_valid: 2
+        )
+      end
+      Top50AttributeValDbval.create(
+        attr_id: ram_size_attrid,
+        obj_id: node_id,
+        value: top50_node[:ram_size],
+        is_valid: 2,
+        comment: format("RAM size for machine %d", @top50_machine.id)
+      )
+    end
+    app_dict_id = Top50Dictionary.where(name_eng: 'Application areas').first.id
+    net_dict_id = Top50Dictionary.where(name_eng: 'Computer networks').first.id
+    tplg_dict_id = Top50Dictionary.where(name_eng: 'Topologies').first.id
+    app_area_attrid = Top50Attribute.where(name_eng: "Application area").first.id
+    comm_net_attrid = Top50Attribute.where(name_eng: "Communication network").first.id
+    serv_net_attrid = Top50Attribute.where(name_eng: "Service network").first.id
+    tran_net_attrid = Top50Attribute.where(name_eng: "Transport network").first.id
+    tplg_attrid = Top50Attribute.where(name_eng: "Topology").first.id
+    if @step3_data[:app_area][:app_dict_elem_id].present?
+      app_dict_elem_id = @step3_data[:app_area][:app_dict_elem_id].to_i
+    else
+      app_dict_elem_id = Top50DictionaryElem.create(
+        name: @step3_data[:app_area][:custom_app],
+        dict_id: app_dict_id,
+        is_valid: 2,
+        comment: format("new app area for machine %s", @top50_machine.id)
+      ).id
+    end
+    Top50AttributeValDict.create(
+      attr_id: app_area_attrid,
+      obj_id: @top50_machine.id,
+      dict_elem_id: app_dict_elem_id,
+      is_valid: 2,
+      comment: format("app area for machine %d", @top50_machine.id)
+    )
+    added_nets = {}
+    if @step3_data[:nets][:comm_net_dict_elem_id].present?
+      comm_net_dict_elem_id = @step3_data[:nets][:comm_net_dict_elem_id].to_i
+    else
+      comm_net_dict_elem_id = Top50DictionaryElem.create(
+        name: @step3_data[:nets][:custom_comm_net],
+        dict_id: net_dict_id,
+        is_valid: 2,
+        comment: format("new comm net for machine %d", @top50_machine.id)
+      ).id
+      added_nets[@step3_data[:nets][:custom_comm_net]] = comm_net_dict_elem_id
+    end
+    Top50AttributeValDict.create(
+      attr_id: comm_net_attrid,
+      obj_id: @top50_machine.id,
+      dict_elem_id: comm_net_dict_elem_id,
+      is_valid: 2,
+      comment: format("comm net for machine %d", @top50_machine.id)
+    )
+    if @step3_data[:nets][:tran_net_dict_elem_id].present? or @step3_data[:nets][:custom_tran_net].present?
+      if @step3_data[:nets][:tran_net_dict_elem_id].present?
+        tran_net_dict_elem_id = @step3_data[:nets][:tran_net_dict_elem_id].to_i
+      elsif added_nets.has_key? @step3_data[:nets][:custom_tran_net]
+        tran_net_dict_elem_id = added_nets[@step3_data[:nets][:custom_tran_net]]
+      else
+        tran_net_dict_elem_id = Top50DictionaryElem.create(
+          name: @step3_data[:nets][:custom_tran_net],
+          dict_id: net_dict_id,
+          is_valid: 2,
+          comment: format("new tran net for machine %d", @top50_machine.id)
+        ).id
+        added_nets[@step3_data[:nets][:custom_tran_net]] = tran_net_dict_elem_id
+      end
+      Top50AttributeValDict.create(
+        attr_id: tran_net_attrid,
+        obj_id: @top50_machine.id,
+        dict_elem_id: tran_net_dict_elem_id,
+        is_valid: 2,
+        comment: format("tran net for machine %d", @top50_machine.id)
+      )
+    end
+    if @step3_data[:nets][:serv_net_dict_elem_id].present? or @step3_data[:nets][:custom_serv_net].present?
+      if @step3_data[:nets][:serv_net_dict_elem_id].present?
+        serv_net_dict_elem_id = @step3_data[:nets][:serv_net_dict_elem_id].to_i
+      elsif added_nets.has_key? @step3_data[:nets][:custom_serv_net]
+        serv_net_dict_elem_id = added_nets[@step3_data[:nets][:custom_serv_net]]
+      else
+        serv_net_dict_elem_id = Top50DictionaryElem.create(
+          name: @step3_data[:nets][:custom_serv_net],
+          dict_id: net_dict_id,
+          is_valid: 2,
+          comment: format("new serv net for machine %d", @top50_machine.id)
+        ).id
+        added_nets[@step3_data[:nets][:custom_serv_net]] = serv_net_dict_elem_id
+      end
+      Top50AttributeValDict.create(
+        attr_id: serv_net_attrid,
+        obj_id: @top50_machine.id,
+        dict_elem_id: serv_net_dict_elem_id,
+        is_valid: 2,
+        comment: format("serv net for machine %d", @top50_machine.id)
+      )
+    end
+    if @step3_data[:nets][:tplg_dict_elem_id].present?
+      tplg_dict_elem_id = @step3_data[:nets][:tplg_dict_elem_id].to_i
+    else
+      tplg_dict_elem_id = Top50DictionaryElem.create(
+        name: @step3_data[:nets][:custom_tplg],
+        dict_id: tplg_dict_id,
+        is_valid: 2,
+        comment: format("new topology for machine %d", @top50_machine.id)
+      ).id
+    end
+    Top50AttributeValDict.create(
+      attr_id: tplg_attrid,
+      obj_id: @top50_machine.id,
+      dict_elem_id: tplg_dict_elem_id,
+      is_valid: 2,
+      comment: format("topology for machine %d", @top50_machine.id)
+    )
+    rmax_benchid = Top50Benchmark.where(name_eng: "Linpack").first.id
+    bres_id = Top50BenchmarkResult.create(
+      benchmark_id: rmax_benchid,
+      machine_id: @top50_machine.id,
+      result: @step4_data[:top50_perf][:rmax].to_f * 1000000,
+      is_valid: 2,
+      comment: format("rmax result for machine %d", @top50_machine.id)
+    ).id
+    nmax_attrid = Top50Attribute.where(name_eng: "Linpack Nmax").first.id
+    Top50AttributeValDbval.create(
+      attr_id: nmax_attrid,
+      obj_id: bres_id,
+      value: @step4_data[:top50_perf][:msize],
+      is_valid: 2,
+      comment: format("Nmax for machine %d", @top50_machine.id)
+    )
+    rpeak_attrid = Top50Attribute.where(name_eng: "Rpeak (MFlop/s)").first.id
+    Top50AttributeValDbval.create(
+      attr_id: rpeak_attrid,
+      obj_id: @top50_machine.id,
+      value: (@step4_data[:top50_perf][:rpeak].to_f * 1000000).to_s,
+      is_valid: 2,
+      comment: format("Rpeak for machine %d", @top50_machine.id)
+    )
   end
 
   

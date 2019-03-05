@@ -177,8 +177,8 @@ p
       = "Ускорители: "
       = format("%sx ", top50_node[:acc_cnt])
       - if top50_node[:acc_model_obj_id].present?
-        - acc_vendor = @comp_vendor_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).top50_dictionary_elem.name
-        - acc_model = @comp_model_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).top50_dictionary_elem.name
+        - acc_vendor = @comp_vendor_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).top50_dictionary_elem.name
+        - acc_model = @comp_model_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).top50_dictionary_elem.name
         - acc_str = format("%s %s", acc_vendor, acc_model)
       - else
         - if top50_node[:custom_acc_vendor_id].present?

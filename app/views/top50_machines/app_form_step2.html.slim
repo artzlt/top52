@@ -80,7 +80,7 @@ br
   br
   br
   br
-  = f.text_area :comment, label: "Комментарии и уточнения"
+  = f.text_area :comment, label: "Комментарии и уточнения", value: get_cur(:comment)
   br
   = render "hidden_saved_data"
   = f.hidden_field :sym, value: :step2_data
