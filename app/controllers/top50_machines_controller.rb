@@ -548,7 +548,7 @@ class Top50MachinesController < Top50BaseController
         'existing' => 0
       })      
     end
-
+    @top50_machine.save!
     render :moderate
     return
   end
@@ -624,97 +624,104 @@ class Top50MachinesController < Top50BaseController
     @pos_hash = params['pos']
     @status_hash = params['status']
     res_hash = {}
-    params['status'].each do |id, val|
-      if not [1, 3, 0].include? val.to_i
-        submit_list_fail('При подтверждении списка все системы должны иметь статус 0, 1 или 3')
-        return
+    if params['commit'] == 'Подтверждаю'
+      params['status'].each do |id, val|
+        if not [1, 3, 0].include? val.to_i
+          submit_list_fail('При подтверждении списка все системы должны иметь статус 0, 1 или 3')
+          return
+        end
+        if val.to_i == 3 and params['pos'][id].to_i <= 0
+          submit_list_fail('Системе со статусом 3 должно быть присвоено место в списке! (от 1 до 50)')
+          return
+        end
       end
-      if val.to_i == 3 and params['pos'][id].to_i <= 0
-        submit_list_fail('Системе со статусом 3 должно быть присвоено место в списке! (от 1 до 50)')
-        return
+          
+      params['pos'].each do |id, val|
+        pos = val.to_i 
+        if pos < 0 or pos > 50
+          submit_list_fail(format('Позиция системы в списке не может иметь значние %d', pos))
+          return
+        end
+        if pos > 0
+          if res_hash.has_key? pos
+            submit_list_fail(format('Позиция %d присвоена нескольким системам!', pos))
+            return
+          end
+          if not [1, 3].include? params['status'][id].to_i
+            submit_list_fail(format('Система с позицией %d не может иметь статус %d', pos, params['status'][id].to_i))
+            return
+          end
+          t = Top50BenchmarkResult.new
+          t[:machine_id] = id
+          t[:result] = pos
+          t[:is_valid] = 1
+          t[:comment] = format('Top50 place for edition %d', @new_ed_num)
+          res_hash[pos] = t
+        end
       end
-    end
+
+      for i in 1..50
+        if not res_hash.has_key? i
+          submit_list_fail(format('Позиция %d не присвоена ни одной из систем!', i))
+          return
+        end
+      end
+
+      ed_num_attrid = Top50Attribute.where(name_eng: "Edition number").first.id
+      ed_date_attrid = Top50Attribute.where(name_eng: "Edition date").first.id
+      if params.include?(:id)
+        @list_id = params[:id]
+        Top50AttributeValDbval.where({ attr_id: ed_num_attrid, obj_id: @list_id }).delete_all
+        Top50AttributeValDbval.where({ attr_id: ed_date_attrid, obj_id: @list_id }).delete_all
+      else
+        n_list = Top50Benchmark.new 
+        n_list[:comment] = format('New Top50 list no. %d by %s', @new_ed_num, @ldate)
+        n_list[:name] = format('Позиция в Top50 (#%d)', @new_ed_num)
+        n_list[:name_eng] = format('Top50 position (#%d)', @new_ed_num)
+        n_list[:is_valid] = 1
+        n_list[:measure_id] = Top50MeasureUnit.where(name_eng: 'place').first.id
+        n_list.save!
         
-    params['pos'].each do |id, val|
-      pos = val.to_i 
-      if pos < 0 or pos > 50
-        submit_list_fail(format('Позиция системы в списке не может иметь значние %d', pos))
-        return
+        @list_id = n_list.id
       end
-      if pos > 0
-        if res_hash.has_key? pos
-          submit_list_fail(format('Позиция %d присвоена нескольким системам!', pos))
-          return
+      ed_attr = Top50AttributeValDbval.new
+      ed_attr[:attr_id] = ed_num_attrid
+      ed_attr[:obj_id] = @list_id
+      ed_attr[:value] = format('%d', @new_ed_num)
+      ed_attr[:is_valid] = 1
+
+
+      d_attr = Top50AttributeValDbval.new
+      d_attr[:attr_id] = ed_date_attrid
+      d_attr[:obj_id] = @list_id
+      d_attr[:value] = @ldate
+      d_attr[:is_valid] = 1
+
+      if not ed_attr.save or not d_attr.save
+        if n_list.present?
+          n_list.destroy
         end
-        if not [1, 3].include? params['status'][id].to_i
-          submit_list_fail(format('Система с позицией %d не может иметь статус %d', pos, params['status'][id].to_i))
-          return
-        end
-        t = Top50BenchmarkResult.new
-        t[:machine_id] = id
-        t[:result] = pos
-        t[:is_valid] = 1
-        t[:comment] = format('Top50 place for edition %d', @new_ed_num)
-        res_hash[pos] = t
+        raise 'Attribute setting failed!'
       end
-    end
 
-    for i in 1..50
-      if not res_hash.has_key? i
-        submit_list_fail(format('Позиция %d не присвоена ни одной из систем!', i))
-        return
-      end
-    end
-
-    ed_num_attrid = Top50Attribute.where(name_eng: "Edition number").first.id
-    ed_date_attrid = Top50Attribute.where(name_eng: "Edition date").first.id
-    if params.include?(:id)
-      @list_id = params[:id]
-      Top50AttributeValDbval.where({ attr_id: ed_num_attrid, obj_id: @list_id }).delete_all
-      Top50AttributeValDbval.where({ attr_id: ed_date_attrid, obj_id: @list_id }).delete_all
-    else
-      new_list = Top50Benchmark.new 
-      new_list[:comment] = format('New Top50 list no. %d by %s', @new_ed_num, @ldate)
-      new_list[:name] = format('Позиция в Top50 (#%d)', @new_ed_num)
-      new_list[:name_eng] = format('Top50 position (#%d)', @new_ed_num)
-      new_list[:is_valid] = 1
-      new_list[:measure_id] = Top50MeasureUnit.where(name_eng: 'place').first.id
-      new_list.save!
-      
-      @list_id = new_list.id
-    end
-    ed_attr = Top50AttributeValDbval.new
-    ed_attr[:attr_id] = ed_num_attrid
-    ed_attr[:obj_id] = @list_id
-    ed_attr[:value] = format('%d', @new_ed_num)
-    ed_attr[:is_valid] = 1
-
-
-    d_attr = Top50AttributeValDbval.new
-    d_attr[:attr_id] = ed_date_attrid
-    d_attr[:obj_id] = @list_id
-    d_attr[:value] = @ldate
-    d_attr[:is_valid] = 1
-
-    if not ed_attr.save or not d_attr.save
-      if new_list.present?
-        new_list.destroy
-      end
-      raise 'Attribute setting failed!'
-    end
-
-    if not params.include?(:id)
-      res_hash.each do |k, v|
-        v[:benchmark_id] = new_list.id
-        if not v.save
-          new_list.destroy
-          raise 'Result saving failed!'
+      if not params.include?(:id)
+        res_hash.each do |k, v|
+          v[:benchmark_id] = n_list.id
+          if not v.save
+            n_list.destroy
+            raise 'Result saving failed!'
+          end
         end
       end
     end
 
     params['status'].each do |id, value|
       Top50Machine.update(id.to_i, is_valid: value.to_i)
+    end
+
+    if params['commit'] == 'Обновить статусы'
+      redirect_to :top50_machines_new_list
+      return
     end
 
   end
