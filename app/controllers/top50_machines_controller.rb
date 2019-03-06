@@ -2354,6 +2354,7 @@ class Top50MachinesController < Top50BaseController
       is_valid: 2,
       comment: format("Rpeak for machine %d", @top50_machine.id)
     )
+    Top50Mailer.app_confirm_email({step1_data: @step1_data, step2_data: @step2_data, step3_data: @step3_data, step4_data: @step4_data, id: @top50_machine.id}).deliver!
   end
 
   
