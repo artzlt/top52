@@ -1870,7 +1870,7 @@ class Top50MachinesController < Top50BaseController
         is_valid: 2
       ).id
     end
-    vendor_ids = @step1_data[:vendor_ids]
+    vendor_ids = @step1_data[:vendor_ids].clone
     vendor_ids.delete("")
     vendor_ids.collect! {|x| x.to_i}
     vendor_ids = ([vendor_id] + vendor_ids).uniq
