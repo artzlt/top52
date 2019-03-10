@@ -18,6 +18,10 @@ class Top50MachinesController < Top50BaseController
     return Top50RelationType.where(name_eng: 'Contains').first.id
   end
 
+  def get_rel_precede_id
+    return Top50RelationType.where(name_eng: 'Precedes').first.id
+  end
+
   def get_name_eng_attr_id
     return Top50Attribute.where(name_eng: "Name(eng)").first.id
   end
@@ -494,6 +498,8 @@ class Top50MachinesController < Top50BaseController
       @gpu_vendor_attrid = Top50Attribute.where(name_eng: "GPU Vendor").first.id
       @cop_model_attrid = Top50Attribute.where(name_eng: "Coprocessor model").first.id
       @cop_vendor_attrid = Top50Attribute.where(name_eng: "Coprocessor Vendor").first.id
+
+      @prev_machine_ids = Top50Relation.where(sec_obj_id: @top50_machine.id, type_id: get_rel_precede_id).pluck(:prim_obj_id)
 
     else
       @top50_machine = Top50Machine.new
@@ -2188,6 +2194,15 @@ class Top50MachinesController < Top50BaseController
       is_valid: 2,
       comment: format('{"step2": "%s", "step3": "%s", "step4": "%s"}', @step2_data[:comment], @step4_data[:comment], @step4_data[:comment])
     )
+    if @step1_data[:prev_machine_id].present?
+      Top50Relation.create(
+        prim_obj_id: @step1_data[:prev_machine_id].to_i,
+        sec_obj_id: @top50_machine.id,
+        type_id: get_rel_precede_id,
+        is_valid: 2,
+        comment: format("%s is precedent machine for %d", @step1_data[:prev_machine_id], @top50_machine.id)
+      )
+    end
 
     gpu_typeid = Top50ObjectType.where(name_eng: "GPU").first.id
     cop_typeid = Top50ObjectType.where(name_eng: "Coprocessor").first.id
