@@ -38,6 +38,8 @@ Octoshell::Application.routes.draw do
   get 'certificates/download', to: 'top50_machines#download_certificate', as: 'download_certificate'
 
   resource :profile
+  get 'top50_machines/application/new', to: 'top50_machines#app_form_new', as: 'top50_machines_app_form_new'
+  post 'top50_machines/application/new', to: 'top50_machines#app_form_new_post', as: 'top50_machines_app_form_new_post'
   get 'top50_machines/application/step1', to: 'top50_machines#app_form_step1', as: 'top50_machines_app_form_step1'
   post 'top50_machines/application/step1', to: 'top50_machines#app_form_step1_presave', as: 'top50_machines_app_form_step1_post'
   get 'top50_machines/application/step2', to: 'top50_machines#app_form_step2', as: 'top50_machines_app_form_step2'

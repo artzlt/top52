@@ -1,4 +1,11 @@
-h2 =  "Сведения о системе:"
+br
+h4 = "Тип заявки: "
+- if @step1_data[:prev_machine_id].present?
+  strong = "Обновление данных по ранее участвующей системе: "
+  = link_to @prev_machine_descr, top50_machines_show_path(@step1_data[:prev_machine_id])
+- else
+  strong = "Новая система"
+h3 =  "Сведения о системе:"
 br
 p
   strong = "Название: "
@@ -202,16 +209,19 @@ p
   strong = "Область применения системы: "
   = @step3_data[:app_area][:app_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:app_area][:app_dict_elem_id]).name : @step3_data[:app_area][:custom_app]
 p
-  strong = "Коммуникационная сеть:  "
+  strong = "Коммуникационная сеть: "
   = @step3_data[:nets][:comm_net_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:comm_net_dict_elem_id]).name : @step3_data[:nets][:custom_comm_net]
 p
-  strong = "Топология коммуникационной сети:  "
+  strong = "Семейство коммуникационной сети: "
+  = @step3_data[:nets][:comm_net_family_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:comm_net_family_id]).name : @step3_data[:nets][:custom_comm_family]
+p
+  strong = "Топология коммуникационной сети: "
   = @step3_data[:nets][:tplg_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:tplg_dict_elem_id]).name : @step3_data[:nets][:custom_tplg]
 p
-  strong = "Транспортная сеть:  "
+  strong = "Транспортная сеть: "
   = @step3_data[:nets][:tran_net_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:tran_net_dict_elem_id]).name : @step3_data[:nets][:custom_tran_net]
 p
-  strong = "Сервисная сеть:  "
+  strong = "Сервисная сеть: "
   = @step3_data[:nets][:serv_net_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:serv_net_dict_elem_id]).name : @step3_data[:nets][:custom_serv_net]
 p
   strong = "Комментарии: "

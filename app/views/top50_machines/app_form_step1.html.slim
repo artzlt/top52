@@ -4,6 +4,8 @@ br
 
 div class="col-8" id="form-new_machine"
   = bootstrap_form_tag url: top50_machines_app_form_step1_post_path do |f|
+    - if get_cur(:prev_machine_id).present?
+      = hidden_field nil, :prev_machine_id, value: get_cur(:prev_machine_id)
     div class="panel panel-default col-8"
       div class="panel-body col-8"
         = f.collection_select :vendor_id, Top50Vendor.where(is_valid: 1).order(:name), :id, :name, {include_blank: true, label: "Основной производитель/поставщик системы (*)", selected: get_cur(:vendor_id)}

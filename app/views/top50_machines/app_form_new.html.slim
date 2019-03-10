@@ -1,0 +1,17 @@
+h3 = "Добавление заявки в Top50"
+h4 = "Выберите тип заявки"
+br
+
+div class="col-8" id="form-new_machine"
+  = bootstrap_form_tag url: top50_machines_app_form_new_post_path do |f|
+    = f.radio_button :app_type, :new, label: "Новая вычислительная система", checked: get_cur(:app_type) == "new"
+    = f.radio_button :app_type, :upgrade, label: "Обновить данные по ранее участвующей в рейтинге системе", checked: get_cur(:app_type) == "upgrade"
+    = f.collection_select :list_id, @top50_slists, :id, :descr, {label: "Выберите последнюю редакцию рейтинга, в которой присутствовала система", include_blank: true, selected: get_cur(:list_id)}
+    = f.submit "Получить список систем для выбранной редакции", class: "a"
+    br
+    - if get_cur(:list_id).present?
+      br
+      = f.select :machine_id, options_for_select(@top50_machines, get_cur(:machine_id)), {label: "Выберите систему", include_blank: true}, {autofocus: is_focused(:form, :machine_id)}
+    br
+    br
+    = f.submit "Далее"

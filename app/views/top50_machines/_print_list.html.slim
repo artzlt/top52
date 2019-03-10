@@ -4,7 +4,7 @@
   - if not @global_scale.present?
     - @global_scale = min_rmax.top50_benchmark.top50_measure_unit.top50_measure_scales.order(:scale).first
 - else
-  - min_rpeak = Top50AttributeValDbval.where("attr_id = ? and machine_id in (?) and cast(encode(value, 'escape') as int) > 0", @rpeak_attrid, @top50_machines.collect{ |x| x['id'] }).order("cast(encode(value, 'escape') as int)").first
+  - min_rpeak = Top50AttributeValDbval.where("attr_id = ? and obj_id in (?) and cast(encode(value, 'escape') as int) > 0", @rpeak_attrid, @top50_machines.collect{ |x| x['id'] }).order("cast(encode(value, 'escape') as int)").first
   - mu = Top50MeasureUnit.find(@perf_benchid)
   - if min_rpeak.present?
     - @global_scale = mu.top50_measure_scales.where("scale < ?", min_rpeak.value.to_f).order(scale: :desc).first
