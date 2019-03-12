@@ -5,6 +5,14 @@
   table border="0" cellspacing="2" cellpadding="0"
     tr
       td class="col-4"
+        = "Идентификатор: "
+      td = text_field_tag 'id', @top50_machine.id, disabled: true
+    tr
+      td class="col-4"
+        = "Является апгрейдом для: "
+      td = select_tag 'machine[prev_machine_ids]', options_from_collection_for_select(Top50Machine.all, :id, :id, @prev_machine_ids), {include_blank: true, multiple: true}
+    tr
+      td class="col-4"
         = "Название: "
       td = text_field_tag 'machine[name]', @top50_machine.name
     tr

@@ -17,12 +17,12 @@ html
       window.locale = "#{I18n.locale}"
   body
     div id="top" align="center"
-	  center
-	    table width="740" border="0" cellspacing="0" cellpadding="0"
-	      td id="logo" 
-	        = image_tag "logo.gif", :alt=>"TOP 50 | Суперкомпьютеры", :width=>"178", :height=>"64", :border=>"0"
-	      td align="right"
-	        = image_tag "b-540x90-2.gif", :width=>"401", :height=>"111", :border=>"0"
+      center
+        table width="740" border="0" cellspacing="0" cellpadding="0"
+          td id="logo" 
+            = link_to image_tag("logo.gif", alt: "TOP 50 | Суперкомпьютеры", width: "178", height: "64", border: "0"), "/"
+          td align="right"
+            = image_tag "b-540x90-2.gif", alt: "", width: "401", height: "111", border: "0"
     div class="navbar navbar-default navbar-static-top" role="navigation" 
       div class="container"
         div class="navbar-header"
@@ -33,40 +33,39 @@ html
           ul class="nav navbar-nav"
             a class="navbar-brand" href="/top50_machines_archive" Архив
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_stats" Статистика			
-          /!
-            ul class="nav navbar-nav"
-              a class="navbar-brand" href="/auth/session/new" Войти
+            a class="navbar-brand" href="/top50_stats" Статистика
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="http://top50.supercomputers.ru/?page=application" Подать заявку
-          - if current_user
-            - if current_user.may_edit_top50?
-              ul class="nav navbar-nav"
-                = link_to 'Новая редакция', top50_machines_new_list_path, class: "navbar-brand"
+            a class="navbar-brand" href="/top50_machines/application/new" Подать заявку
+          - if current_user && current_user.may_manage_certs?
+            ul class="nav navbar-nav"
+              a class="navbar-brand" href="/certificates/page1" Создать сертификат
+          - if current_user && current_user.may_edit_top50?
+            ul class="nav navbar-nav"
+              = link_to 'Новая редакция', top50_machines_new_list_path, class: "navbar-brand"
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/auth/session" Выйти (#{current_user.email})
 
     div class="container"
-	  table border="0" cellspacing="0" cellpadding="0"
-		tr
-		  td id="mainBlock" rowspan="2"
+      table border="0" cellspacing="0" cellpadding="0"
+        tr
+          td id="mainBlock" rowspan="2"
             = render "face/shared/flashes"
             = content
-		  td id="rightBlock" align="center"
+          td id="rightBlock" align="center"
             = image_tag "parallel141x114blue.gif", :alt=>"Информационно-аналитический центр по параллельным вычислениям", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"
-			br
-			br
-			br
-			= "Организаторы рейтинга:"
-			br
-			= image_tag "logo-srcc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
-			br
-			= image_tag "logo-jscc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
-			br
-			br
-			br
-			= image_tag "rffi1.gif", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"
-			
+            br
+            br
+            br
+            = "Организаторы рейтинга:"
+            br
+            = image_tag "logo-srcc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
+            br
+            = image_tag "logo-jscc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
+            br
+            br
+            br
+            = image_tag "rffi1.gif", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"
+        
       div id="footer"
         = link_to 'НИВЦ МГУ имени М.В. Ломоносова', 'http://srcc.msu.ru', target: '_blank'
         br

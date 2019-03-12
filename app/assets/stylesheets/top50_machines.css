@@ -59,6 +59,7 @@ a.arr-down {
 
 .th-thin{
   font-weight: normal;
+  white-space: nowrap;
 }
 
 .txt-ital{

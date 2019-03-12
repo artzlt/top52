@@ -1,0 +1,34 @@
+h3 = "Данные о системе:"
+br
+= bootstrap_form_tag url: '/certificates/scr' do |f|
+  = f.text_field :machine_name, value: @machine_name, label: "Название системы: "
+
+  = f.text_field :firm_proc, value: @firm_proc, label: "Производитель процессоров: ", required: true
+
+  = f.text_field :proc_name, value: @proc_name, label: "Модели процессоров: ", required: true
+
+  = f.text_field :firm_acc, value: @firm_acc, label: "Производитель ускорителей: "
+
+  = f.text_field :acc_name, value: @acc_name, label: "Модели ускорителей: "
+
+  = f.text_field :network_name, value: @network_name, label: "Название вычислительной сети: "
+
+  = f.text_field :uni, value: @uni, label: "Место установки: ", required: true
+
+  = f.text_field :division, value: @division, label: "Подразделение: "
+
+  = f.text_field :position, value: @position, label: "Позиция: ", required: true
+
+  = f.text_field :testpeak, value: @testpeak, label: "Результат на тесте linpack, Mflop/s: ", required: true
+
+  = f.text_field :reliz, value: @reliz, label: "Номер редакции: ", required: true
+  br
+  h4 = "Сведения о конференции, на которой была представлена редакция рейтинга:"
+  = f.text_field :reliz_name, value: @reliz_name, label: "Имя конференции: ", required: true
+
+  = f.text_field :reliz_type, value: @reliz_type, label: "Описание конференции: ", required: true
+
+  = f.text_field :year, value: @year, label: "Дата: "
+  br
+  = f.submit 'Создать сертификат'
+  br

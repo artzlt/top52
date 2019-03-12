@@ -2,6 +2,11 @@ require "sidekiq/web"
 require "admin_constraint"
 
 Octoshell::Application.routes.draw do
+    
+  get "certificates/page1" => "certificates#page1"
+  post "certificates/page2" => "certificates#page2"
+  post "certificates/scr" => "certificates#scr"
+    
   # This line mounts Wiki routes at /wiki by default.
   mount Wiki::Engine, :at => "/wiki"
 
@@ -25,9 +30,6 @@ Octoshell::Application.routes.draw do
 
   mount Announcements::Engine, :at => "/announcements"
 
-  root 'newsfeed#index'
-  #root :to => redirect('/newsfeed')
-
   resources :users do
     get :login_as, on: :member
     get :return_to_self, on: :member
@@ -36,14 +38,22 @@ Octoshell::Application.routes.draw do
   get 'certificates/download', to: 'top50_machines#download_certificate', as: 'download_certificate'
 
   resource :profile
-  get 'top50_machines/:id/new_form', to: 'top50_machines#new_form', as:'top50_machines_new_form'
-  get 'top50_machines/:id/new_form_3', to: 'top50_machines#new_form_3', as:'top50_machines_new_form_3'
-  patch 'top50_machines/:id/new_form_3', to: 'top50_machines#new_form_3_save'
-  get 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4', as:'top50_machines_new_form_4'
-  patch 'top50_machines/:id/new_form_4', to: 'top50_machines#new_form_4_save'
-  get 'top50_machines/:id/new_form_5', to: 'top50_machines#new_form_5', as:'top50_machines_new_form_5'
+  get 'top50_machines/application/new', to: 'top50_machines#app_form_new', as: 'top50_machines_app_form_new'
+  post 'top50_machines/application/new', to: 'top50_machines#app_form_new_post', as: 'top50_machines_app_form_new_post'
+  get 'top50_machines/application/step1', to: 'top50_machines#app_form_step1', as: 'top50_machines_app_form_step1'
+  post 'top50_machines/application/step1', to: 'top50_machines#app_form_step1_presave', as: 'top50_machines_app_form_step1_post'
+  get 'top50_machines/application/step2', to: 'top50_machines#app_form_step2', as: 'top50_machines_app_form_step2'
+  post 'top50_machines/application/step2', to: 'top50_machines#app_form_step2_presave', as: 'top50_machines_app_form_step2_post'
+  get 'top50_machines/application/step3', to: 'top50_machines#app_form_step3', as: 'top50_machines_app_form_step3'
+  post 'top50_machines/application/step3', to: 'top50_machines#app_form_step3_presave', as: 'top50_machines_app_form_step3_post'
+  get 'top50_machines/application/step4', to: 'top50_machines#app_form_step4', as: 'top50_machines_app_form_step4'
+  post 'top50_machines/application/step4', to: 'top50_machines#app_form_step4_presave', as: 'top50_machines_app_form_step4_post'
+  get 'top50_machines/application/confirm', to: 'top50_machines#app_form_confirm', as: 'top50_machines_app_form_confirm'
+  post 'top50_machines/application/confirm', to: 'top50_machines#app_form_confirm_post', as: 'top50_machines_app_form_confirm_post'
+  get 'top50_machines/application/finish', to: 'top50_machines#app_form_finish', as: 'top50_machines_app_form_finish'
+
   get 'top50_machines/new_list', to: 'top50_machines#new_list', as: 'top50_machines_new_list'
-  post 'top50_machines/new_list', to: 'top50_machines#submit_list', as: 'top50_machines_submit_list'
+  post 'eop50_machines/new_list', to: 'top50_machines#submit_list', as: 'top50_machines_submit_list'
   get 'top50_machines/delete_list/:id', to: 'top50_machines#destroy_list', as: 'top50_machines_destroy_list'
   get 'top50_machines/edit_list/:id', to: 'top50_machines#new_list', as: 'top50_machines_edit_list'
   post 'top50_machines/edit_list/:id', to: 'top50_machines#submit_list', as: 'top50_machines_save_list'
@@ -76,8 +86,8 @@ Octoshell::Application.routes.draw do
   end
 
   resources :top50_measure_units
+  resources :top50_measure_scales
   resources :top50_benchmarks
-#  resources :top50_attribute_dbval
   resources :top50_attribute_dbvals
   resources :top50_attribute_dicts
   
@@ -138,22 +148,16 @@ Octoshell::Application.routes.draw do
   get 'top50_machines/:id/benchmark_results/add', to: 'top50_machines#add_benchmark_result', as:'new_top50_machine_top50_benchmark_result'
   get 'top50_organizations/:org_id/suborgs', to: 'top50_organizations#suborg', as:'top50_organization_suborg'
 
-# get "top50_machines" => "top50_machines#index"
-# get "top50_machine" => "top50_machines#show"
-# get "edit_top50_machine" => "top50_machines#edit"
-# get "new_top50_machine" => "top50_machines#new"
-# patch "top50_machines" => "top50_machines#update"
-# post "top50_machines" => "top50_machines#create"
-# get "top50_attributes_dbval" => "top50_attribute_dbval#index"
-
   resources :newsfeed, only: [:new, :index]
   resources :newsfeed_settings, only: [:new, :create, :index]
   resources :newsfeed_local, only: [:new, :create, :index]
 
+  get '/newsfeed', to: 'newsfeed#index', as: 'newsfeed'
   post '/newsfeed/', to: 'newsfeed#create', as: 'newsfeed_create'
   patch '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_patch'
   put '/newsfeed/', to: 'newsfeed#update', as: 'newsfeed_put'
 
+  get '/newsfeed_edit_import', to: 'newsfeed_edit_import#index', as: 'newsfeed_edit_import'
   post '/newsfeed_edit_import/', to: 'newsfeed_edit_import#create', as: 'newsfeed_edit_import_create'
   patch '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_patch'
   put '/newsfeed_edit_import/', to: 'newsfeed_edit_import#update', as: 'newsfeed_edit_import_put'
@@ -173,6 +177,9 @@ Octoshell::Application.routes.draw do
   patch '/newsfeed_import/:id', to: 'newsfeed_import#update', as: 'patch_newsfeed_import'
   put '/newsfeed_import/:id', to: 'newsfeed_import#update', as: 'put_newsfeed_import'
   # get '/newsfeed_import/:id', to: 'newsfeed_import#show', as: 'show_newsfeed_import'
+
+  root 'newsfeed#index'
+  #root :to => redirect('/newsfeed')
 
   namespace :admin do
     mount Sidekiq::Web => "/sidekiq", :constraints => AdminConstraint.new

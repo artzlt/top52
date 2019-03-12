@@ -1,0 +1,24 @@
+h3 = "Добавление заявки в Top50 (Шаг 4 из 4)"
+h4 = "Производительность вычислительной системы"
+br
+= bootstrap_form_tag url: top50_machines_app_form_step4_post_path do |f|
+  div class="panel panel-default"
+    div class="panel-heading"
+      = "Сведения о производительности"
+    div class="panel-body"
+      = f.fields_for :top50_perf do |f3| 
+        = f3.number_field :rpeak, label: "Rpeak - пиковая производительность (в TFlop/s) (*)", step: :any, value: get_cur2(:top50_perf, :rpeak)
+        br
+        br
+        = f3.number_field :rmax, label: "Rmax - максимальная  производительность, достигнутая на тесте Linpack (в TFlop/s) (*)", step: :any, value: get_cur2(:top50_perf, :rmax)
+        = f3.number_field :msize, label: "Размер матрицы, на котором было достигнута указанная производительность на тесте Linpack (*)", value: get_cur2(:top50_perf, :msize), min: 1
+  br
+  br
+  = f.text_area :comment, label: "Комментарии и уточнения", value: get_cur(:comment)
+  br
+  br
+  = render "hidden_saved_data"
+  = f.hidden_field :sym, value: :step4_data
+  = f.submit "Назад"
+  = "&nbsp;&nbsp;".html_safe
+  = f.submit "Далее" 

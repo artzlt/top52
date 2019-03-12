@@ -23,7 +23,7 @@ div class="page-header"
 
 - if @import_news.any?
   div width="100%" align="center"
-    = will_paginate @import_news, renderer: BootstrapPagination::Rails, :previous_label => 'Назад', :next_label => 'Вперед'
+    = will_paginate @import_news, renderer: BootstrapPagination::Rails, :previous_label => 'Назад', :next_label => 'Вперед', :params => { :controller => 'newsfeed_edit_import', :action => 'index' }
 
 ruby:
   def all_tags
