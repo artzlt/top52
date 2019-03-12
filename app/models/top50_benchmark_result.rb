@@ -9,7 +9,7 @@ class Top50BenchmarkResult < ActiveRecord::Base
       b_typeid = Top50ObjectType.where(name_eng: "Benchmark result").first.id
       obj = Top50Object.new
       obj[:type_id] = b_typeid
-      obj[:is_valid] = 1
+      obj[:is_valid] = self.is_valid.present? ? self.is_valid : 1
       obj[:comment] = format('New benchmark result (%s)', self.comment)
       obj.save!
       self.id = obj.id

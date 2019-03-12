@@ -13,7 +13,7 @@ class Top50Machine < ActiveRecord::Base
       m_typeid = Top50ObjectType.where(name_eng: "Machine").first.id
       obj = Top50Object.new
       obj[:type_id] = m_typeid
-      obj[:is_valid] = 1
+      obj[:is_valid] = self.is_valid.present? ? self.is_valid : 1
       obj[:comment] = format('New machine (%s)', self.comment)
       obj.save!
       self.id = obj.id

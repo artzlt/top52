@@ -5,13 +5,13 @@ require "mina/foreman"
 require "mina/rails"
 require "mina/git"
 
-set :domain, "users.parallel.ru"
+set :domain, "top50.parallel.ru"
 set :forward_agent, true
-set :application, "octoshell2"
+set :application, "top52"
 set :user, "admin"
-set :rbenv_ruby_version, "jruby-1.7.16.1"
+set :rbenv_ruby_version, "jruby 9.1.10.0"
 set :deploy_to, "/var/www/#{application}"
-set :repository, "git@github.com:octoshell/octoshell-v2.git"
+set :repository, "git@github.com:artzlt/top52.git"
 set :branch, "master"
 set :keep_releases, 3
 set :shared_paths, %w(public/uploads config/puma.rb config/settings.yml config/database.yml log)
