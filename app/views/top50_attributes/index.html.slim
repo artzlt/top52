@@ -3,16 +3,23 @@ div class="page-header"
 
 div class="panel panel-default"
   div class="panel-heading"
-    = link_to t(".new_attribute"), new_top50_attribute_path, class: "btn btn-default"
+    = link_to "Новый атрибут-значение", new_top50_attribute_dbval_path, class: "btn btn-default"
+    = link_to "Новый словарный атрибут", new_top50_attribute_dict_path, class: "btn btn-default"
 
   div class="panel-body"
     table class="table table-hover"
       tr
         th = Top50Attribute.human_attribute_name(:name)
+        th Статус
         th
       - @top50_attributes.each do |top50_attribute|
         tr
-          td class="col-xs-10" = top50_attribute.name
+          td class="col-10" = top50_attribute.name
+          td class="col-5"
+            = top50_attribute.is_valid
+            - val = Top50ValidType.where(id: top50_attribute.is_valid).first
+            - if val.present?
+              = format(" (%s)", val.name)
           td class="btn-group"
             = link_to t("actions.edit"), [:edit, top50_attribute], class: "btn btn-default btn-sm"
             button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"

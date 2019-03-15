@@ -10,11 +10,18 @@ div class="panel panel-default"
       tr
         th = Top50Contact.human_attribute_name(:name)
         th = Top50Contact.human_attribute_name(:surname)
+        th Статус
         th
       - @top50_contacts.each do |top50_contact|
         tr
-          td class="col-xs-5" = top50_contact.name
-          td class="col-xs-5" = top50_contact.surname
+          td class="col-5" = top50_contact.name
+          td class="col-5" = top50_contact.surname
+          td class="col-5"
+            = top50_contact.is_valid
+            - val = Top50ValidType.where(id: top50_contact.is_valid).first
+            - if val.present?
+              = format(" (%s)", val.name)
+
           td class="btn-group"
             = link_to t("actions.edit"), [:edit, top50_contact], class: "btn btn-default btn-sm"
             button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"

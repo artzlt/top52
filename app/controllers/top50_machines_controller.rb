@@ -443,6 +443,9 @@ class Top50MachinesController < Top50BaseController
     render :new_list
     return
   end
+  
+  def admin_links
+  end
 
   def moderate
     if params.include?(:id)
@@ -932,12 +935,6 @@ class Top50MachinesController < Top50BaseController
   def create_benchmark_result
     @top50_machine = Top50Machine.find(params[:id])
     @top50_benchmark_result = @top50_machine.top50_benchmark_results.build(top50_benchmark_result_params)
-    top50_br_obj = Top50Object.new
-    top50_br_obj[:type_id] = 10
-    top50_br_obj[:is_valid] = 0
-    top50_br_obj[:comment] = "New Benchmark Result"
-    top50_br_obj.save!
-    @top50_benchmark_result.id = top50_br_obj.id
     if @top50_benchmark_result.save
       redirect_to :top50_machine_top50_benchmark_results
     else
@@ -1290,8 +1287,7 @@ class Top50MachinesController < Top50BaseController
 
   def create
     @top50_machine = Top50Machine.new(top50machine_params)
-    @top50_machine[:is_valid] = 0
-    @top50_machine[:comment] = "Added type"
+    @top50_machine[:comment] = "Added system"
     if @top50_machine.save
       redirect_to :back
     else
@@ -1359,13 +1355,15 @@ class Top50MachinesController < Top50BaseController
     @top50_object = Top50Object.find(params[:id])
     
     top50_relation = @top50_object.top50_relations.build(top50_node_params[:top50_node])
-    top50_relation.type_id = @rel_contain_id
+    top50_relation.type_id = get_rel_contain_id
     top50_nested_node = Top50Object.new
     top50_nested_node.type_id = @comp_node_id
+    top50_nested_node.is_valid = top50_node_params[:top50_node][:is_valid]
     top50_relation.sec_obj_id = top50_nested_node.id
     if top50_node_params[:top50_cpu][:sec_obj_qty].present? and top50_node_params[:top50_cpu][:sec_obj_qty].to_i > 0
         top50_cpu_relation = top50_nested_node.top50_relations.build
         top50_cpu_relation.sec_obj_qty = top50_node_params[:top50_cpu][:sec_obj_qty]
+        top50_cpu_relation.is_valid = top50_node_params[:top50_cpu][:is_valid]
         top50_cpu_id = Top50AttributeValDict.where(dict_elem_id: top50_node_params[:top50_cpu][:model_dict_elem_id]).first.obj_id
         top50_cpu_relation.type_id = @rel_contain_id
         top50_cpu_relation.sec_obj_id = top50_cpu_id
@@ -1373,6 +1371,7 @@ class Top50MachinesController < Top50BaseController
     if top50_node_params[:top50_acc][:sec_obj_qty].present? and top50_node_params[:top50_acc][:sec_obj_qty].to_i > 0
         top50_acc_relation = top50_nested_node.top50_relations.build
         top50_acc_relation.sec_obj_qty = top50_node_params[:top50_acc][:sec_obj_qty]
+        top50_acc_relation.is_valid = top50_node_params[:top50_acc][:is_valid]
         top50_acc_id = Top50AttributeValDict.where(dict_elem_id: top50_node_params[:top50_acc][:model_dict_elem_id]).first.obj_id
         top50_acc_relation.type_id = @rel_contain_id
         top50_acc_relation.sec_obj_id = top50_acc_id
@@ -1382,6 +1381,7 @@ class Top50MachinesController < Top50BaseController
     @ram_size_attrid = Top50Attribute.where(name_eng: "RAM size (GB)").first.id
     top50_ram_attr.attr_id = @ram_size_attrid
     top50_ram_attr.value = top50_node_params[:top50_ram][:ram_size]
+    top50_ram_attr.is_valid = top50_node_params[:top50_ram][:is_valid]
     
     redirect_to top50_machines_app_form_step2_url
   end
@@ -2706,14 +2706,14 @@ class Top50MachinesController < Top50BaseController
   private
   
   def top50machine_params
-    params.require(:top50_machine).permit(:name, :name_eng, :type_id, :vendor_id, :org_id, :contact_id, :website, :top50_contact)
+    params.require(:top50_machine).permit(:name, :name_eng, :type_id, :vendor_id, :org_id, :contact_id, :website, :top50_contact, :contact_id, :is_valid)
   end
 
   def top50_benchmark_result_params
-    params.require(:top50_benchmark_result).permit(:benchmark_id, :result)
+    params.require(:top50_benchmark_result).permit(:benchmark_id, :result, :is_valid)
   end
   
   def top50_node_params
-    params.require(:top50_relation).permit(:top50_node => [:sec_obj_qty], :top50_cpu => [:model_dict_elem_id, :sec_obj_qty], :top50_acc => [:model_dict_elem_id, :sec_obj_qty], :top50_ram => [:ram_size])
+    params.require(:top50_relation).permit(:top50_node => [:sec_obj_qty, :is_valid], :top50_cpu => [:model_dict_elem_id, :sec_obj_qty, :is_valid], :top50_acc => [:model_dict_elem_id, :sec_obj_qty, :is_valid], :top50_ram => [:ram_size, :is_valid])
   end
 end

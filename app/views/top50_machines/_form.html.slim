@@ -4,6 +4,7 @@ div class="row"
       = f.text_field :name
       = f.text_field :name_eng
       = f.collection_select :type_id, Top50MachineType.all, :id, :name, include_blank: true
+      = f.collection_select :is_valid, Top50ValidType.all, :id, :name, {include_blank: true, label: "Статус"}
       = f.collection_select :vendor_id, Top50Vendor.all, :id, :name, include_blank: true
       = f.collection_select :org_id, Top50Organization.all, :id, :name, include_blank: true
       = f.collection_select :contact_id, Top50Contact.all, :id, :full_name, include_blank: true
