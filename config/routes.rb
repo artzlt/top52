@@ -66,6 +66,7 @@ Octoshell::Application.routes.draw do
   post 'systems/moderate/:id', to: 'top50_machines#pre_save', as: 'top50_machines_presave'
   get 'systems/moderate', to: 'top50_machines#moderate', as: 'top50_machines_moderate_new'
   post 'systems/moderate', to: 'top50_machines#pre_save', as: 'top50_machines_presave_new'
+  get 'admin_links', to: 'top50_machines#admin_links', as: 'admin_links'
 
   resources :top50_machines
   resources :top50_contacts
