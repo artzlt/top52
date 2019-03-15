@@ -1,7 +1,5 @@
 - date_attr = @date_vals.find_by(obj_id: @bench.id)
-- ldate = ""
-- if date_attr.present?
-  - ldate = date_attr.value
+- ldate = date_attr.value
 - num_attr = @num_vals.find_by(obj_id: @bench.id)
 - lnum = ""
 - if num_attr.present?
@@ -9,6 +7,6 @@
 
 h4 =  "Редакция №#{lnum} списка Top50 от #{ldate}"
 h4 = "#{@dict_elem.top50_dictionary.name}: #{@dict_elem.name} (Количество систем: #{@top50_machines.count})"
-= link_to t("Назад к списку"), top50_machines_archive_path(@bench), class: "btn btn-default"
+= link_to t("Назад к списку"), get_archive_path(@list_year, @list_month), class: "btn btn-default"
 
 = render "print_list"

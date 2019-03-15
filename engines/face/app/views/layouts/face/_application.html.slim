@@ -29,13 +29,13 @@ html
           a class="navbar-brand" href="/newsfeed" Новости
         div class="navbar-collapse collapse"
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines_list" Текущий рейтинг
+            a class="navbar-brand" href="/list" Текущий рейтинг
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines_archive" Архив
+            a class="navbar-brand" href="/archive" Архив
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_stats" Статистика
+            a class="navbar-brand" href="/stats" Статистика
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines/application/new" Подать заявку
+            a class="navbar-brand" href="/application/new" Подать заявку
           - if current_user && current_user.may_manage_certs?
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/certificates/page1" Создать сертификат

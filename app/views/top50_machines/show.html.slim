@@ -265,9 +265,11 @@ table class="table fit"
       td class="fit"
         - list_num = @list_nums.find_by(obj_id: top50_res.benchmark_id)
         - date_val = @date_vals.find_by(obj_id: top50_res.benchmark_id)
+        - list_year = date_val.value.split(".")[2]
+        - list_month = date_val.value.split(".")[1]
         - cert_path = nil
         - if list_num.present?
-          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_res.benchmark_id)
+          = link_to "#{list_num.value}-я (#{date_val.value})", get_archive_path(list_year, list_month)
           - l_chart_data << [Date.parse(date_val.value), top50_res.result.to_i]
           - l_dates << Date.parse(date_val.value).to_time.to_i * 1000
           - cert_path = format("public/cert_create/certificates/rev%d_%02d.pdf", list_num.value, top50_res.result.to_i)

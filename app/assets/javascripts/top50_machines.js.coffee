@@ -8,7 +8,7 @@ $ ->
 
   $("#top50_machine_org_id").change ->
     org_id = $(this).val()
-    url = "/top50_organizations/#{org_id}/suborgs"
+    url = "/organizations/#{org_id}/suborgs"
     select = $("#top50_machine_top50_organization_sub_org_id")
     select.select2("val", "")
     select.data("source", url)

@@ -1,7 +1,7 @@
 # encoding: UTF-8
 class Top50MachinesController < Top50BaseController
-  skip_before_filter :require_login, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats, :download_certificate, :app_form_new, :app_form_new_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
-  skip_before_filter :require_admin_rights, only: [:list, :archive, :archive_lists, :vendor, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_proc, :archive_by_gpu, :archive_by_cop, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :ext_stats, :download_certificate, :app_form_new, :app_form_new_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
+  skip_before_filter :require_login, only: [:list, :get_archive, :get_archive_by_vendor, :get_archive_by_org, :get_archive_by_vendor_excl, :get_archive_by_comp, :get_archive_by_comp_attrd, :get_archive_by_attr_dict, :archive, :archive_lists, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :get_ext_stats, :ext_stats, :get_stats_per_list, :stats_per_list, :download_certificate, :app_form_new, :app_form_new_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
+  skip_before_filter :require_admin_rights, only: [:list, :get_archive, :get_archive_by_vendor, :get_archive_by_org, :get_archive_by_vendor_excl, :get_archive_by_comp, :get_archive_by_comp_attrd, :get_archive_by_attr_dict, :archive, :archive_lists, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :get_ext_stats, :ext_stats, :get_stats_per_list, :stats_per_list, :download_certificate, :app_form_new, :app_form_new_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
   def index
     @top50_machines = Top50Machine.all
   end
@@ -134,6 +134,10 @@ class Top50MachinesController < Top50BaseController
   
   def prepare_archive(edition_id)
     @bench = Top50Benchmark.find(edition_id)
+    date_attr = @date_vals.find_by(obj_id: @bench.id)
+    ldate = date_attr.value
+    @list_year = ldate.split(".")[2]
+    @list_month = ldate.split(".")[1]
     @rated_pos = Top50BenchmarkResult.where(benchmark_id: edition_id).order(result: :asc)
     ed_num = (Top50AttributeValDbval.where(attr_id: @ed_num_attrid, obj_id: edition_id).first.value).to_i
 
@@ -751,109 +755,170 @@ class Top50MachinesController < Top50BaseController
     @top50_slists = get_top50_lists_sorted
   end
   
-  def archive
-    calc_machine_attrs
-    eid = params[:eid].to_i
-    if not ((current_user and current_user.may_edit_top50?) or @top50_benchmarks.include? eid)
-      eid = 0
+  def get_list_id_by_date(year, month)
+    ed_date_attrid = Top50Attribute.where(name_eng: "Edition date").first.id
+    attr = Top50AttributeValDbval.find_by("attr_id = ? and obj_id in (?) and value like '__.#{month}.#{year}'", ed_date_attrid, get_top50_lists.pluck(:id))
+    if attr.present?
+      return attr.obj_id
+    else
+      return 0
     end
-    prepare_archive(eid)
-    
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{eid}").
+  end
+
+  def fetch_archive_list(list_id)
+    avail_lists = get_top50_lists
+    list = avail_lists.find(list_id)
+    calc_machine_attrs
+    prepare_archive(list.id)
+    return Top50Machine.select("top50_machines.*, ed_results.result").
+      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{list.id}")
+  end
+
+  def archive_common(list_id)
+    @top50_machines = fetch_archive_list(list_id).
       order("ed_results.result asc").
       map(&:attributes)
   end
-    
-    
-  def archive_by_vendor
-     
-    @vendor = Top50Vendor.find(params[:vid])
-    calc_machine_attrs
-    prepare_archive(params[:eid])
+ 
+  def get_archive
+    year = params[:year]
+    month = params[:month]
+    archive_common(get_list_id_by_date(year, month))
+    render :archive
+    return
+  end
 
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
+  def archive
+    eid = params[:eid].to_i
+    archive_common(eid)
+  end
+    
+    
+  def archive_by_vendor_common(list_id)
+    @vendor = Top50Vendor.find(params[:vid])
+    @top50_machines = fetch_archive_list(list_id).
       where("#{@vendor.id} = ANY(top50_machines.vendor_ids)").
       order("ed_results.result asc").
       map(&:attributes)
+  end
 
+  def get_archive_by_vendor
+    year = params[:year]
+    month = params[:month]
+    archive_by_vendor_common(get_list_id_by_date(year, month))
+    render :archive_by_vendor
+    return
+  end
+
+  def archive_by_vendor
+    eid = params[:eid].to_i
+    archive_by_vendor_common(eid)
   end
     
-  def archive_by_vendor_excl
-     
+  def archive_by_vendor_excl_common(list_id)
     @vendor = Top50Vendor.find(params[:vid])
-
-    calc_machine_attrs
-    prepare_archive(params[:eid])
-
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
+    @top50_machines = fetch_archive_list(list_id).
       where("#{@vendor.id} = ALL(top50_machines.vendor_ids)").
       order("ed_results.result asc").
       map(&:attributes)
   end
 
-    
-  def archive_by_org
-     
-    @org = Top50Organization.find(params[:oid])
-    
-    calc_machine_attrs
-    prepare_archive(params[:eid])
-      
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
-      where("top50_machines.org_id in (select #{@org.id} union all select sec_obj_id from top50_relations a where a.prim_obj_id = #{@org.id} and a.type_id = #{@rel_contain_id})").
-      order("ed_results.result asc").
-      map(&:attributes)
+  def get_archive_by_vendor_excl
+    year = params[:year]
+    month = params[:month]
+    archive_by_vendor_excl_common(get_list_id_by_date(year, month))
+    render :archive_by_vendor_excl
+    return
+  end
 
+  def archive_by_vendor_excl
+    eid = params[:eid].to_i
+    archive_by_vendor_excl_common(eid)
   end
     
-  def archive_by_comp
-     
+  def archive_by_org_common(list_id)
+    @org = Top50Organization.find(params[:oid])
+    @top50_machines = fetch_archive_list(list_id).
+      where("top50_machines.org_id in (select #{@org.id} union all select sec_obj_id from top50_relations a where a.prim_obj_id = #{@org.id} and a.type_id = #{get_rel_contain_id})").
+      order("ed_results.result asc").
+      map(&:attributes)
+  end
+
+  def get_archive_by_org
+    year = params[:year]
+    month = params[:month]
+    archive_by_org_common(get_list_id_by_date(year, month))
+    render :archive_by_org
+    return
+  end
+
+  def archive_by_org
+    eid = params[:eid].to_i
+    archive_by_org_common(eid)
+  end
+    
+  def archive_by_comp_common(list_id)
     @comp = Top50Object.find(params[:oid])
-
-    calc_machine_attrs
-    prepare_archive(params[:eid])
-    
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
-      where("exists(select 1 from top50_relations a join top50_relations b on b.prim_obj_id = a.sec_obj_id where b.sec_obj_id = #{@comp.id} and a.prim_obj_id = top50_machines.id and a.type_id = #{@rel_contain_id} and b.type_id = #{@rel_contain_id})").
+    @top50_machines = fetch_archive_list(list_id).
+      where("exists(select 1 from top50_relations a join top50_relations b on b.prim_obj_id = a.sec_obj_id where b.sec_obj_id = #{@comp.id} and a.prim_obj_id = top50_machines.id and a.type_id = #{get_rel_contain_id} and b.type_id = #{get_rel_contain_id})").
       order("ed_results.result asc").
       map(&:attributes)
+  end
 
-  end  
+  def get_archive_by_comp
+    year = params[:year]
+    month = params[:month]
+    archive_by_comp_common(get_list_id_by_date(year, month))
+    render :archive_by_comp
+    return
+  end
+
+  def archive_by_comp
+    eid = params[:eid].to_i
+    archive_by_comp_common(eid)
+  end
     
-  def archive_by_comp_attrd
-
+  def archive_by_comp_attrd_common(list_id)
     @dict_elem = Top50DictionaryElem.find(params[:elid])
-
-    calc_machine_attrs
-    prepare_archive(params[:eid])
-
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
-      where("exists(select 1 from top50_relations a join top50_relations b on b.prim_obj_id = a.sec_obj_id join top50_attribute_val_dicts d on d.obj_id = b.sec_obj_id where d.dict_elem_id = #{@dict_elem.id} and a.prim_obj_id = top50_machines.id and a.type_id = #{@rel_contain_id} and b.type_id = #{@rel_contain_id})").
+    @top50_machines = fetch_archive_list(list_id).
+      where("exists(select 1 from top50_relations a join top50_relations b on b.prim_obj_id = a.sec_obj_id join top50_attribute_val_dicts d on d.obj_id = b.sec_obj_id where d.dict_elem_id = #{@dict_elem.id} and a.prim_obj_id = top50_machines.id and a.type_id = #{get_rel_contain_id} and b.type_id = #{get_rel_contain_id})").
       order("ed_results.result asc").
       map(&:attributes)
+  end
 
-  end  
+  def get_archive_by_comp_attrd
+    year = params[:year]
+    month = params[:month]
+    archive_by_comp_attrd_common(get_list_id_by_date(year, month))
+    render :archive_by_comp_attrd
+    return
+  end
+
+  def archive_by_comp_attrd
+    eid = params[:eid].to_i
+    archive_by_comp_attrd_common(eid)
+  end
     
-  def archive_by_attr_dict
-     
+  def archive_by_attr_dict_common(list_id)
     @attr = Top50Attribute.find(params[:aid])
     @dict_elem = Top50DictionaryElem.find(params[:elid])
-    
-    calc_machine_attrs
-    prepare_archive(params[:eid])
-
-    @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result").
-      joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{params[:eid]}").
-      where("exists(select 1 from top50_attribute_val_dicts where dict_elem_id = #{@dict_elem.id} and obj_id = top50_machines.id)").
+    @top50_machines = fetch_archive_list(list_id).
+      where("exists(select 1 from top50_attribute_val_dicts where dict_elem_id = #{@dict_elem.id} and obj_id = top50_machines.id and attr_id = #{@attr.id})").
       order("ed_results.result asc").
       map(&:attributes)
+  end
 
+  def get_archive_by_attr_dict
+    year = params[:year]
+    month = params[:month]
+    archive_by_attr_dict_common(get_list_id_by_date(year, month))
+    render :archive_by_attr_dict
+    return
+  end
+
+  def archive_by_attr_dict
+    eid = params[:eid].to_i
+    archive_by_attr_dict_common(eid)
   end
  
   def benchmark_results
@@ -934,13 +999,21 @@ class Top50MachinesController < Top50BaseController
     
   end
   
-  def stats_per_list
-    @list_id = params[:eid]
+  def stats_per_list_common(eid)
+    @list_id = get_top50_lists.find(eid).id
     stats(1)
     @top50_mtypes = get_avail_mtypes
   end
-  
-  
+
+  def get_stats_per_list
+    stats_per_list_common(get_list_id_by_date(params[:year], params[:month]))
+    render :stats_per_list
+    return
+  end
+
+  def stats_per_list
+    stats_per_list_common(params[:eid].to_i)
+  end
   
   def stats(ext = 0)
     @stat_section = params[:section]
@@ -1195,10 +1268,20 @@ class Top50MachinesController < Top50BaseController
     return Top50MachineType.select("top50_machine_types.id, top50_machine_types.name, count(1) cnt").joins("join top50_machines on top50_machine_types.id = top50_machines.type_id").joins("join top50_benchmark_results on top50_benchmark_results.machine_id = top50_machines.id").joins("join top50_benchmarks on top50_benchmarks.id = top50_benchmark_results.benchmark_id").joins("join top50_relations on top50_benchmarks.id = top50_relations.sec_obj_id").where("top50_relations.prim_obj_id IN (?) and top50_relations.type_id = ?", get_avail_bunches, get_rel_contain_id).group("top50_machine_types.id, top50_machine_types.name").order("cnt desc").having("count(1) > 0")
   end
 
-  def ext_stats
+  def ext_stats_common(eid)
     stats_common
-    @edition_id = params[:eid]
+    @edition_id = get_top50_lists.find(eid).id
     @top50_mtypes = get_avail_mtypes
+  end
+
+  def ext_stats
+    ext_stats_common(params[:eid].to_i)
+  end
+
+  def get_ext_stats
+    ext_stats_common(get_list_id_by_date(params[:year], params[:month]))
+    render :ext_stats
+    return
   end
 
   def new
@@ -1387,7 +1470,7 @@ class Top50MachinesController < Top50BaseController
         org_id: "Организация (место установки системы)",
         custom_suborg: {
           name: "Название подразделения",
-          name_eng: "Название подразделения на английском",
+          name_eng: "Название подразделения на английском языке",
           country: "Страна, в которой расположено подразделение",
           city: "Город расположения подразделения"
         },
@@ -1421,19 +1504,19 @@ class Top50MachinesController < Top50BaseController
         vendor_id: {
           custom_vendor: {
             name: "Название производителя",
-            name_eng: "Название производителя на английском"
+            name_eng: "Название производителя на английском языке"
           }
         },
         type_id: {
           custom_type: {
             name: "Название типа системы",
-            name_eng: "Название типа системы на английском"
+            name_eng: "Название типа системы на английском языке"
           }
         },
         org_id: {
           custom_org: {
             name: "Название организации",
-            name_eng: "Название организации на английском",
+            name_eng: "Название организации на английском языке",
             country: "Страна, в которой расположена организация",
             city: "Город расположения организации"
           }
@@ -1475,7 +1558,7 @@ class Top50MachinesController < Top50BaseController
       data.update(add_vendors.merge(add_vendors) {
         |k,v,x| {
           name: "Название участвующего производителя",
-          name_eng: "Название участвующего производителя на английском"
+          name_eng: "Название участвующего производителя на английском языке"
         }
       })
     when :step2
