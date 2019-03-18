@@ -40,6 +40,8 @@ Octoshell::Application.routes.draw do
   resource :profile
   get 'application/new', to: 'top50_machines#app_form_new', as: 'top50_machines_app_form_new'
   post 'application/new', to: 'top50_machines#app_form_new_post', as: 'top50_machines_app_form_new_post'
+  get 'application/upgrade', to: 'top50_machines#app_form_upgrade', as: 'top50_machines_app_form_upgrade'
+  post 'application/upgrade', to: 'top50_machines#app_form_upgrade_post', as: 'top50_machines_app_form_upgrade_post'
   get 'application/step1', to: 'top50_machines#app_form_step1', as: 'top50_machines_app_form_step1'
   post 'application/step1', to: 'top50_machines#app_form_step1_presave', as: 'top50_machines_app_form_step1_post'
   get 'application/step2', to: 'top50_machines#app_form_step2', as: 'top50_machines_app_form_step2'

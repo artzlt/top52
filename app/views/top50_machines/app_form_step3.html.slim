@@ -3,18 +3,18 @@ h4 = "Дополнительные характеристики системы"
 br
 
 = bootstrap_form_tag url: top50_machines_app_form_step3_post_path do |f|
-  div class="panel panel-default"
+  div class="panel panel-info"
     div class="panel-heading"
-      = "Область применения"
+      h4 = "Область применения"
     div class="panel-body"
       = f.fields_for :app_area do |f3| 
         = f3.collection_select :app_dict_elem_id, Top50DictionaryElem.where(dict_id: @app_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Область применения вычислительной системы (*)", include_blank: true, selected: get_cur2(:app_area, :app_dict_elem_id)}
         = "Отсутствует в списке? Указать область применения: "
         = f3.text_field :custom_app, value: get_cur2(:app_area, :custom_app), skip_label: true
   
-  div class="panel panel-default"
+  div class="panel panel-info"
     div class="panel-heading"
-      = "Сведения о сетевой инфраструктуре"
+      h4 = "Сведения о сетевой инфраструктуре"
     div class="panel-body"
       = f.fields_for :nets do |f3| 
         = f3.collection_select :comm_net_dict_elem_id, Top50DictionaryElem.where(dict_id: @net_dict_id, is_valid: 1).order(:name), :id, :name, {label: "Основная коммуникационная (вычислительная) сеть (*)", include_blank: true, selected: get_cur2(:nets, :comm_net_dict_elem_id)}

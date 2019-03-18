@@ -2,9 +2,9 @@ h3 = "Добавление заявки в Top50 (Шаг 4 из 4)"
 h4 = "Производительность вычислительной системы"
 br
 = bootstrap_form_tag url: top50_machines_app_form_step4_post_path do |f|
-  div class="panel panel-default"
+  div class="panel panel-success"
     div class="panel-heading"
-      = "Сведения о производительности"
+      h4 = "Сведения о производительности"
     div class="panel-body"
       = f.fields_for :top50_perf do |f3| 
         = f3.number_field :rpeak, label: "Rpeak - пиковая производительность (в TFlop/s) (*)", step: :any, value: get_cur2(:top50_perf, :rpeak)

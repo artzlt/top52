@@ -5,12 +5,12 @@ br
 div class="col-8" id="form-new_machine"
   = bootstrap_form_tag url: top50_machines_app_form_step1_post_path do |f|
     - if get_cur(:prev_machine_id).present?
-      = hidden_field nil, :prev_machine_id, value: get_cur(:prev_machine_id)
+      = f.hidden_field :prev_machine_id, value: get_cur(:prev_machine_id)
     div class="panel panel-default col-8"
       div class="panel-body col-8"
         = f.collection_select :vendor_id, Top50Vendor.where(is_valid: 1).order(:name), :id, :name, {include_blank: true, label: "Основной производитель/поставщик системы (*)", selected: get_cur(:vendor_id)}
         - if @cur_data.has_key? :custom_vendor and not get_cur(:vendor_id).present?
-          div class="panel panel-default"
+          div class="panel panel-primary"
             div class="panel-heading"
               = "Добавление основного производителя системы"
             div class="panel-body"
@@ -23,14 +23,14 @@ div class="col-8" id="form-new_machine"
           = f.submit "Добавить производителя", class: "a"
           br
         br
-        = f.collection_select :vendor_ids, Top50Vendor.where(is_valid: 1).order(:name), :id, :name, {include_blank: true, label: "Другие участвующие производители (возможен множественный выбор)", selected: get_cur(:vendor_ids)}, {multiple: true}
+        = f.collection_select :vendor_ids, Top50Vendor.where(is_valid: 1).order(:name), :id, :name, {include_blank: true, label: "Другие участвующие производители/поставщики (возможен множественный выбор)", selected: get_cur(:vendor_ids)}, {multiple: true}
         - avendor_idx = 0
         - @cur_data.select {|k,v| k.starts_with? 'add_vendor_'}.keys.sort.each do |avendor|
           - avendor_idx += 1
           = f.fields_for format('add_vendor_%d', avendor_idx) do |v|
-            div class="panel panel-default"
+            div class="panel panel-info"
               div class="panel-heading"
-                h4 = "Добавление участвующего производителя"
+                = "Добавление участвующего производителя"
               div class="panel-body"
                 = v.text_field :name, label: "Название производителя (*)", value: get_cur2(avendor, :name), autofocus: is_focused(avendor, :name)
                 = v.text_field :name_eng, label: "Название производителя на английском языке (*)", value: get_cur2(avendor, :name_eng)
@@ -55,7 +55,7 @@ div class="col-8" id="form-new_machine"
 
         = f.collection_select :type_id, Top50MachineType.where(is_valid: 1).order(:name), :id, :name, {include_blank: true, label: "Тип вычислительной системы (*)", selected: get_cur(:type_id)}
         - if @cur_data.has_key? :custom_type and not get_cur(:type_id).present?
-          div class="panel panel-default"
+          div class="panel panel-primary"
             div class="panel-heading"
               = "Добавление типа системы"
             div class="panel-body"
@@ -69,7 +69,7 @@ div class="col-8" id="form-new_machine"
         br
         = f.collection_select :org_id, Top50Organization.where("is_valid = 1 and not exists (select 1 from top50_relations where is_valid = 1 and type_id = ? and sec_obj_id = top50_organizations.id)", @rel_contain_id).order(:name), :id, :name, {include_blank: true, label: "Организация (место установки системы) (*)", selected: get_cur(:org_id)}, {autofocus: is_focused(:form, :org_id)}
         - if @cur_data.has_key? :custom_org and not get_cur(:org_id).present?
-          div class="panel panel-default"
+          div class="panel panel-primary"
             div class="panel-heading"
               = "Добавление организации"
             div class="panel-body"
@@ -91,7 +91,7 @@ div class="col-8" id="form-new_machine"
           = f.collection_select :suborg_id, Top50Organization.where(format("is_valid = 1 and id in (select sec_obj_id from top50_relations where is_valid = 1 and type_id = %d and prim_obj_id = %s)", @rel_contain_id, get_cur(:org_id))).order(:name), :id, :name, {include_blank: true, label: "Подразделение указанной организации", selected: get_cur(:suborg_id)}, {autofocus: is_focused(:form, :suborg_id)}
         - if @cur_data.has_key? :custom_suborg and not get_cur(:suborg_id).present?
           br
-          div class="panel panel-default"
+          div class="panel panel-primary"
             div class="panel-heading"
               = "Добавление подразделения организации"
             div class="panel-body"
@@ -109,7 +109,7 @@ div class="col-8" id="form-new_machine"
           = f.submit "Добавить новое подразделение", class: "a"
           br
     br
-    div class="panel panel-default col-8"
+    div class="panel panel-warning col-8"
       div class="panel-heading col-8"
         h4 = "Контактная информация лица, подающего заявку (для связи по поводу уточнения/подтверждения информации по заявке)"
       div class="panel-body col-8"

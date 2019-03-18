@@ -13,237 +13,232 @@
     
 table class="table table-responsive table-striped"
   tr
-	th
-	  - if 1==1
-	    br
-		= "№"
-	th 
-	  - if 1==1
-		= "Название"
-		br
-		= "Место установки"
-	th 
-	  - if 1==1	
-		= "Узлов"
-		br
-		= "Проц."
-		br
-		= "Ускор."
-	th 
-	  - if 1==1
-		= "Архитектура:"
-		br
-		= content_tag :span, "кол-во узлов: конфигурация узла", :class => "th-thin"		
-		br
-		= content_tag :span, "сеть: вычислительная / сервисная / транспортная", :class => "th-thin"
-	th 
-	  - if 1==1
-		= "Rmax"
-		br
-		= "Rpeak"
-		br
-		= content_tag :span, format("(%s)", @global_scale.name), :class => "th-thin"
-	th 
-	  - if 1==1
-		= "Разработчик"
-		br
-		= content_tag :span, "Область применения", :class => "txt-ital"
+    th
+      br
+      = "№"
+    th 
+      = "Название"
+      br
+      = "Место установки"
+    th 
+      = "Узлов"
+      br
+      = "Проц."
+      br
+      = "Ускор."
+    th 
+      = "Архитектура:"
+      br
+      = content_tag :span, "кол-во узлов: конфигурация узла", :class => "th-thin"        
+      br
+      = content_tag :span, "сеть: вычислительная / сервисная / транспортная", :class => "th-thin"
+    th 
+      = "Rmax"
+      br
+      = "Rpeak"
+      br
+      = content_tag :span, format("(%s)", @global_scale.name), :class => "th-thin"
+    th 
+      = "Разработчик"
+      br
+      = content_tag :span, "Область применения", :class => "txt-ital"
   - cur = 0
   - @top50_machines.each do |top50_machine|
-	tr
-	  - cur = cur + 1
-	  td class="col-xs-1"
-	   - rank_pos = top50_machine["result"].to_i
-	   = link_to rank_pos, top50_machines_show_path(top50_machine["id"]), :title => "Перейти к информации о системе"
-       - prev_rank_pos = @prev_rated_pos.find_by(machine_id: top50_machine["id"]) 
-	   - ex_f = false
-	   - new_f = true
-	   - if prev_rank_pos.present? 
-	     - ex_f = true
-	   - else
-	     - prec_machine = @prec_machines.find_by(sec_obj_id: top50_machine["id"])
-		 - if prec_machine.present?
-           - prev_rank_pos = @prev_rated_pos.find_by(machine_id: prec_machine.prim_obj_id)
-  	   - if prev_rank_pos.present? 
-  	     - new_f = false
-	     - if rank_pos < prev_rank_pos.result.to_i
-		   = " "		 
-		   = content_tag :a, "▲", :title => "Изменение: +#{prev_rank_pos.result.to_i - rank_pos}. Место в предыдущей редакции списка: ##{prev_rank_pos.result.to_i}", :class => "arr-up"		 
-	     - if rank_pos > prev_rank_pos.result.to_i
-		   = " "
-		   = content_tag :a, "▽", :title => "Изменение: #{prev_rank_pos.result.to_i - rank_pos}. Место в предыдущей редакции списка: ##{prev_rank_pos.result.to_i}", :class => "arr-down"
- 		 - if ex_f == false
-	       br
-   		   = link_to "upgrade", top50_machines_show_path(prev_rank_pos.machine_id), :class => "upg-m", :title => "Перейти к описанию системы до апгрейда"
-	   - else 
-	     br
-         - if prec_machine.present?
-           = link_to "upgrade", top50_machines_show_path(prec_machine.prim_obj_id), :class => "upg-m", :title => "Перейти к описанию системы до апгрейда"
-         - else
-           = content_tag :a, "new", :class => "new-m"
-	  td class="col-xs-1" 
-		- if top50_machine["name"].present? and top50_machine["name"].length > 0
-		  = "«"
-		  = link_to top50_machine["name"], top50_machines_show_path(top50_machine["id"]), :title => "Название системы. \nНажмите для перехода к описанию системы"
-		  = "»"
-		  br
-		  br
+    tr
+      - cur = cur + 1
+      td class="col-xs-1"
+        - rank_pos = top50_machine["result"].to_i
+        = link_to rank_pos, top50_machines_show_path(top50_machine["id"]), :title => "Перейти к информации о системе"
+        - prev_rank_pos = @prev_rated_pos.find_by(machine_id: top50_machine["id"]) 
+        - is_upg = false
+        - if not prev_rank_pos.present? 
+          - prec_machine = @prec_machines.find_by(sec_obj_id: top50_machine["id"])
+          - if prec_machine.present?
+            - prev_rank_pos = @prev_rated_pos.find_by(machine_id: prec_machine.prim_obj_id)
+            - if prev_rank_pos.present?
+              - is_upg = true
+        - if prev_rank_pos.present? 
+          - if rank_pos != prev_rank_pos.result.to_i
+            - if rank_pos < prev_rank_pos.result.to_i
+              - arr_symb = "▲"
+              - arr_class = "arr-up"
+            - else
+              - arr_symb = "▽"
+              - arr_class = "arr-down"
+            = " "         
+            = content_tag :a, arr_symb, title: format("Изменение: %+d. Место в предыдущей редакции списка: #%d", prev_rank_pos.result.to_i - rank_pos, prev_rank_pos.result.to_i), class: arr_class
+          - if is_upg
+            br
+            = link_to "upgrade", top50_machines_show_path(prev_rank_pos.machine_id), class: "upg-m", title: "Перейти к описанию системы до апгрейда"
+        - else 
+          br
+          - if prec_machine.present?
+            = link_to "upgrade", top50_machines_show_path(prec_machine.prim_obj_id), class: "upg-m", title: "Перейти к описанию системы до апгрейда"
+          - else
+            = content_tag :a, "new", class: "new-m"
+      td class="col-xs-1" 
+        - if top50_machine["name"].present? and top50_machine["name"].length > 0
+          = "«"
+          = link_to top50_machine["name"], top50_machines_show_path(top50_machine["id"]), :title => "Название системы. \nНажмите для перехода к описанию системы"
+          = "»"
+          br
+          br
         - if top50_machine["org_id"].present?
-		  - top50_org = Top50Organization.find(top50_machine["org_id"])
-		- if top50_org.present?
-		  - top50_parent_org_rel = (Top50Relation.where(type_id: @rel_contain_id)).find_by(sec_obj_id: top50_org.id)
-		  - if top50_parent_org_rel.present?
-		    - top50_parent_org = Top50Organization.find_by(id: top50_parent_org_rel.prim_obj_id	)
-			- if top50_parent_org.present?
-			  = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Подразделение"
-			  = ","
-			  br
-		      = link_to top50_parent_org.name, get_archive_org_path(@list_year, @list_month, top50_parent_org), :title => "Организация"
-		  - if not (top50_parent_org_rel.present? and top50_parent_org.present?)
-  			  = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Организация"
-	  td class="col-xs-1"
-		- cpucnt = 0
-		- acccnt = 0
-		- corecnt_cpu = 0
-		- corecnt_gpu = 0
-		- corecnt_cop = 0
-		- gpucorecnt = 0
+          - top50_org = Top50Organization.find(top50_machine["org_id"])
+        - if top50_org.present?
+          - top50_parent_org_rel = (Top50Relation.where(type_id: @rel_contain_id)).find_by(sec_obj_id: top50_org.id)
+          - if top50_parent_org_rel.present?
+            - top50_parent_org = Top50Organization.find_by(id: top50_parent_org_rel.prim_obj_id    )
+            - if top50_parent_org.present?
+              = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Подразделение"
+              = ","
+              br
+              = link_to top50_parent_org.name, get_archive_org_path(@list_year, @list_month, top50_parent_org), :title => "Организация"
+          - if not (top50_parent_org_rel.present? and top50_parent_org.present?)
+                = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Организация"
+      td class="col-xs-1"
+        - cpucnt = 0
+        - acccnt = 0
+        - corecnt_cpu = 0
+        - corecnt_gpu = 0
+        - corecnt_cop = 0
+        - gpucorecnt = 0
         - nodcnt = 0
-		- @mach_l1_hash[top50_machine["id"]].each do |top50_node| 
-		  - top50_cpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cpu_typeid}
-		  - top50_gpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @gpu_typeid}
-		  - top50_cops = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cop_typeid}
-		  - top50_cpus.each do |top50_cpu|
-		    - t = top50_cpu.cnt * top50_node.cnt
-			- cpucnt += t
-			- cores = @l2_attrdb_hash[top50_cpu.id].find{|x| x.attr_id == @core_qty_attrid}
-			- if cores
-			  - corecnt_cpu += t * cores.value.to_i
-		  - top50_gpus.each do |top50_gpu|
-		    - t = top50_gpu.cnt * top50_node.cnt
-			- cores = @l2_attrdb_hash[top50_gpu.id].find{|x| x.attr_id == @core_qty_attrid}
-			- gpucores = @l2_attrdb_hash[top50_gpu.id].find{|x| x.attr_id == @gpucore_qty_attrid}
-			- if cores
-			  - corecnt_gpu += t * cores.value.to_i	
-			- if gpucores
-			  - gpucorecnt += t * gpucores.value.to_i
+        - @mach_l1_hash[top50_machine["id"]].each do |top50_node| 
+          - top50_cpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cpu_typeid}
+          - top50_gpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @gpu_typeid}
+          - top50_cops = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cop_typeid}
+          - top50_cpus.each do |top50_cpu|
+            - t = top50_cpu.cnt * top50_node.cnt
+            - cpucnt += t
+            - cores = @l2_attrdb_hash[top50_cpu.id].find{|x| x.attr_id == @core_qty_attrid}
+            - if cores.present?
+              - corecnt_cpu += t * cores.value.to_i
+          - top50_gpus.each do |top50_gpu|
+            - t = top50_gpu.cnt * top50_node.cnt
+            - cores = @l2_attrdb_hash[top50_gpu.id].find{|x| x.attr_id == @core_qty_attrid}
+            - microcores = @l2_attrdb_hash[top50_gpu.id].find{|x| x.attr_id == @microcore_qty_attrid}
+            - if cores.present?
+              - corecnt_gpu += t * cores.value.to_i    
+            - if microcores.present?
+              - gpucorecnt += t * microcores.value.to_i
             - acccnt += t
-		  - top50_cops.each do |top50_cop|
-		    - t = top50_cop.cnt * top50_node.cnt
-			- cores = @l2_attrdb_hash[top50_cop.id].find{|x| x.attr_id == @core_qty_attrid}
-			- if cores
-			  - corecnt_cop += t * cores.value.to_i			  
+          - top50_cops.each do |top50_cop|
+            - t = top50_cop.cnt * top50_node.cnt
+            - cores = @l2_attrdb_hash[top50_cop.id].find{|x| x.attr_id == @core_qty_attrid}
+            - if cores.present?
+              - corecnt_cop += t * cores.value.to_i              
             - acccnt += t
           - nodcnt += top50_node.cnt
-		= nodcnt > 0 ? nodcnt : "н/д"
-		br
+        = nodcnt > 0 ? nodcnt : "н/д"
+        br
         - if cpucnt > 0
-		  = cpucnt
+          = cpucnt
         - else
           - cpucnt_attr = @mach_attrdb_hash[top50_machine["id"]].find{|x| x.attr_id == @cpu_qty_attrid}
           = cpucnt_attr and cpucnt_attr.value.to_i > 0 ? cpucnt_attr.value.to_i : "н/д"
         br
         = acccnt > 0 ? acccnt : "н/д"
-	  td class="col-xs-6" 
-	    table border="0" cellspacing="0" cellpadding="0"
-		  - @mach_l1_hash[top50_machine["id"]].each do |top50_node| 
-		    tr	
-		      - top50_cpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cpu_typeid}
-		      - top50_gpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @gpu_typeid}
-		      - top50_cops = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cop_typeid}
-			  td align="right" valign="top"
-		        - if top50_node.cnt > 0
- 		          = "#{top50_node.cnt}:"
-			  td
-		        - if top50_cpus.any?
-				  = "CPU: "
-			  td
-		        - top50_cpus.each_with_index do |top50_cpu, i|
+      td class="col-xs-6" 
+        table border="0" cellspacing="0" cellpadding="0"
+          - @mach_l1_hash[top50_machine["id"]].each do |top50_node| 
+            tr    
+              - top50_cpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cpu_typeid}
+              - top50_gpus = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @gpu_typeid}
+              - top50_cops = @l1_l2_hash[top50_node.id].find_all{|x| x.type_id == @cop_typeid}
+              td align="right" valign="top"
+                - if top50_node.cnt > 0
+                   = "#{top50_node.cnt}:"
+              td
+                - if top50_cpus.any?
+                  = "CPU: "
+              td
+                - top50_cpus.each_with_index do |top50_cpu, i|
                   - if i > 0
                     = ", "
- 	              - if top50_cpu.cnt > 0 
-			        = "#{top50_cpu.cnt}x "
-			      - cpu_vendor = @l2_attrd_hash[top50_cpu.id].find{|x| x.attr_id == @cpu_vendor_attrid}
-  			      - if cpu_vendor
-			        = link_to cpu_vendor.elem_name, get_archive_comp_attrd_path(@list_year, @list_month, cpu_vendor.elem_id), :title => "Производитель CPU"
-			        = " "
+                  - if top50_cpu.cnt > 0 
+                    = "#{top50_cpu.cnt}x "
+                  - cpu_vendor = @l2_attrd_hash[top50_cpu.id].find{|x| x.attr_id == @cpu_vendor_attrid}
+                  - if cpu_vendor.present?
+                    = link_to cpu_vendor.elem_name, get_archive_comp_attrd_path(@list_year, @list_month, cpu_vendor.elem_id), :title => "Производитель CPU"
+                    = " "
                   - cpu_model = @l2_attrd_hash[top50_cpu.id].find{|x| x.attr_id == @cpu_model_attrid}
-			      - if cpu_model
+                  - if cpu_model.present?
                     = link_to cpu_model.elem_name, get_archive_comp_path(@list_year, @list_month, top50_cpu.id), :title => "Модель CPU"
-		        - ram_size_val = @l1_attrdb_hash[top50_node.id].find{|x| x.attr_id == @ram_size_attrid}
-		        - if ram_size_val and ram_size_val.value.to_f > 0
-     		        - if top50_cpus.any?
-			          = ", "
-			        = "#{number_with_precision(ram_size_val.value.to_f, precision: 1, strip_insignificant_zeros: true)} GB RAM"
-		    - if top50_gpus.any? or top50_cops.any?
-			  tr
-			    td
-			    td
-				  = "Acc: "
-				td
+                - ram_size_val = @l1_attrdb_hash[top50_node.id].find{|x| x.attr_id == @ram_size_attrid}
+                - if ram_size_val.present? and ram_size_val.value.to_f > 0
+                  - if top50_cpus.any?
+                    = ", "
+                  = "#{number_with_precision(ram_size_val.value.to_f, precision: 1, strip_insignificant_zeros: true)} GB RAM"
+            - if top50_gpus.any? or top50_cops.any?
+              tr
+                td
+                td
+                  = "Acc: "
+                td
                   - i = 0
-			      - top50_gpus.each do |top50_gpu|
+                  - top50_gpus.each do |top50_gpu|
                     - if i > 0
                       = ", "
                     - i += 1
-			        - if top50_gpu.cnt > 0 
-			          = "#{top50_gpu.cnt}x "
-			        - gpu_vendor = @l2_attrd_hash[top50_gpu.id].find{|x| x.attr_id == @gpu_vendor_attrid}
-			        - if gpu_vendor
-				      = link_to gpu_vendor.elem_name, get_archive_comp_attrd_path(@list_year, @list_month, gpu_vendor.elem_id), :title => "Производитель GPU"
-				      = " "
+                    - if top50_gpu.cnt > 0 
+                      = "#{top50_gpu.cnt}x "
+                    - gpu_vendor = @l2_attrd_hash[top50_gpu.id].find{|x| x.attr_id == @gpu_vendor_attrid}
+                    - if gpu_vendor.present?
+                      = link_to gpu_vendor.elem_name, get_archive_comp_attrd_path(@list_year, @list_month, gpu_vendor.elem_id), :title => "Производитель GPU"
+                      = " "
                     - gpu_model = @l2_attrd_hash[top50_gpu.id].find{|x| x.attr_id == @gpu_model_attrid}
-                    - if gpu_model
-			          = link_to gpu_model.elem_name, get_archive_comp_path(@list_year, @list_month, top50_gpu.id), :title => "Модель GPU"
-			      - top50_cops.each do |top50_cop|
+                    - if gpu_model.present?
+                      = link_to gpu_model.elem_name, get_archive_comp_path(@list_year, @list_month, top50_gpu.id), :title => "Модель GPU"
+                  - top50_cops.each do |top50_cop|
                     - if i > 0
                       = ", "
                     - i += 1
-			        - if top50_cop.cnt > 0 
-			          = "#{top50_cop.cnt}x "
-			        - cop_vendor = @l2_attrd_hash[top50_cop.id].find{|x| x.attr_id == @cop_vendor_attrid}
-			        - if cop_vendor
-				      = link_to cop_vendor.elem_name, get_archive_comp_attrd_path(@list_year, @list_month, cop_vendor.elem_id), :title => "Производитель ускорителя"
-				      = " "
+                    - if top50_cop.cnt > 0 
+                      = "#{top50_cop.cnt}x "
+                    - cop_vendor = @l2_attrd_hash[top50_cop.id].find{|x| x.attr_id == @cop_vendor_attrid}
+                    - if cop_vendor.present?
+                      = link_to cop_vendor.elem_name, get_archive_comp_attrd_path(@list_year, @list_month, cop_vendor.elem_id), :title => "Производитель ускорителя"
+                      = " "
                     - cop_model = @l2_attrd_hash[top50_cop.id].find{|x| x.attr_id == @cop_model_attrid}
-                    - if cop_model
-			          = link_to cop_model.elem_name, get_archive_comp_path(@list_year, @list_month, top50_cop.id), :title => "Модель ускорителя"
-		br			  
-		- com_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @com_net_attrid}
-		- serv_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @serv_net_attrid}
-		- tran_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @tran_net_attrid}
-		- if com_net
-		  = link_to com_net.elem_name, get_archive_attr_dict_path(@list_year, @list_month, com_net.attr_id, com_net.elem_id), :title => "Коммуникационная сеть"
-		- else
-		  = "нд"			 
-		= " / "
-		- if serv_net
-		  = link_to serv_net.elem_name, get_archive_attr_dict_path(@list_year, @list_month, serv_net.attr_id, serv_net.elem_id), :title => "Сервисная сеть"
-		- else
-		  = "нд"			  
-		= " / "
-		- if tran_net
-		  = link_to tran_net.elem_name, get_archive_attr_dict_path(@list_year, @list_month, tran_net.attr_id, tran_net.elem_id), :title => "Транспортная сеть"
-		- else
-		  = "нд"
-	  td class="col-xs-1" 
-		- rmax_record = @rmax_res.find_by(machine_id: top50_machine["id"])
-		- if rmax_record.present?
-		  - nmax_val = @nmax_attr_vals.find_by(obj_id: rmax_record.id)
-		  - if nmax_val.present?
-		    = content_tag :a, (rmax_record.result / @global_scale.scale).round(2), :title => "Максимальная производительность на тесте Linpack (Rmax). \nРазмер матрицы (Nmax): #{nmax_val.value.to_i}", :class => "whint"
-		  - else
-		    = (rmax_record.result / @global_scale.scale).round(2)
-		- rpeak_record = @mach_attrdb_hash[top50_machine["id"]].find{|x| x.attr_id == @rpeak_attrid}
-		- if rpeak_record
-		  br
-		  = (rpeak_record.value.to_f / @global_scale.scale).round(2) 
-	  td class="col-xs-1"
-		- top50_machine["vendor_ids"].each do |v_id|
-		  - vendor = Top50Vendor.find(v_id)
-		  = link_to vendor.name, get_archive_vendor_path(@list_year, @list_month, vendor), class: "css_class", style: "font-weight: bold", :title => "Участвующий разработчик"
-		  br
-  	    - app_area = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @app_area_attrid}
-		- if app_area
-		  br
-		  = link_to app_area.elem_name, get_archive_attr_dict_path(@list_year, @list_month, app_area.attr_id, app_area.elem_id), :class => "txt-ital", :title => "Область применения"
+                    - if cop_model.present?
+                      = link_to cop_model.elem_name, get_archive_comp_path(@list_year, @list_month, top50_cop.id), :title => "Модель ускорителя"
+        br              
+        - com_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @com_net_attrid}
+        - serv_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @serv_net_attrid}
+        - tran_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @tran_net_attrid}
+        - if com_net.present?
+          = link_to com_net.elem_name, get_archive_attr_dict_path(@list_year, @list_month, com_net.attr_id, com_net.elem_id), :title => "Коммуникационная сеть"
+        - else
+          = "нд"             
+        = " / "
+        - if serv_net.present?
+          = link_to serv_net.elem_name, get_archive_attr_dict_path(@list_year, @list_month, serv_net.attr_id, serv_net.elem_id), :title => "Сервисная сеть"
+        - else
+          = "нд"              
+        = " / "
+        - if tran_net.present?
+          = link_to tran_net.elem_name, get_archive_attr_dict_path(@list_year, @list_month, tran_net.attr_id, tran_net.elem_id), :title => "Транспортная сеть"
+        - else
+          = "нд"
+      td class="col-xs-1" 
+        - rmax_record = @rmax_res.find_by(machine_id: top50_machine["id"])
+        - if rmax_record.present?
+          - nmax_val = @nmax_attr_vals.find_by(obj_id: rmax_record.id)
+          - if nmax_val.present?
+            = content_tag :a, (rmax_record.result / @global_scale.scale).round(2), :title => "Максимальная производительность на тесте Linpack (Rmax). \nРазмер матрицы (Nmax): #{nmax_val.value.to_i}", :class => "whint"
+          - else
+            = (rmax_record.result / @global_scale.scale).round(2)
+        - rpeak_record = @mach_attrdb_hash[top50_machine["id"]].find{|x| x.attr_id == @rpeak_attrid}
+        - if rpeak_record.present?
+          br
+          = (rpeak_record.value.to_f / @global_scale.scale).round(2) 
+      td class="col-xs-1"
+        - top50_machine["vendor_ids"].each do |v_id|
+          - vendor = Top50Vendor.find(v_id)
+          = link_to vendor.name, get_archive_vendor_path(@list_year, @list_month, vendor), class: "css_class", style: "font-weight: bold", :title => "Участвующий разработчик"
+          br
+        - app_area = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @app_area_attrid}
+        - if app_area.present?
+          br
+          = link_to app_area.elem_name, get_archive_attr_dict_path(@list_year, @list_month, app_area.attr_id, app_area.elem_id), :class => "txt-ital", :title => "Область применения"
