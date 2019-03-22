@@ -5,9 +5,6 @@
 # drawing performance chart
 @draw_performance = (data, src_id, title, x_label, y_label, COLORS = d3.schemeSet1) ->
   for i in [0..data.length - 1]
-    #need for normal render, delete in prod
-    data[i].data.splice(23, 1)
-    #-------------------------
     data[i].color = i
     for j in [0..data[i].data.length - 1]
       s = data[i].data[j][0].split(".")
@@ -165,8 +162,8 @@
                 .filter(() -> +d3.select(this).attr("active"))
                 .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
 
-        add_legend_events(legend, svg, container, temp, add_line_chart, margin, width, height, x_label, false, false, COLORS)
-        add_axes(svg, container, data_to_draw, margin, width, height, x_label)
+        add_legend_events(legend, svg, container, temp, add_line_chart, margin, width, height, x_label, "Логарифм", false, false, COLORS)
+        add_axes(svg, container, data_to_draw, margin, width, height, x_label, "Логарифм")
         add_line_chart(svg, container, data_to_draw, margin, width, height, COLORS)       
     )
 
@@ -292,12 +289,8 @@
 
 
 # drawing area chart
-@draw_area = (data, data_per, src_id, title, x_label, y_label) ->
+@draw_area = (data, data_per, src_id, title, x_label, y_label, COLORS = d3.schemeSet1) ->
   for i in [0..data.length - 1]
-    #need for normal render, delete in prod
-    data[i].data.splice(23, 1)
-    data_per[i].data.splice(23, 1)
-    #-------------------------
     data[i].color = i
     data_per[i].color = i
     for j in [0..data[i].data.length - 1]
@@ -336,17 +329,33 @@
               .style("text-align", "center")
               .style("float", "center")
 
-    legend = add_legend(container, data)
+    legend = add_legend(container, data, COLORS)
 
     # adding view control buttons
     buttons = container.append("g").attr("id", "buttons")
+    log_button = buttons.append("div")
+              .text("log")
+              .attr("class", "button")
+              .style("background", "gray")
+              .style("float", "right")
+              .attr("name", "type")
+              .attr("title", "логарифмическая шкала производительности процессоров")
+              .property("checked", "false")
+    per_part_bar_button = buttons.append("div")
+              .text("3rd bar")
+              .attr("class", "button")
+              .style("background", "gray")
+              .style("float", "right")
+              .attr("name", "type")
+              .attr("title", "производительность процессоров")
+              .property("checked", "false")
     per_bar_button = buttons.append("div")
               .text("2nd bar")
               .attr("class", "button")
               .style("background", "gray")
               .style("float", "right")
               .attr("name", "type")
-              .attr("title", "доля по производительности")
+              .attr("title", "доля производительности")
               .property("checked", "false")
     bar_button = buttons.append("div")
               .text("1st bar")
@@ -368,7 +377,7 @@
     svg = container.append("svg").attr("style", "width:100%; height:" + height + "px").attr("id", "svg_" + src_id)
 
     # function for multiple pies via 1 constructor
-    add_pies = (svg, container, data, margin, width, height, measure = "Количество систем") ->
+    add_pies = (svg, container, data, margin, width, height, colors = d3.schemeSet1, measure = y_label) ->
       temp_per = []
       data.forEach((elem) ->
         data_per.forEach((elem_per) ->
@@ -377,8 +386,8 @@
         )
       )
       # making pies
-      zoom_func1 = add_pie_chart(svg, container, data, {"top": 10, "bottom": 80, "right": 10 + width / 2, "left": 80}, width, height)
-      zoom_func2 = add_pie_chart(svg, container, temp_per, {"top": 10, "bottom": 80, "right": 10, "left": 80 + width / 2}, width, height, d3.schemeSet1, "Производительность, ПФлоп/с")
+      zoom_func1 = add_pie_chart(svg, container, data, {"top": 10, "bottom": 80, "right": 10 + width / 2, "left": 80}, width, height, COLORS, measure)
+      zoom_func2 = add_pie_chart(svg, container, temp_per, {"top": 10, "bottom": 80, "right": 10, "left": 80 + width / 2}, width, height, COLORS, "Производительность, ПФлоп/с")
       # making total zoom function
       zoom_func = () ->
         zoom_func1()
@@ -390,17 +399,17 @@
 
       svg.call(zoom) 
 
-    add_legend_events(legend, svg, container, data, add_pies, margin, width, height, x_label, y_label, false, true)
+    add_legend_events(legend, svg, container, data, add_pies, margin, width, height, x_label, y_label, false, true, COLORS)
     add_pies(svg, container, data, {"top": 10, "bottom": 80, "right": 10 + width / 2, "left": 80}, width, height)
 
     # table control processing
     table_control = d3.selectAll("g").filter(() -> d3.select(this).attr("id") == "table_control_" + src_id)
-    mode = [true, false]
+    mode = [true, false, false]
     table = d3.selectAll("table").filter(() -> d3.select(this).attr("id") == "table_" + src_id)
     table_control.selectAll("div").filter(() -> d3.select(this).attr("id") == "0")
                 .property("checked", true)
                 .each(() -> console.log(d3.select(this).property("checked")))
-    table_control.selectAll("div").filter(() -> d3.select(this).attr("id") == "1")
+    table_control.selectAll("div").filter(() -> d3.select(this).attr("id") != "0")
                 .property("checked", false)
                 .each(() -> console.log(d3.select(this).property("checked")))
 
@@ -425,8 +434,12 @@
           temp[i].name = x.name
           temp[i].color = x.color
           temp[i].data = []
-          for y in x.data
-            temp[i].data.push([y[0], y[1]])
+          for y, j in x.data
+            sum = 100
+            if d3.select(this).text() == "2nd bar" || d3.select(this).text() == "1st bar"
+              sum = 0
+              required_data.forEach((elem) -> sum += elem.data[j][1])
+            temp[i].data.push([y[0], y[1] * 100 / sum])
 
         d3.select(this)
           .transition()
@@ -452,14 +465,21 @@
           for j in [0..data_to_draw.length - 1]
             bar_data[0].data[i][1] += data_to_draw[j].data[i][1]
 
-        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label, true)
-        add_axes(svg, container, bar_data, margin, width, height, x_label, y_label)
-        add_bar_chart(svg, container, data_to_draw, margin, width, height)
+        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label, true, false, COLORS)
+        if d3.select(this).text() == "3rd bar"
+          add_axes(svg, container, bar_data, margin, width, height, x_label, "Производительность, ПФлоп/с")
+        else if d3.select(this).text() == "2nd bar"
+          add_axes(svg, container, bar_data, margin, width, height, x_label, "Доля производительности")
+        else
+          add_axes(svg, container, bar_data, margin, width, height, x_label, y_label)
+        add_bar_chart(svg, container, data_to_draw, margin, width, height, COLORS)
 
     # view control buttons actions defining
     bar_button.on("click", bar_button_action)
 
     per_bar_button.on("click", bar_button_action)
+
+    per_part_bar_button.on("click", bar_button_action)
 
     pie_button.on("click", () ->
       buttons.selectAll("div[name='type']").each(() ->
@@ -498,11 +518,58 @@
                 .filter(() -> +d3.select(this).attr("active"))
                 .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
 
-        add_legend_events(legend, svg, container, temp, add_pies, margin, width, height, x_label, y_label, false, true)
+        add_legend_events(legend, svg, container, temp, add_pies, margin, width, height, x_label, y_label, false, true, COLORS)
         add_pies(svg, container, data_to_draw, {"top": 10, "bottom": 80, "right": 10 + width / 2, "left": 80}, width, height)
     )
 
+    log_button.on("click", () ->
+      buttons.selectAll("div[name='type']").each(() ->
+        if d3.select(this).property("checked")
+          d3.select(this)
+            .transition()
+            .ease(d3.easeLinear)
+            .duration(500)
+            .style("background", "gray")
+      )
+      if d3.select(this).property("checked")
+        temp = []
+        for x, i in data_per
+          temp.push({})
+          temp[i].name = x.name
+          temp[i].color = x.color
+          temp[i].data = []
+          for y in x.data
+            temp[i].data.push([y[0], y[1]])
+
+        d3.select(this)
+          .transition()
+          .ease(d3.easeLinear)
+          .duration(500)
+          .style("background", "#6699CC")
+
+        for x in temp
+          x.data = x.data.map((d) -> [d[0], Math.log(1 + d[1])])
+
+        console.log(temp)
+        svg.selectAll("g")
+            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+            .transition()
+            .duration(500)
+            .style("opacity", "0")
+            .remove()
+
+        data_to_draw = []
+        legend.selectAll("div")
+                .filter(() -> +d3.select(this).attr("active"))
+                .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
+
+        add_legend_events(legend, svg, container, temp, add_line_chart, margin, width, height, x_label, "Логарифм", false, false, COLORS)
+        add_axes(svg, container, data_to_draw, margin, width, height, x_label, "Логарифм")
+        add_line_chart(svg, container, data_to_draw, margin, width, height, COLORS)
+    )
+
     table_control.selectAll("div").on("click", (d, i) ->
+      console.log("div click")
       d3.select(this).property("checked", !d3.select(this).property("checked"))
       mode[i] = d3.select(this).property("checked")
       if d3.select(this).property("checked")
@@ -520,21 +587,29 @@
     )
 
     table_control.on("click", () ->
+      console.log("control click")
       table.selectAll("td")
             .filter(() -> d3.select(this).attr("class") != "fit")
             .each(() ->
               elem = d3.select(this)
               i = +elem.attr("i")
               j = +elem.attr("j")
-              # DELETE WITH NEW DATA
-              i--;
-              #---------------------
+
+              sum_cnt = 0
+              sum_per = 0
+              data.forEach((elem) -> sum_cnt += elem.data[i - 1][1])
+              data_per.forEach((elem) -> sum_per += elem.data[i - 1][1])
+              str_cnt = data[j].data[i - 1][1]
+              str_per = data_per[j].data[i - 1][1]
+              if mode[2]
+                str_cnt = Math.floor(str_cnt * 10000 / sum_cnt) / 100 + "%"
+                str_per = Math.floor(str_per * 10000 / sum_per) / 100 + "%"
               if mode[0] && mode[1]
-                elem.text(data[j].data[i - 1][1] + " / " + data_per[j].data[i - 1][1])
+                elem.text(str_cnt + " / " + str_per)
               else if mode[1]
-                elem.text(data_per[j].data[i - 1][1])
+                elem.text(str_per)
               else if mode[0]
-                elem.text(data[j].data[i - 1][1])
+                elem.text(str_cnt)
               else
                 elem.text("-")
             )
@@ -554,9 +629,6 @@
 # drawing area chart
 @draw_type = (data, src_id, title, x_label, y_label, COLORS = d3.schemeSet1) ->
   for i in [0..data.length - 1]
-    #need for normal render, delete in prod
-    data[i].data.splice(23, 1)
-    #-------------------------
     data[i].color = i
     for j in [0..data[i].data.length - 1]
       s = data[i].data[j][0].split(".")
@@ -620,9 +692,6 @@
 # drawing vendors chart
 @draw_vendors = (data, src_id, title, x_label, y_label, COLORS = d3.schemeSet1) ->
   for i in [0..data.length - 1]
-    #need for normal render, delete in prod
-    data[i].data.splice(23, 1)
-    #-------------------------
     data[i].color = i
     for j in [0..data[i].data.length - 1]
       s = data[i].data[j][0].split(".")
@@ -1247,7 +1316,6 @@ add_bar_chart = (svg, container, data, margin, width, height, colors = d3.scheme
   xScale = d3.scaleTime()
             .domain([data[0].data[0][0] - months, right_date.setTime(right_date.getTime() + months)])
             .range([margin.left, width - margin.right])
-  console.log(xScale.domain())
 
   stack = d3.stack()
             .keys([0..data.length - 1])
@@ -1331,7 +1399,7 @@ add_pie_chart = (svg, container, data, margin, width, height, colors = d3.scheme
 
   pie = d3.pie().value((d) -> d.data[d.data.length - 1][1])
   loc_colors = data.map((d) -> d.color)
-  outer_radius = Math.min(width - margin.left - margin.right, height - margin.top - margin.bottom) * 0.3
+  outer_radius = Math.min(width - margin.left - margin.right, height - margin.top - margin.bottom) * 0.4
   arc = d3.arc().innerRadius(0.01).outerRadius(outer_radius)
   big_arc = d3.arc().innerRadius(outer_radius / 3).outerRadius(outer_radius * 4 / 3).padAngle(0.04)
   label_arc = d3.arc().innerRadius(0.6 * outer_radius).outerRadius(0.6 * outer_radius)
