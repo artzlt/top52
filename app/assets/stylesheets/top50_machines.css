@@ -41,6 +41,7 @@ a.arr-down {
 
 .th-thin{
   font-weight: normal;
+  white-space: nowrap;
 }
 
 .txt-ital{
@@ -52,4 +53,7 @@ a.arr-down {
 .table th.fit {
     white-space: nowrap;
     width: 1%;
+}
+tr.tr-new-m {
+  background-color: #FFFF99
 }

@@ -1,4 +1,4 @@
-class Top50RelationTypesController < ApplicationController
+class Top50RelationTypesController < Top50BaseController
 
   def index
     @top50_relation_types = Top50RelationType.all
@@ -14,8 +14,7 @@ class Top50RelationTypesController < ApplicationController
 
   def create
     @top50_relation_type = Top50RelationType.new(top50relation_type_params)
-    @top50_relation_type[:is_valid] = 0
-    @top50_relation_type[:comment] = "Added type"
+    @top50_relation_type[:comment] = "Added rel type"
     if @top50_relation_type.save
       redirect_to :top50_relation_types
     else
@@ -39,8 +38,6 @@ class Top50RelationTypesController < ApplicationController
     redirect_to :top50_relation_types
   end
 
-
-
   def default
     Top50RelationType.default!
   end
@@ -48,6 +45,6 @@ class Top50RelationTypesController < ApplicationController
   private
 
   def top50relation_type_params
-    params.require(:top50_relation_type).permit(:name, :name_eng)
+    params.require(:top50_relation_type).permit(:name, :name_eng, :is_valid)
   end
 end

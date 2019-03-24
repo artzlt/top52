@@ -1,0 +1,13 @@
+h3 = "Создание сертификата участника Top50"
+br
+h4 = "Выберите редакцию и присужденное системе место"
+br
+= bootstrap_form_tag url: '/certificates/page2' do |f|
+  = f.select :reliz, options_for_select(@n_relizes.sort.reverse.map { |n| [n, n] }), label: "Номер редакции: "
+  br
+  = f.select :position, options_for_select(@n_places.map { |n| [n, n] }), label: "Место в топе: "
+  br
+  = f.check_box :if_csv, label: "Использовать сохраненные данные: "
+  br
+  = f.submit 'Получить данные'
+  br

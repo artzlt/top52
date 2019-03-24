@@ -1,4 +1,4 @@
-class Top50MachineTypesController < ApplicationController
+class Top50MachineTypesController < Top50BaseController
 
   def index
     @top50_machine_types = Top50MachineType.all
@@ -14,10 +14,9 @@ class Top50MachineTypesController < ApplicationController
 
   def create
     @top50_machine_type = Top50MachineType.new(top50machine_type_params)
-    @top50_machine_type[:is_valid] = 0
     @top50_machine_type[:comment] = "Added type"
     if @top50_machine_type.save
-      redirect_to :top50_machine_types
+      redirect_to :back
     else
       render :new
     end
@@ -39,8 +38,6 @@ class Top50MachineTypesController < ApplicationController
     redirect_to :top50_machine_types
   end
 
-
-
   def default
     Top50MachineType.default!
   end
@@ -48,6 +45,6 @@ class Top50MachineTypesController < ApplicationController
   private
 
   def top50machine_type_params
-    params.require(:top50_machine_type).permit(:name, :name_eng, :parent_id)
+    params.require(:top50_machine_type).permit(:name, :name_eng, :parent_id, :is_valid)
   end
 end

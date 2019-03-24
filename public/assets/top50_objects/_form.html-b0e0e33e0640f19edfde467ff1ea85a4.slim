@@ -1,7 +1,0 @@
-div class="row"
-  div class="col-xs-8"
-    = bootstrap_form_for @top50_object do |f|
-      = f.text_field :id, disabled: true
-      = f.collection_select :type_id, Top50ObjectType.all, :id, :name
-      = f.form_group do
-        = f.submit t("buttons.save", default: "Save")

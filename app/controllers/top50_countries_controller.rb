@@ -1,2 +1,2 @@
-class Top50CountriesController < ApplicationController
+class Top50CountriesController < Top50BaseController
 end

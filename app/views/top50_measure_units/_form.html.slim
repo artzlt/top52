@@ -4,5 +4,6 @@ div class="row"
       = f.text_field :name
       = f.text_field :name_eng
       = f.select :asc_order, [['По возрастанию', 1], ['По убыванию', 0]], label: "Порядок сравнения"
+      = f.collection_select :is_valid, Top50ValidType.all, :id, :name, {include_blank: true, label: "Статус"}
       = f.form_group do
         = f.submit t("buttons.save", default: "Save")

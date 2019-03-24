@@ -1,0 +1,183 @@
+﻿div class="page-header"
+  h2 = format('Редактирование сведений о системе (ID %d)', @top50_machine.id)
+
+= form_tag action: "pre_save", method: :post do
+  table border="0" cellspacing="2" cellpadding="0"
+    tr
+      td class="col-4"
+        = "Идентификатор: "
+      td = text_field_tag 'id', @top50_machine.id, disabled: true
+    tr
+      td class="col-4"
+        = "Является апгрейдом для: "
+      td = select_tag 'machine[prev_machine_ids]', options_from_collection_for_select(Top50Machine.all, :id, :id, @prev_machine_ids), {include_blank: true, multiple: true}
+    tr
+      td class="col-4"
+        = "Название: "
+      td = text_field_tag 'machine[name]', @top50_machine.name
+    tr
+      td = "Название (англ.): "
+      td = text_field_tag 'machine[name_eng]', @top50_machine.name_eng
+    tr
+      td = "Тип системы: "
+      td = select_tag 'machine[type_id]', options_from_collection_for_select(Top50MachineType.all, :id, :name, @top50_machine.type_id), include_blank: true
+    tr
+      td = "Веб-сайт: "
+      td = text_field_tag 'machine[website]', @top50_machine.website
+    tr
+      td = "Место установки: "
+      td = select_tag 'machine[org_id]', options_from_collection_for_select(Top50Organization.all, :id, :name, @top50_machine.org_id), include_blank: true
+    tr
+      td = "Разработчики: "
+      td = select_tag 'machine[vendor_ids]', options_from_collection_for_select(Top50Vendor.all, :id, :name, @top50_machine.vendor_ids), multiple: true
+    tr
+      td class="col-4"
+        = "Дата начала действия системы: "
+      td = date_field_tag 'machine[start_date]', @top50_machine.start_date.present? ? @top50_machine.start_date : Date.today, required: true
+    tr
+      td class="col-4" 
+        = "Дата окончания действия системы: "
+      td = date_field_tag 'machine[end_date]', @top50_machine.end_date
+    tr
+      td = "Статус системы: "
+      td = select_tag 'machine[is_valid]', options_from_collection_for_select(Top50ValidType.all, :id, :name, @top50_machine.is_valid.present? ? @top50_machine.is_valid : 2)
+    tr
+      td class="col-4"
+        = "Комментарий (для модератора): "
+      td = text_field_tag 'machine[comment]', @top50_machine.comment
+  br
+  h4 = "Контактное лицо"
+  = 'ID контактного лица: '
+  = text_field_tag 'machine[contact_id]', @top50_machine.contact_id, disabled: true
+  br
+  - if @contact.present?
+    table border="0" cellspacing="2" cellpadding="0"
+      tr
+        td
+          = "Фамилия: "
+          = text_field_tag 'contact[surname]', @contact.surname
+        td
+          = "Имя: "
+          = text_field_tag 'contact[name]', @contact.name
+        td
+          = "Отчество: "
+          = text_field_tag 'contact[patronymic]', @contact.patronymic
+      tr
+        td
+          = "Имя (англ.): "
+          = text_field_tag 'contact[name_eng]', @contact.name_eng
+        td 
+          = "Фамилия (англ.): "
+          = text_field_tag 'contact[surname_eng]', @contact.surname_eng
+        td
+          = "Отчество (англ.): "
+          = text_field_tag 'contact[patronymic_eng]', @contact.patronymic_eng
+      tr
+        td
+          = "Телефон: "
+          = text_field_tag 'contact[phone]', @contact.phone
+        td
+          = "Email: "
+          = text_field_tag 'contact[email]', @contact.email
+        td
+          = "Дополнительная информация: "
+          = text_field_tag 'contact[extra_info]', @contact.extra_info, multiline: true
+    table border="0" cellspacing="2" cellpadding="0"
+      tr
+        td = "Статус проверки (0/1): "
+        td = number_field_tag 'contact[is_valid]', @contact.is_valid.present? ? @contact.is_valid : 0, required: true, min: 0, max: 1
+      tr
+        td = "Комментарий (для модератора): "
+        td = text_field_tag 'contact[comment]', @contact.comment
+
+    br
+    = submit_tag "Удалить контактное лицо", data: { confirm: 'Вы уверены?' }
+  - else
+    = submit_tag "Добавить контактное лицо"
+
+  br
+  br
+  h4 = "Архитектура системы"
+  - if @nodes.present?
+    - node_fake_id_counter = 0
+    - comp_fake_id_counter = 0
+    - @nodes.each_with_index do |top50_node, i|
+      - if not (top50_node['existing'] == 1)
+        - node_fake_id_counter += 1
+      - top50_cpus = @comps.select { |x| x['type_id'] == @cpu_typeid and top50_node['existing'] == 1 ? x['node_id'] == top50_node['id'] : x['fake_node_id'] == node_fake_id_counter }
+      - top50_gpus = @comps.select { |x| x['type_id'] == @gpu_typeid and top50_node['existing'] == 1 ? x['node_id'] == top50_node['id'] : x['fake_node_id'] == node_fake_id_counter }
+      - top50_cops = @comps.select { |x| x['type_id'] == @cop_typeid and top50_node['existing'] == 1 ? x['node_id'] == top50_node['id'] : x['fake_node_id'] == node_fake_id_counter }    
+      = format("Группа узлов %d:", i + 1)
+      p
+        = "  Количество узлов: "
+        = number_field_tag format('node_cnt[%d]', top50_node['rel_id']), top50_node['cnt']
+      p
+        - top50_cpus.each_with_index do |top50_cpu, i|
+          - if not (top50_cpu['existing'] == 1)
+            - comp_fake_id_counter += 1
+          - if i > 0
+            = ", "
+          = "    Количество CPU: "
+          = number_field_tag format('cpu_cnt[%d]', top50_cpu['rel_id']), top50_cpu['cnt'], min: 1
+          br
+          - cpu_vendor = @comps_x_attrd.find{ |x| x['attr_id'] == @cpu_vendor_attrid and top50_cpu['existing'] == 1 ? x['obj_id'] == top50_cpu['id'] : x['fake_obj_id'] == comp_fake_id_counter }
+          - if cpu_vendor
+            = "    Производитель CPU: "
+            = cpu_vendor['elem_name']
+            br
+          - cpu_model = @comps_x_attrd.find{ |x| x['attr_id'] == @cpu_model_attrid and top50_cpu['existing'] == 1 ? x['obj_id'] == top50_cpu['id'] : x['fake_obj_id'] == comp_fake_id_counter }
+          - if cpu_model
+            = "Модель CPU: "
+            = cpu_model['elem_name']
+            br
+          - ram_size_val = @nodes_x_attrdb.find{ |x| x['attr_id'] == @ram_size_attrid and top50_node['existing'] == 1 ? x['obj_id'] == top50_node['id'] : x['fake_obj_id'] == node_fake_id_counter }
+          - if ram_size_val
+            = "    Объем ОЗУ (ГБ): "
+            = number_field_tag format('ram_size[%d]', top50_node['id']), ram_size_val['value'].to_f, min: 0, step: :any
+            br
+      - if top50_gpus.any? or top50_cops.any?
+        p
+          = "Ускорители: "
+          br
+          p 
+            - top50_gpus.each_with_index do |top50_gpu, i|
+              - if not (top50_gpu['existing'] == 1)
+                - comp_fake_id_counter += 1
+              - if i > 0
+                = ", "
+              = "    Количество GPU: "
+              = number_field_tag format('gpu_cnt[%d]', top50_gpu['rel_id']), top50_gpu['cnt']
+              br
+              - gpu_vendor = @comps_x_attrd.find{ |x| x['attr_id'] == @gpu_vendor_attrid and top50_gpu['existing'] == 1 ? x['obj_id'] == top50_gpu['id'] : x['fake_obj_id'] == comp_fake_id_counter }
+              - if gpu_vendor
+                = "    Производитель GPU: "
+                = gpu_vendor['elem_name']
+                br
+              - gpu_model = @comps_x_attrd.find{ |x| x['attr_id'] == @gpu_model_attrid and top50_gpu['existing'] == 1 ? x['obj_id'] == top50_gpu['id'] : x['fake_obj_id'] == comp_fake_id_counter }
+              - if gpu_model
+                = "Модель GPU: "
+                = gpu_model['elem_name']
+                br
+            - top50_cops.each_with_index do |top50_cop, i|
+              - if not (top50_cop['existing'] == 1)
+                - comp_fake_id_counter += 1
+              - if i > 0
+                = ", "
+              = "    Количество ускорителей: "
+              = number_field_tag format('cop_cnt[%d]', top50_cop['rel_id']), top50_cop['cnt']
+              br
+              - cop_vendor = @comps_x_attrd.find{ |x| x['attr_id'] == @cop_vendor_attrid and top50_cop['existing'] == 1 ? x['obj_id'] == top50_cop['id'] : x['fake_obj_id'] == comp_fake_id_counter }
+              - if cop_vendor
+                = "    Производитель ускорителя: "
+                = cop_vendor['elem_name']
+                br
+              - cop_model = @comps_x_attrd.find{ |x| x['attr_id'] == @cop_model_attrid and top50_cop['existing'] == 1 ? x['obj_id'] == top50_cop['id'] : x['fake_obj_id'] == comp_fake_id_counter }
+              - if cop_model
+                  ="Модель ускорителя"
+                  = cop_model['elem_name']
+                  br
+  = submit_tag "Добавить группу узлов"
+  br
+  br
+
+  = submit_tag "Сохранить", data: { confirm: 'Вы уверены?', act_type: 'save' }

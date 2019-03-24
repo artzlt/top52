@@ -10,20 +10,27 @@ div class="panel panel-default"
       tr
         th = "ID"
         th = "Type"
-		th = "CPU Model"
+        th Status
+        th = "CPU Model"
         th
       - @top50_objects.each do |top50_object|
         tr
-          td class="col-xs-3"
+          td class="col-3"
             = link_to top50_object.id, top50_object_path(top50_object)
-          td class="col-xs-7" = top50_object.top50_object_type.name
-		  td
-		    - cpu_model = @cpu_model_attr_vals.find_by(obj_id: top50_object)
-		    - gpu_model = @gpu_model_attr_vals.find_by(obj_id: top50_object)
-			- if cpu_model.present?
-		      = link_to cpu_model.top50_dictionary_elem.name, top50_dictionary_elem_path(cpu_model.dict_elem_id)
-			- if gpu_model.present?
-		      = link_to gpu_model.top50_dictionary_elem.name, top50_dictionary_elem_path(gpu_model.dict_elem_id)
+          td class="col-7" = top50_object.top50_object_type.name
+          td class="col-5"
+            = top50_object.is_valid
+            - val = Top50ValidType.where(id: top50_object.is_valid).first
+            - if val.present?
+              = format(" (%s)", val.name)
+
+          td
+            - cpu_model = @cpu_model_attr_vals.find_by(obj_id: top50_object)
+            - gpu_model = @gpu_model_attr_vals.find_by(obj_id: top50_object)
+            - if cpu_model.present?
+              = link_to cpu_model.top50_dictionary_elem.name, top50_dictionary_elem_path(cpu_model.dict_elem_id)
+            - if gpu_model.present?
+              = link_to gpu_model.top50_dictionary_elem.name, top50_dictionary_elem_path(gpu_model.dict_elem_id)
           td class="btn-group"
             = link_to t("actions.edit"), [:edit, top50_object], class: "btn btn-default btn-sm"
             button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"

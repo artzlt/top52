@@ -1,4 +1,4 @@
-class Top50ObjectTypesController < ApplicationController
+class Top50ObjectTypesController < Top50BaseController
 
   def index
     @top50_object_types = Top50ObjectType.all
@@ -14,7 +14,6 @@ class Top50ObjectTypesController < ApplicationController
 
   def create
     @top50_object_type = Top50ObjectType.new(top50object_type_params)
-    @top50_object_type[:is_valid] = 0
     @top50_object_type[:comment] = "Added type"
     if @top50_object_type.save
       redirect_to :top50_object_types
@@ -39,8 +38,6 @@ class Top50ObjectTypesController < ApplicationController
     redirect_to :top50_object_types
   end
 
-
-
   def default
     Top50ObjectType.default!
   end
@@ -48,6 +45,6 @@ class Top50ObjectTypesController < ApplicationController
   private
 
   def top50object_type_params
-    params.require(:top50_object_type).permit(:name, :name_eng, :parent_id)
+    params.require(:top50_object_type).permit(:name, :name_eng, :parent_id, :is_valid)
   end
 end

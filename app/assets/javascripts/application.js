@@ -18,7 +18,9 @@
 //= require jquery
 //= require jquery_ujs
 //= require jquery-ui
+//= require select2
 //= require highcharts
 //= require Chart.bundle
 //= require chartkick
+//= require ckeditor/init
 //= require_tree .

@@ -60,6 +60,7 @@ Octoshell::Application.configure do
   # Precompile additional assets.
   # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
   # config.assets.precompile += %w( search.js )
+  config.assets.precompile += %w( ckeditor/*)
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
@@ -78,9 +79,9 @@ Octoshell::Application.configure do
   # Use default logging formatter so that PID and timestamp are not suppressed.
   config.log_formatter = ::Logger::Formatter.new
 
-  config.base_host = "users.parallel.ru"
-  config.action_mailer.default_options = { from: "Octoshell Notifier <info@users.parallel.ru>" }
-  config.action_mailer.default_url_options = { host: "users.parallel.ru" }
+  config.base_host = "top50.parallel.ru"
+  config.action_mailer.default_options = { from: "Octoshell Notifier <no-reply@top50.parallel.ru>" }
+  config.action_mailer.default_url_options = { host: "top50.parallel.ru" }
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {

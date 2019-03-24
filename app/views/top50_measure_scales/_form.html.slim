@@ -1,0 +1,10 @@
+div class="row"
+  div class="col-8"
+    = bootstrap_form_for @top50_measure_scale do |f|
+      = f.text_field :name, label: "Название", required: true
+      = f.text_field :name_eng, label: "Name", required: true
+      = f.number_field :scale, min: 0, required: true, step: :any
+      = f.collection_select :measure_unit_id, Top50MeasureUnit.all, :id, :name, required: true
+      = f.collection_select :is_valid, Top50ValidType.all, :id, :name, {include_blank: true, label: "Статус"}
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

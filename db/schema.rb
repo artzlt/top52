@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180605040525) do
+ActiveRecord::Schema.define(version: 20181016090412) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -926,6 +926,44 @@ ActiveRecord::Schema.define(version: 20180605040525) do
     t.datetime "updated_at"
   end
 
+  create_table "newsfeed_imports", force: true do |t|
+    t.text     "title"
+    t.string   "initial_title"
+    t.text     "link"
+    t.string   "tags",                             array: true
+    t.date     "date_created"
+    t.boolean  "is_ignoring",      default: false
+    t.boolean  "is_last_imported", default: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "newsfeed_locals", force: true do |t|
+    t.string   "title"
+    t.text     "announce"
+    t.text     "body"
+    t.text     "link"
+    t.date     "date_created"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "header_weight"
+    t.integer  "footer_weight"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "newsfeed_settings", force: true do |t|
+    t.integer  "number_of_imported_news_shown", default: 20
+    t.string   "imported_news_source"
+    t.integer  "number_of_local_news_shown",    default: 2
+    t.string   "cron_schedule"
+    t.integer  "cron_value"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "profiles", force: true do |t|
     t.integer "user_id",                              null: false
     t.string  "first_name"
@@ -1259,7 +1297,7 @@ ActiveRecord::Schema.define(version: 20180605040525) do
     t.datetime "updated_at"
   end
 
-  create_table "top50_attribute_val_dbvals", id: false, force: true do |t|
+  create_table "top50_attribute_val_dbvals", force: true do |t|
     t.integer  "attr_id"
     t.integer  "obj_id"
     t.binary   "value"
@@ -1269,7 +1307,7 @@ ActiveRecord::Schema.define(version: 20180605040525) do
     t.datetime "updated_at"
   end
 
-  create_table "top50_attribute_val_dicts", id: false, force: true do |t|
+  create_table "top50_attribute_val_dicts", force: true do |t|
     t.integer  "attr_id"
     t.integer  "obj_id"
     t.integer  "dict_elem_id"
@@ -1391,7 +1429,37 @@ ActiveRecord::Schema.define(version: 20180605040525) do
     t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "vendor_ids", default: [], array: true
+    t.integer  "vendor_ids",        default: [], array: true
+    t.date     "installation_date"
+  end
+
+  create_table "top50_machines_backup20180904", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
+  end
+
+  create_table "top50_measure_scales", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.float    "scale"
+    t.integer  "measure_unit_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   create_table "top50_measure_units", force: true do |t|
@@ -1470,6 +1538,14 @@ ActiveRecord::Schema.define(version: 20180605040525) do
     t.integer  "sec_obj_qty"
     t.integer  "type_id"
     t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "top50_valid_types", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
     t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"

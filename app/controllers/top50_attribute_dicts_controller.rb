@@ -1,4 +1,4 @@
-class Top50AttributeDictsController < ApplicationController
+class Top50AttributeDictsController < Top50BaseController
 
   def index
     @top50_attributes_dict = Top50AttributeDict.includes(:top50_attribute).all
@@ -45,8 +45,6 @@ class Top50AttributeDictsController < ApplicationController
     redirect_to :top50_attribute_dicts
   end
 
-
-
   def default
     Top50AttributeDict.default!
   end
@@ -54,7 +52,7 @@ class Top50AttributeDictsController < ApplicationController
   private
 
   def top50_attribute_dict_params
-    params.require(:top50_attribute_dict).permit(:top50_attribute_dict => [:dict_id], :top50_attribute => [:name, :name_eng, :attr_type])
+    params.require(:top50_attribute_dict).permit(:top50_attribute_dict => [:dict_id], :top50_attribute => [:name, :name_eng, :attr_type, :is_valid])
   end
 
 end

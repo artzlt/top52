@@ -1,4 +1,4 @@
-class Top50MeasureUnitsController < ApplicationController
+class Top50MeasureUnitsController < Top50BaseController
 
   def index
     @top50_measure_units = Top50MeasureUnit.all
@@ -14,8 +14,7 @@ class Top50MeasureUnitsController < ApplicationController
 
   def create
     @top50_measure_unit = Top50MeasureUnit.new(top50measure_unit_params)
-    @top50_measure_unit[:is_valid] = 0
-    @top50_measure_unit[:comment] = "Added type"
+    @top50_measure_unit[:comment] = "Added measure unit"
     if @top50_measure_unit.save
       redirect_to :top50_measure_units
     else
@@ -39,8 +38,6 @@ class Top50MeasureUnitsController < ApplicationController
     redirect_to :top50_measure_units
   end
 
-
-
   def default
     Top50MeasureUnit.default!
   end
@@ -48,6 +45,6 @@ class Top50MeasureUnitsController < ApplicationController
   private
 
   def top50measure_unit_params
-    params.require(:top50_measure_unit).permit(:name, :name_eng, :asc_order)
+    params.require(:top50_measure_unit).permit(:name, :name_eng, :asc_order, :is_valid)
   end
 end

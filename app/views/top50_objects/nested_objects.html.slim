@@ -12,10 +12,17 @@ div class="panel panel-default"
         th = "Тип объекта"
         th = "Связь"
         th = "Количество"
+        th Статус связи
       - @top50_object.top50_relations.each do |top50_relation|
         tr
-          td class="col-xs-3" = top50_relation.top50_object.id
-          td class="col-xs-4" = top50_relation.top50_object.top50_object_type.name
-          td class="col-xs-4" = top50_relation.top50_relation_type.name
-          td class="col-xs-3" = top50_relation.sec_obj_qty
+          td class="col-3" = top50_relation.top50_object.id
+          td class="col-4" = top50_relation.top50_object.top50_object_type.name
+          td class="col-4" = top50_relation.top50_relation_type.name
+          td class="col-3" = top50_relation.sec_obj_qty
+          td class="col-4"
+            = top50_relation.is_valid
+            - val = Top50ValidType.where(id: top50_relation.is_valid).first
+            - if val.present?
+              = format(" (%s)", val.name)
+
 

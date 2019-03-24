@@ -1,0 +1,11 @@
+h3 = "Добавление заявки в Top50"
+h4 = "Выберите тип заявки"
+br
+
+div class="col-8" id="form-new_machine"
+  = bootstrap_form_tag url: top50_machines_app_form_new_post_path do |f|
+    = f.radio_button :app_type, :new, label: "Новая вычислительная система", checked: get_cur(:app_type) == "new"
+    = f.radio_button :app_type, :upgrade, label: "Обновить данные по ранее участвующей в рейтинге системе", checked: get_cur(:app_type) == "upgrade"
+    br
+    br
+    = f.submit "Далее"

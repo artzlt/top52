@@ -15,6 +15,7 @@ html
       window.locale = "#{I18n.locale}"
   body
     div id="top" align="center"
+<<<<<<< HEAD
 	  table width="740" border="0" cellspacing="0" cellpadding="0"
 	    td id="logo" 
 	      = image_tag "logo.gif", :alt=>"Algo500 | Рейтинги", :width=>"242", :height=>"220", :border=>"0"
@@ -35,19 +36,19 @@ html
                 a class="navbar-brand" href="/top50_stats" Статистика
           ul class="nav navbar-nav"
             a class="navbar-brand" href="/auth/session/new" Войти
-          ul class="nav navbar-nav"
-            a class="navbar-brand" href="/certificates/page1" Создать сертификат
-
-          /!
+          - if current_user && current_user.may_edit_top50?
             ul class="nav navbar-nav"
-              a class="navbar-brand" href="/top50_machines/new" Подать заявку
+              a class="navbar-brand" href="/auth/session" Выйти (#{current_user.email})
 
     div class="container"
-	  table border="0" cellspacing="0" cellpadding="0"
-		tr	
-		  td id="mainBlock" rowspan="2"
+      table border="0" cellspacing="0" cellpadding="0"
+        tr
+          td id="mainBlock" rowspan="2"
+            = render "face/shared/flashes"
             = content
-			
       div id="footer"
         = link_to 'НИВЦ МГУ имени М.В. Ломоносова', 'http://srcc.msu.ru', target: '_blank'
+        br
+        br
+        = link_to 'Вход для администратора', '/auth/session/new'
 

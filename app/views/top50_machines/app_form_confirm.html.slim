@@ -1,0 +1,12 @@
+h3 = "Добавление заявки в Top50"
+h4 = "Подтверждение заявки"
+= render "application_data"
+br
+= bootstrap_form_tag url: top50_machines_app_form_confirm_post_path do |f|
+  = render "hidden_saved_data"
+  = f.submit "Назад"
+  = "&nbsp;&nbsp;".html_safe
+  = f.submit "Перейти в начало"
+  = "&nbsp;&nbsp;".html_safe
+  = f.submit "Отправить заявку", data: { confirm: "Я подтверждаю, что все данные указаны верно" }
+

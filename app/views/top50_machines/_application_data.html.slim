@@ -1,0 +1,260 @@
+br
+h4 = "Тип заявки: "
+- if @step1_data[:prev_machine_id].present?
+  strong = "Обновление данных по ранее участвующей системе: "
+  = link_to @prev_machine_descr, top50_machines_show_path(@step1_data[:prev_machine_id])
+- else
+  strong = "Новая система"
+h3 =  "Сведения о системе:"
+br
+p
+  strong = "Название: "
+  = @step1_data[:name]
+p
+  strong = "Название (англ.): "
+  = @step1_data[:name_eng]
+
+p
+  strong = "Тип системы: "
+  = @step1_data[:type_id].present? ? Top50MachineType.find(@step1_data[:type_id]).name : format("%s (%s)", @step1_data[:custom_type][:name], @step1_data[:custom_type][:name_eng])
+ 
+p
+  strong = "Год установки: "
+  = @step1_data[:installation_date]
+
+p
+  strong = "Веб-сайт: "
+  = link_to @step1_data[:website], ext_url(@step1_data[:website])
+
+p
+  strong = "Место установки: "
+  = @step1_data[:org_id].present? ?  Top50Organization.find(@step1_data[:org_id]).name : format("%s (%s, %s, %s, веб-сайт: %s)", @step1_data[:custom_org][:name], @step1_data[:custom_org][:name_eng], @step1_data[:custom_org][:city], @step1_data[:custom_org][:country], @step1_data[:custom_org][:website])
+
+- if @step1_data[:suborg_id].present? or @step1_data[:custom_suborg].present?
+  p
+    strong = "Подразделение: "
+    = @step1_data[:suborg_id].present? ? Top50Organization.find(@step1_data[:suborg_id]).name : format("%s (%s, %s, %s, веб-сайт: %s)", @step1_data[:custom_suborg][:name], @step1_data[:custom_suborg][:name_eng], @step1_data[:custom_suborg][:city], @step1_data[:custom_suborg][:country], @step1_data[:custom_suborg][:website])
+p
+  strong = "Основной разработчик (производитель): "
+  = @step1_data[:vendor_id].present? ? Top50Vendor.find(@step1_data[:vendor_id]).name : format("%s (%s, веб-сайт: %s)", @step1_data[:custom_vendor][:name], @step1_data[:custom_vendor][:name_eng], @step1_data[:custom_vendor][:website])
+ 
+p
+  strong = "Другие участвующие разработчики: "
+  - i = 0
+  - @step1_data[:vendor_ids].each do |v_id|
+    - if v_id.length == 0
+      - next
+    - if i > 0
+      =", "
+    - vendor = Top50Vendor.find(v_id)
+    = vendor.name
+    - i += 1
+  - (@step1_data.select {|k,v| k.starts_with? 'add_vendor_'}).keys.each do |vendor|
+    - if i > 0
+      = ", "
+    = format("%s (%s, веб-сайт: %s)", @step1_data[vendor][:name], @step1_data[vendor][:name_eng], @step1_data[vendor][:website])
+    i += 1
+  br
+br
+h4 = "Контактная информация:"
+p
+  strong = "Фамилия: "
+  = @step1_data[:contact][:surname]
+p
+  strong = "Имя: "
+  = @step1_data[:contact][:name]
+p
+  strong = "Отчество: "
+  = @step1_data[:contact][:patronymic]
+p
+  strong = "Телефон: "
+  = @step1_data[:contact][:phone]
+p
+  strong = "Email: "
+  = @step1_data[:contact][:email]
+p
+  strong = "Дополнительно: "
+  = @step1_data[:contact][:extra_info]
+br
+br
+- nodcnt = 0
+- cpucnt = 0
+- acccnt = 0
+- corecnt_cpu = 0
+- corecnt_acc = 0
+- microcorecnt_acc = 0
+- top50_nodes = @step2_data.select {|k,v| k.starts_with? 'top50_node_'}.values
+- top50_nodes.each do |top50_node|
+  - t = top50_node[:node_cnt].to_i
+  - nodcnt += t
+  - if top50_node[:cpu_model_obj_id].present? or top50_node[:custom_cpu_from_node].present? or top50_node[:custom_cpu_model].present?
+    - t1 = t * top50_node[:cpu_cnt].to_i
+    - cpucnt += t1
+    - if top50_node[:cpu_model_obj_id].present?
+      - cores = @core_qty_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).value
+    - else
+      - cpu_src_node = top50_node
+      - if top50_node[:custom_cpu_from_node].present?
+        - cpu_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_cpu_from_node])]
+      - cores = cpu_src_node[:custom_cpu_core_cnt]
+    - corecnt_cpu += t1 * cores.to_i
+  - if top50_node[:acc_model_obj_id].present? or top50_node[:custom_acc_from_node].present? or top50_node[:custom_acc_model].present?
+    - t1 = t * top50_node[:acc_cnt].to_i
+    - acccnt += t1
+    - if top50_node[:acc_model_obj_id].present?
+      - cores = @core_qty_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).value
+      - microcores = @microcore_qty_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).value
+    - else
+      - acc_src_node = top50_node
+      - if top50_node[:custom_acc_from_node].present?
+        - acc_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_acc_from_node])] 
+      - cores = acc_src_node[:custom_acc_core_cnt]
+      - microcores = acc_src_node[:custom_acc_microcore_cnt]
+    - corecnt_acc += t1 * cores.to_i
+    - if microcores.present?
+      - microcorecnt_acc += t1 * microcores.to_i
+
+- if nodcnt > 0
+  p
+    strong = "Количество узлов: "
+    = nodcnt
+    
+- if cpucnt > 0
+  p
+    strong = "Количество CPU: "
+    = cpucnt
+
+- if corecnt_cpu > 0
+  p style="text-indent:20px;"
+    strong = "Количество ядер CPU: "
+    = corecnt_cpu
+    
+- if acccnt > 0
+  p
+    strong = "Количество ускорителей: "
+    = acccnt
+    
+- if microcorecnt_acc > 0
+  p style="text-indent:20px;"
+    strong = "Количество микроядер ускорителей/CUDA-ядер: "
+    = microcorecnt_acc
+    
+- if corecnt_acc > 0
+  p style="text-indent:20px;"
+    strong = "Количество ядер ускорителей/мультипроцессорных блоков GPU: "
+    = corecnt_acc
+    
+- if corecnt_cpu + corecnt_acc > 0
+  p
+    strong = "Всего ядер: "
+    = corecnt_cpu + corecnt_acc
+br
+h4 = "Архитектура системы"
+p
+  strong = "Указанные группы узлов:"
+- i = 0
+- top50_nodes.each do |top50_node|
+  - i += 1
+  p
+    strong = format("Группа узлов %d", i)
+  p style="text-indent:20px;"
+    = format("узлов: %s ", top50_node[:node_cnt])
+    = "["
+    - if top50_node[:cpu_model_obj_id].present? or top50_node[:custom_cpu_from_node].present? or top50_node[:custom_cpu_model].present?
+      = format("%sx ", top50_node[:cpu_cnt])
+      - if top50_node[:cpu_model_obj_id].present?
+        - cpu_vendor = @cpu_vendor_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).top50_dictionary_elem.name
+        - cpu_model = @cpu_model_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).top50_dictionary_elem.name
+        - cpu_str = format("%s %s", cpu_vendor, cpu_model)
+      - else
+        - cpu_src_node = top50_node
+        - if top50_node[:custom_cpu_from_node].present?
+          - cpu_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_cpu_from_node])]
+
+        - if cpu_src_node[:custom_cpu_vendor_id].present?
+          - cpu_vendor = Top50DictionaryElem.find(cpu_src_node[:custom_cpu_vendor_id]).name
+        - else
+          - cpu_vendor = cpu_src_node[:custom_cpu_vendor]
+        - if cpu_src_node[:custom_cpu_gen_id].present?
+          - cpu_gen = Top50DictionaryElem.find(cpu_src_node[:custom_cpu_gen_id]).name
+        - else
+          - cpu_gen = cpu_src_node[:custom_cpu_gen]
+        - if cpu_src_node[:custom_cpu_family_id].present?
+          - cpu_fam = Top50DictionaryElem.find(cpu_src_node[:custom_cpu_family_id]).name
+        - else
+          - cpu_fam = cpu_src_node[:custom_cpu_family]
+        - cpu_str = format("%s %s %s MHz (ядер: %s, микроархитектура: %s, семейство: %s)", cpu_vendor, cpu_src_node[:custom_cpu_model], cpu_src_node[:custom_cpu_freq], cpu_src_node[:custom_cpu_core_cnt], cpu_gen, cpu_fam)
+      = cpu_str
+      = ", "
+    = format("%s GB RAM", top50_node[:ram_size])
+    - if top50_node[:acc_model_obj_id].present? or top50_node[:custom_acc_from_node].present? or top50_node[:custom_acc_model].present?
+      = "; "
+      = "Ускорители: "
+      = format("%sx ", top50_node[:acc_cnt])
+      - if top50_node[:acc_model_obj_id].present?
+        - acc_vendor = @comp_vendor_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).top50_dictionary_elem.name
+        - acc_model = @comp_model_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).top50_dictionary_elem.name
+        - acc_str = format("%s %s", acc_vendor, acc_model)
+      - else
+        - acc_src_node = top50_node
+        - if top50_node[:custom_acc_from_node].present?
+          - acc_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_acc_from_node])] 
+
+        - if acc_src_node[:custom_acc_vendor_id].present?
+          - acc_vendor = Top50DictionaryElem.find(acc_src_node[:custom_acc_vendor_id]).name
+        - else
+          - acc_vendor = acc_src_node[:custom_acc_vendor]
+        - if acc_src_node[:custom_acc_type_id].present?
+          - acc_type = Top50ObjectType.find(acc_src_node[:custom_acc_type_id]).name
+        - else
+          - acc_type = acc_src_node[:custom_acc_type]
+        - acc_str = format("%s %s (тип: %s, частота: %s, ядер: %s, микроядер: %s)", acc_vendor, acc_src_node[:custom_acc_model], acc_type, acc_src_node[:custom_acc_freq], acc_src_node[:custom_acc_core_cnt], acc_src_node[:custom_acc_microcore_cnt])
+      = acc_str
+    = "]"    
+    br
+
+p
+  strong = "Комментарии: "
+  = @step2_data[:comment]
+
+br
+
+p
+  strong = "Область применения системы: "
+  = @step3_data[:app_area][:app_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:app_area][:app_dict_elem_id]).name : @step3_data[:app_area][:custom_app]
+p
+  strong = "Коммуникационная сеть: "
+  = @step3_data[:nets][:comm_net_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:comm_net_dict_elem_id]).name : @step3_data[:nets][:custom_comm_net]
+p
+  strong = "Семейство коммуникационной сети: "
+  = @step3_data[:nets][:comm_net_family_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:comm_net_family_id]).name : @step3_data[:nets][:custom_comm_family]
+p
+  strong = "Топология коммуникационной сети: "
+  = @step3_data[:nets][:tplg_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:tplg_dict_elem_id]).name : @step3_data[:nets][:custom_tplg]
+p
+  strong = "Транспортная сеть: "
+  = @step3_data[:nets][:tran_net_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:tran_net_dict_elem_id]).name : @step3_data[:nets][:custom_tran_net]
+p
+  strong = "Сервисная сеть: "
+  = @step3_data[:nets][:serv_net_dict_elem_id].present? ? Top50DictionaryElem.find(@step3_data[:nets][:serv_net_dict_elem_id]).name : @step3_data[:nets][:custom_serv_net]
+p
+  strong = "Комментарии: "
+  = @step3_data[:comment]
+
+br
+
+p
+  strong = "Пиковая производительность системы (Rpeak): "
+  = @step4_data[:top50_perf][:rpeak]
+  = " TFlop/s"
+p
+  strong = "Максимальная производительность системы на тесте Linpack (Rmax): "
+  = @step4_data[:top50_perf][:rmax]
+  = " TFlop/s"
+p
+  strong = "Размер матрицы, на котором было достигнута указанная производительность на тесте Linpack (Nmax): "
+  = @step4_data[:top50_perf][:msize]
+p
+  strong = "Комментарии: "
+  = @step4_data[:comment]
+

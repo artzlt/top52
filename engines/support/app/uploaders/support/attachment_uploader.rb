@@ -2,7 +2,6 @@
 
 module Support
   class AttachmentUploader < CarrierWave::Uploader::Base
-    include CarrierWave::MimeTypes
     CarrierWave::SanitizedFile.sanitize_regexp = /[^a-zA-Zа-яА-ЯёЁ0-9\.\-\+_]/u
 
     storage :file

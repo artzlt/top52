@@ -1,1 +1,0 @@
-$(document).ready(function(){$("input#check-all-box").on("click",function(){var c=$("input#selected_recipient_ids_"),e=this;c.each(function(c,n){n.checked=e.checked})})});

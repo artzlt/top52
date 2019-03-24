@@ -1,0 +1,21 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  start_date: 2018-08-05
+  end_date: 2018-08-05
+  content: MyText
+  date_created: 2018-08-05
+  title: MyString
+  is_first: false
+  is_last: MyString
+  boolean: MyString
+
+two:
+  start_date: 2018-08-05
+  end_date: 2018-08-05
+  content: MyText
+  date_created: 2018-08-05
+  title: MyString
+  is_first: false
+  is_last: MyString
+  boolean: MyString

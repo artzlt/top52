@@ -1,4 +1,4 @@
-class Top50DictionaryElemsController < ApplicationController
+class Top50DictionaryElemsController < Top50BaseController
 
   respond_to :json
 
@@ -45,8 +45,6 @@ class Top50DictionaryElemsController < ApplicationController
     redirect_to @top50_dictionary
   end
 
-
-
   def default
     Top50Dictionary.default!
   end
@@ -54,7 +52,6 @@ class Top50DictionaryElemsController < ApplicationController
   private
 
   def top50_dictionary_elem_params
-    params.require(:top50_dictionary_elem).permit(:name, :name_eng)
-    #params.require(:top50_dictionary).permit(:top50_dictionary => [:dict_id], :top50_attribute => [:name, :name_eng, :attr_type])
+    params.require(:top50_dictionary_elem).permit(:name, :name_eng, :is_valid)
   end
 end

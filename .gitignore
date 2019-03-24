@@ -28,3 +28,13 @@ config/dumps/
 public/uploads/
 public/system/
 public/system_archive.tar.gz
+public/assets
+public/cert_create/certificates
+public/cert_create/records
+
+# Ignore secret vars
+/.rbenv-vars
+
+# Ignore backups and loga from shared dir
+/shared/db_backups
+/shared/log
