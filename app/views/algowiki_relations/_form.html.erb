@@ -1,0 +1,17 @@
+<%= form_for(@algowiki_relation) do |f| %>
+  <% if @algowiki_relation.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@algowiki_relation.errors.count, "error") %> prohibited this algowiki_relation from being saved:</h2>
+
+      <ul>
+      <% @algowiki_relation.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

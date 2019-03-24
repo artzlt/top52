@@ -1,0 +1,6 @@
+h4 =  "Performance Data by Algorithm: #{@alg.name_eng}"
+br
+= link_to 'Get XLSX file', algo_results_by_alg_path(@alg.id, format: :xlsx)
+br
+br
+= render "show_res"

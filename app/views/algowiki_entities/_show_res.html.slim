@@ -1,0 +1,43 @@
+table class="table table-responsive table-striped"
+  tr
+    th
+      = "№"
+	th 
+      = "Problem"
+	th 
+	  = "Algorithm"
+	th 
+	  = "Implementation"
+	th 
+	  = "Platform"
+	th 
+	  = "Result (MTEPS)"
+    th
+      = "CPU cores"
+    th
+      = "Graph Type"
+    th
+      = "Graph Size"
+  - cur = 0
+  - @algo_results.each do |algo_result|
+	tr
+	  - cur = cur + 1
+	  td class="col-1"
+	    = cur
+      td class="col-3"
+        = algo_result.task
+      td class="col-3"
+        = algo_result.alg
+      td class="col-3"
+        = algo_result.imp
+      td class="col-3"
+        = algo_result.platform
+      td class="col-3"
+        = algo_result.result
+      td class="col-3"
+        - if algo_result.cores.present?
+          = algo_result.cores
+      td class="col-3"
+        = algo_result.type
+      td class="col-3"
+        = algo_result.size

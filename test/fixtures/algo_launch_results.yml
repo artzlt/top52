@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  id: 1
+  launch_id: 1
+  result: 1.5
+  measure_id: 1
+  is_valid: 1
+  comment: MyString
+
+two:
+  id: 1
+  launch_id: 1
+  result: 1.5
+  measure_id: 1
+  is_valid: 1
+  comment: MyString

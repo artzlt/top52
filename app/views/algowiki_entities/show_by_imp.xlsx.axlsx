@@ -1,0 +1,13 @@
+wb = xlsx_package.workbook
+heading = wb.styles.add_style alignment: {horizontal: :center, vertical: :center}, b: true, sz: 14, bg_color: "FFA500", fg_color: "FF", font_name: "Times New Roman", border: {style: :thick, color: "00"}
+row_item_odd = wb.styles.add_style alignment: {horizontal: :center, vertical: :center}, sz: 12, font_name: "Times New Roman", border: {style: :thin, color: "00"}
+row_item_even = wb.styles.add_style alignment: {horizontal: :center, vertical: :center}, sz: 12, bg_color: "E8F4F8", font_name: "Times New Roman", border: {style: :thin, color: "00"}
+wb.add_worksheet(name: "Rating") do |sheet|
+  sheet.add_row ["Rank", "Problem", "Algorithm", "Implementation", "Platform", "Result (MTEPS)", "CPU cores", "Graph Type", "Graph Size"], style: heading
+  cur = 0
+  @algo_results.each do |algo_result|
+    cur = cur + 1
+    row_item = cur % 2 == 1 ? row_item_odd : row_item_even
+    sheet.add_row [cur, algo_result.task, algo_result.alg, algo_result.imp, algo_result.platform, algo_result.result, algo_result.cores, algo_result.type, algo_result.size], style: row_item
+  end
+end

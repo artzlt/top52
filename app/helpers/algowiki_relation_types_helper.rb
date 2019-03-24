@@ -1,0 +1,2 @@
+module AlgowikiRelationTypesHelper
+end

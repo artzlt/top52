@@ -1,0 +1,25 @@
+div class="page-header"
+  h1 = t(".title", default: "Benchmark")
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = link_to t(".new_benchmark"), new_top50_benchmark_path, class: "btn btn-default"
+
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = Top50Benchmark.human_attribute_name(:name)
+        th
+      - @top50_benchmarks.each do |top50_benchmark|
+        tr
+          td class="col-xs-10" = top50_benchmark.name
+          td class="btn-group"
+            = link_to t("actions.edit"), [:edit, top50_benchmark], class: "btn btn-default btn-sm"
+            button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"
+              span class="caret"
+            ul class="dropdown-menu" role="menu"
+              - name = t("actions.delete")
+              - confirm = t("actions.confirm", default: "Are You shure?")
+              - data = { method: :delete, confirm: confirm }
+              li class="text-left"
+                = link_to name, top50_benchmark, data: data

@@ -1,0 +1,29 @@
+div class="page-header"
+  h1 = "Algowiki entities"
+
+div class="panel panel-default"
+  div class="panel-heading"
+    = link_to "New", new_algowiki_entity_path, class: "btn btn-default"
+
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = "ID"
+        th = "Name"
+        th = "Type"
+        th
+      - @algowiki_entities.each do |algowiki_entity|
+        tr
+          td class="col-3"
+            = link_to algowiki_entity.id, algowiki_entity_path(algowiki_entity)
+          td class="col-7"
+            = link_to algowiki_entity.name_eng, algowiki_entity_path(algowiki_entity)
+          td class="col-7"
+            = algowiki_entity.algowiki_entity_type.name_eng
+          td class="col-7"
+            - if algowiki_entity.type_id == 2
+              = link_to "Rating", algo_results_by_task_path(algowiki_entity.id)
+            - elsif algowiki_entity.type_id == 4
+              = link_to "Rating", algo_results_by_alg_path(algowiki_entity.id)
+            - elsif algowiki_entity.type_id == 5
+              = link_to "Rating", algo_results_by_imp_path(algowiki_entity.id)

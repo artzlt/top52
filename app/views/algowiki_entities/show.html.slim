@@ -1,0 +1,32 @@
+div class="page-header"
+  h1 = @algowiki_entity.algowiki_entity_type.name + ": " + @algowiki_entity.name
+  - if @algowiki_entity.wiki_link.present?
+    h3 = link_to @algowiki_entity.wiki_link, @algowiki_entity.wiki_link
+
+div class="panel panel-default"
+  div class="panel-heading"
+     = "Parent Algowiki entities"
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = "Название"
+        th = "Тип"
+      - @algowiki_entity.algowiki_secondary_relations.each do |algowiki_relation|
+        tr
+          td class="col-3"
+            = link_to algowiki_relation.algowiki_primary_entity.name_eng, algowiki_entity_path(algowiki_relation.algowiki_primary_entity)
+          td class="col-5" = algowiki_relation.algowiki_primary_entity.algowiki_entity_type.name_eng
+    
+div class="panel panel-default"
+  div class="panel-heading"
+     = "Child Algowiki entities"
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = "Название"
+        th = "Тип"
+      - @algowiki_entity.algowiki_relations.each do |algowiki_relation|
+        tr
+          td class="col-3"
+            = link_to algowiki_relation.algowiki_entity.name_eng, algowiki_entity_path(algowiki_relation.algowiki_entity)
+          td class="col-5" = algowiki_relation.algowiki_entity.algowiki_entity_type.name_eng

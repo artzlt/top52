@@ -1,0 +1,10 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for [@algowiki_entity, @algowiki_entity.algowiki_relations.build], url: algowiki_entity_top50_nested_objects_path(@algowiki_entity) do |f|
+      = f.fields_for :algowiki_entity do |f1|
+        = f1.collection_select :type_id, AlgowikiEntityType.all, :id, :name, label: "Тип объекта"
+      = f.fields_for :algowiki_relation do |f2| 
+        = f2.collection_select :type_id, AlgowikiRelationType.all, :id, :name, label: "Связь"
+        = f2.number_field :sec_obj_qty, label: "Количество"
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

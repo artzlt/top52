@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161218225130) do
+ActiveRecord::Schema.define(version: 20180605040525) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,6 +26,279 @@ ActiveRecord::Schema.define(version: 20161218225130) do
   end
 
   add_index "abilities", ["group_id"], name: "index_abilities_on_group_id", using: :btree
+
+  create_table "algo_attribute_db_datatypes", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "db_code"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_attribute_dbs", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "db_datatype_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_attribute_dicts", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_attribute_value_dbs", force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.string   "value"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_attribute_value_dicts", force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.integer  "dict_elem_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_attributes", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "attr_type"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_dictionaries", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_dictionary_elems", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_implementations", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "alg_id"
+    t.string   "link"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_launch_results", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "launch_id"
+    t.float    "result"
+    t.integer  "measure_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_launches", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "imp_id"
+    t.integer  "node_group_id"
+    t.integer  "machine_id"
+    t.datetime "start_date"
+    t.datetime "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algo_node_groups", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "machine_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algoalgorithms", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "wiki_link"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algobenchmarkresults", force: true do |t|
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "launch_id"
+    t.integer  "nodegroup_id"
+  end
+
+  create_table "algobenchmarkresultswithdup", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "launch_id"
+    t.integer  "nodegroup_id"
+  end
+
+  create_table "algobenchmarks", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "measure_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algoimplaunches", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "imp_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "performer"
+  end
+
+  create_table "algoimplauncheswithdup", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "imp_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "performer"
+  end
+
+  create_table "algoimplementations", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "algorithm_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "repo_link"
+  end
+
+  create_table "algoplatforms", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
+  end
+
+  create_table "algorealizations", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "measure_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algowiki_entities", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "type_id"
+    t.string   "wiki_link"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algowiki_entity_types", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "parent_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algowiki_relation_types", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algowiki_relations", force: true do |t|
+    t.integer  "prim_id"
+    t.integer  "sec_id"
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "announcement_recipients", force: true do |t|
     t.integer "user_id"
@@ -46,6 +319,56 @@ ActiveRecord::Schema.define(version: 20161218225130) do
     t.datetime "updated_at"
   end
 
+  create_table "attr_dict_bckp_3108", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.integer  "dict_elem_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_attr_dict_0302", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.integer  "dict_elem_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_attr_val_dbvals_20171101", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.binary   "value"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_attr_val_dict_2202", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.integer  "dict_elem_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_attrvaldict_171016", id: false, force: true do |t|
+    t.integer  "attr_id"
+    t.integer  "obj_id"
+    t.integer  "dict_elem_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "bckp_bench_res_2016_11_23", id: false, force: true do |t|
     t.integer  "id"
     t.integer  "benchmark_id"
@@ -59,6 +382,141 @@ ActiveRecord::Schema.define(version: 20161218225130) do
     t.datetime "updated_at"
   end
 
+  create_table "bckp_dict_elem_2202", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_dict_elems", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_dict_elems_2017_11_05", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_mach_0208", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
+  end
+
+  create_table "bckp_mach_1302", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
+  end
+
+  create_table "bckp_mach_2202", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
+  end
+
+  create_table "bckp_obj_rel", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "prim_obj_id"
+    t.integer  "sec_obj_id"
+    t.integer  "sec_obj_qty"
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_obj_rel_2", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "prim_obj_id"
+    t.integer  "sec_obj_id"
+    t.integer  "sec_obj_qty"
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_org", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "city_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_org2", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "city_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "bckp_top50_bench_res", id: false, force: true do |t|
     t.integer  "id"
     t.integer  "benchmark_id"
@@ -66,6 +524,48 @@ ActiveRecord::Schema.define(version: 20161218225130) do
     t.float    "result"
     t.date     "start_date"
     t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_top50_machines", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
+  end
+
+  create_table "bckp_top50_vendors", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "country_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "bckp_vendor_0208", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "country_id"
     t.integer  "is_valid"
     t.string   "comment"
     t.datetime "created_at"
@@ -719,6 +1219,14 @@ ActiveRecord::Schema.define(version: 20161218225130) do
     t.datetime "updated_at"
   end
 
+  create_table "tmp_cpu_firm", id: false, force: true do |t|
+    t.integer "attr_id"
+    t.integer "obj_id"
+    t.integer "proc"
+    t.integer "new_proc_id"
+    t.integer "firm"
+  end
+
   create_table "tmp_vendors_bckp", id: false, force: true do |t|
     t.integer  "id"
     t.string   "name"
@@ -979,6 +1487,28 @@ ActiveRecord::Schema.define(version: 20161218225130) do
     t.datetime "updated_at"
   end
 
+  create_table "uniq_rep_good_raw_stud_results", id: false, force: true do |t|
+    t.integer "var_no"
+    t.integer "var_forced",       limit: 2
+    t.string  "alg"
+    t.string  "imp"
+    t.string  "platform"
+    t.integer "platform_changed", limit: 2
+    t.string  "registration",     limit: 3
+    t.integer "rep_no"
+    t.string  "reviewer"
+    t.integer "mark"
+    t.float   "rmat_res"
+    t.string  "rmat_proc"
+    t.string  "rmat_size"
+    t.float   "ssca2_res"
+    t.string  "ssca2_proc"
+    t.string  "ssca2_size"
+    t.integer "xls_row_no"
+    t.string  "problem"
+    t.integer "xls_row_no_2"
+  end
+
   create_table "user_groups", force: true do |t|
     t.integer "user_id"
     t.integer "group_id"
@@ -1014,6 +1544,13 @@ ActiveRecord::Schema.define(version: 20161218225130) do
   add_index "users", ["last_login_at"], name: "index_users_on_last_login_at", using: :btree
   add_index "users", ["remember_me_token"], name: "index_users_on_remember_me_token", using: :btree
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", using: :btree
+
+  create_table "vendors_separ", id: false, force: true do |t|
+    t.integer "id"
+    t.string  "name"
+    t.text    "sepname"
+    t.integer "sep_vendor_id"
+  end
 
   create_table "wiki_pages", force: true do |t|
     t.string   "name"

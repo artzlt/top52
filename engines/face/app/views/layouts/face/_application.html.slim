@@ -1,10 +1,8 @@
 doctype html
 html
   head
-    title Top50 Project
+    title The Algo500 Project
     = favicon_link_tag 'favicon.ico'
-    = favicon_link_tag 'apple-touch-icon-precomposed.png', type: 'image/png'
-    = favicon_link_tag 'apple-touch-icon-precomposed.png', rel: 'apple-touch-icon', type: 'image/png'
     link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet"
     /[ if lt IE 9 ]
       script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"
@@ -17,24 +15,29 @@ html
       window.locale = "#{I18n.locale}"
   body
     div id="top" align="center"
-	  center
-	    table width="740" border="0" cellspacing="0" cellpadding="0"
-	      td id="logo" 
-	        = image_tag "logo.gif", :alt=>"TOP 50 | Суперкомпьютеры", :width=>"178", :height=>"64", :border=>"0"
-	      td align="right"
-	        = image_tag "b-540x90-2.gif", :width=>"401", :height=>"111", :border=>"0"
-	</table></center>
+	  table width="740" border="0" cellspacing="0" cellpadding="0"
+	    td id="logo" 
+	      = image_tag "logo.gif", :alt=>"Algo500 | Рейтинги", :width=>"242", :height=>"220", :border=>"0"
     div class="navbar navbar-default navbar-static-top" role="navigation" 
       div class="container"
-        div class="navbar-header"
-          a class="navbar-brand" Новости
+        /!
+            div class="navbar-header"
+              a class="navbar-brand" Новости
         div class="navbar-collapse collapse"
+          /!        
+              ul class="nav navbar-nav"
+                a class="navbar-brand" href="/top50_machines_list" Текущий рейтинг
+          /!
+              ul class="nav navbar-nav"
+                a class="navbar-brand" href="/top50_machines_archive" Архив
+          /!
+              ul class="nav navbar-nav"
+                a class="navbar-brand" href="/top50_stats" Статистика
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines_list" Текущий рейтинг
+            a class="navbar-brand" href="/auth/session/new" Войти
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines_archive" Архив
-          ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_stats" Статистика			
+            a class="navbar-brand" href="/certificates/page1" Создать сертификат
+
           /!
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/top50_machines/new" Подать заявку
@@ -44,22 +47,6 @@ html
 		tr	
 		  td id="mainBlock" rowspan="2"
             = content
-		  td id="rightBlock" align="center"
-	        = image_tag "t_super03.gif", :width=>"141", :height=>"111", :border=>"0"
-			br
-            = image_tag "parallel141x114blue.gif", :alt=>"Информационно-аналитический центр по параллельным вычислениям", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"
-			br
-			br
-			br
-			= "Организаторы рейтинга:"
-			br
-			= image_tag "logo-srcc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
-			br
-			= image_tag "logo-jscc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
-			br
-			br
-			br
-			= image_tag "rffi1.gif", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"
 			
       div id="footer"
         = link_to 'НИВЦ МГУ имени М.В. Ломоносова', 'http://srcc.msu.ru', target: '_blank'

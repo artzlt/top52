@@ -1,0 +1,6 @@
+h4 =  "Performance Data by implementation #{@imp.name_eng} of Algorithm #{@alg.name_eng}"
+br
+= link_to 'Get XLSX file', algo_results_by_imp_path(@imp.id, format: :xlsx)
+br
+br
+= render "show_res"

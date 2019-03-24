@@ -1,0 +1,10 @@
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for @algowiki_entity do |f|
+      = f.text_field :id, disabled: true
+      = f.text_field :name
+      = f.text_field :name_eng
+      = f.text_field :wiki_link
+      = f.collection_select :type_id, AlgowikiEntityType.all, :id, :name
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

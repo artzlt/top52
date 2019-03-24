@@ -1,0 +1,2 @@
+class AlgowikiRelationsController < ApplicationController
+end

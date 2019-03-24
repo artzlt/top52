@@ -16,12 +16,15 @@
 #top {
     width: 100%;
     padding: 0px;
-    background: url(asset-path("bg-top.gif")) repeat-x;
     text-align: center;
-    background-color: #e0e1e3;
+    background-color: 'white';
 }
 #logo {
-    padding: 0 15px 0 0;
+    padding: 0 0 0 0;
+}
+
+.container {
+  vertical-align: top;
 }
  
 #footer {
@@ -35,6 +38,7 @@
   font-size: 90%;
   line-height: 1.4em;
   min-width: 740px;
+  vertical-align: top;
 }
 
 #leftBlock {

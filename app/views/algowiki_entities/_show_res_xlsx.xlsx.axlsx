@@ -1,0 +1,6 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Rating") do |sheet|
+  @algo_results.each do |algo_result|
+    sheet.add_row([algo_result.task, algo_result.alg, algo_result.imp, algo_result.platform, algo_result.result, algo_result.cores, algo_result.type, algo_result.size])
+  end
+end

@@ -2,8 +2,10 @@ require "sidekiq/web"
 require "admin_constraint"
 
 Octoshell::Application.routes.draw do
-  #root :to => redirect('/top50_objects')
-  #root 'top50_objects#index'
+  get "certificates/page1" => "certificates#page1"
+  post "certificates/page2" => "certificates#page2"
+  post "certificates/scr" => "certificates#scr"
+
   # This line mounts Wiki routes at /wiki by default.
   mount Wiki::Engine, :at => "/wiki"
 
@@ -59,6 +61,13 @@ Octoshell::Application.routes.draw do
 #  resources :top50_attribute_dbval
   resources :top50_attribute_dbvals
   resources :top50_attribute_dicts
+
+# Algo Part
+  resources :algowiki_entities
+  resources :algowiki_entity_types
+  resources :algowiki_relation_types
+  
+  
   get 'top50_machines_list_tmp/:eid', to: 'top50_machines#list_tmp', as:'top50_machines_list_tmp'
   get 'top50_machines_list_tmp2/:eid', to: 'top50_machines#list_tmp2', as:'top50_machines_list_tmp2'
   get 'top50_machines_list', to: 'top50_machines#list', as:'top50_machines_list'
@@ -99,6 +108,13 @@ Octoshell::Application.routes.draw do
   get 'top50_objects_tp', to: 'top50_objects#index_type', as: 'top50_object_tp'
 
   get 'top50_objects_tp/:tid', to: 'top50_objects#objects_of_type', as: 'top50_object_by_tp'
+  
+  get 'algowiki_entities_by_type', to: 'algowiki_entities#index_type', as: 'algowiki_entities_by_type_list'
+  get 'algowiki_entities_by_type/:tid', to: 'algowiki_entities#entities_of_type', as: 'algowiki_entities_by_type'
+  
+  get 'algo_results/task/:id', to: 'algowiki_entities#show_by_task', as:'algo_results_by_task'
+  get 'algo_results/algorithm/:id', to: 'algowiki_entities#show_by_alg', as:'algo_results_by_alg'
+  get 'algo_results/implementation/:id', to: 'algowiki_entities#show_by_imp', as:'algo_results_by_imp'
   
   get 'top50_objects/info/:id', to: 'top50_objects#show_info', as:'top50_objects_show_info'
 

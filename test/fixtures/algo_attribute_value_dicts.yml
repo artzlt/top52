@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  attr_id: 1
+  obj_id: 1
+  dict_elem_id: 1
+  is_valid: 1
+  comment: MyString
+
+two:
+  attr_id: 1
+  obj_id: 1
+  dict_elem_id: 1
+  is_valid: 1
+  comment: MyString

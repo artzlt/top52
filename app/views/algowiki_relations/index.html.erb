@@ -1,0 +1,23 @@
+<h1>Listing algowiki_relations</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @algowiki_relations.each do |algowiki_relation| %>
+      <tr>
+        <td><%= link_to 'Show', algowiki_relation %></td>
+        <td><%= link_to 'Edit', edit_algowiki_relation_path(algowiki_relation) %></td>
+        <td><%= link_to 'Destroy', algowiki_relation, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Algowiki relation', new_algowiki_relation_path %>
