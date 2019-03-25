@@ -43,6 +43,7 @@ gem "will_paginate"
 gem "will_paginate-bootstrap"
 # gem "md_simple_editor" # doesn't support jruby
 gem "ckeditor"
+gem "axlsx_rails"
 
 group :production do
   gem "whenever"

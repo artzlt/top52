@@ -27,6 +27,29 @@ ActiveRecord::Schema.define(version: 20181016090412) do
 
   add_index "abilities", ["group_id"], name: "index_abilities_on_group_id", using: :btree
 
+  create_table "algo500_sample_results", id: false, force: true do |t|
+    t.string  "task"
+    t.string  "alg"
+    t.string  "imp"
+    t.string  "platform"
+    t.float   "result"
+    t.string  "measure"
+    t.string  "type"
+    t.string  "size"
+    t.string  "rus_alg"
+    t.string  "rus_task"
+    t.string  "rus_imp"
+    t.string  "rus_platform"
+    t.string  "cores_old"
+    t.integer "cores"
+  end
+
+  create_table "algo500_translations", id: false, force: true do |t|
+    t.string  "name_eng"
+    t.string  "name"
+    t.integer "type"
+  end
+
   create_table "algo_attribute_db_datatypes", force: true do |t|
     t.string   "name"
     t.string   "name_eng"
@@ -956,10 +979,8 @@ ActiveRecord::Schema.define(version: 20181016090412) do
     t.integer  "number_of_imported_news_shown", default: 20
     t.string   "imported_news_source"
     t.integer  "number_of_local_news_shown",    default: 2
-    t.string   "cron_schedule"
-    t.integer  "cron_value"
-    t.date     "start_date"
-    t.date     "end_date"
+    t.string   "cron_schedule",                 default: "hour"
+    t.integer  "cron_value",                    default: 1
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -1431,24 +1452,6 @@ ActiveRecord::Schema.define(version: 20181016090412) do
     t.datetime "updated_at"
     t.integer  "vendor_ids",        default: [], array: true
     t.date     "installation_date"
-  end
-
-  create_table "top50_machines_backup20180904", id: false, force: true do |t|
-    t.integer  "id"
-    t.string   "name"
-    t.string   "name_eng"
-    t.string   "website"
-    t.integer  "type_id"
-    t.integer  "org_id"
-    t.integer  "vendor_id"
-    t.integer  "contact_id"
-    t.date     "start_date"
-    t.date     "end_date"
-    t.integer  "is_valid"
-    t.string   "comment"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "vendor_ids", array: true
   end
 
   create_table "top50_measure_scales", force: true do |t|
