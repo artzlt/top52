@@ -981,7 +981,7 @@ br
 
       coffee:
         d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
-        draw_performance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)")
+        draw_performance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)", d3.schemeSet1, true)
       /= line_chart @achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
       br
 
@@ -1051,7 +1051,7 @@ br
 
       coffee:
         d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv)
-        draw_performance(data, "chart_2", "Средняя производительность и производительность 1, 10, 20, 30, 40 и 50 систем рейтинга (ПФлоп/с)", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)", COLORS)
+        draw_performance(data, "chart_2", "Средняя производительность и производительность 1, 10, 20, 30, 40 и 50 систем рейтинга (ПФлоп/с)", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)", COLORS, true)
       /= line_chart @achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
       br
 

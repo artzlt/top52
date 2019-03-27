@@ -3,7 +3,7 @@
   console.log("AAAAAAAAAAAAAAAAAAAAAAA" + text)
 
 # drawing performance chart
-@draw_performance = (data, src_id, title, x_label, y_label, COLORS = d3.schemeSet1) ->
+@draw_performance = (data, src_id, title, x_label, y_label, COLORS = d3.schemeSet1, is_performance = false) ->
   for i in [0..data.length - 1]
     data[i].color = i
     for j in [0..data[i].data.length - 1]
@@ -58,13 +58,14 @@
               .attr("name", "type")
               .property("checked", "false")
 
-    bar_button = buttons.append("div")
-              .text("bar")
-              .attr("class", "button")
-              .style("background", "gray")
-              .style("float", "right")
-              .attr("name", "type")
-              .property("checked", "false")
+    if (!is_performance)
+      bar_button = buttons.append("div")
+                .text("bar")
+                .attr("class", "button")
+                .style("background", "gray")
+                .style("float", "right")
+                .attr("name", "type")
+                .property("checked", "false")
 
     # table control processing
     table_control = d3.selectAll("g").filter(() -> d3.select(this).attr("id") == "table_control_" + src_id)
@@ -167,53 +168,54 @@
         add_line_chart(svg, container, data_to_draw, margin, width, height, COLORS)       
     )
 
-    bar_button.on("click", () ->
-      buttons.selectAll("div[name='type']").each(() ->
+    if (!is_performance)
+      bar_button.on("click", () ->
+        buttons.selectAll("div[name='type']").each(() ->
+          if d3.select(this).property("checked")
+            d3.select(this)
+              .transition()
+              .ease(d3.easeLinear)
+              .duration(500)
+              .style("background", "gray")
+        )
         if d3.select(this).property("checked")
+          temp = []
+          for x, i in data
+            temp.push({})
+            temp[i].name = x.name
+            temp[i].color = x.color
+            temp[i].data = []
+            for y in x.data
+              temp[i].data.push([y[0], y[1]])
+
           d3.select(this)
             .transition()
             .ease(d3.easeLinear)
             .duration(500)
-            .style("background", "gray")
+            .style("background", "#6699CC")
+
+          svg.selectAll("g")
+              .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+              .transition()
+              .duration(500)
+              .style("opacity", "0")
+              .remove()
+
+          data_to_draw = []
+          legend.selectAll("div")
+                  .filter(() -> +d3.select(this).attr("active"))
+                  .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
+
+          bar_data = [{"data" : []}]
+          for i in [0..data_to_draw[0].data.length - 1]
+            bar_data[0].data.push([data[0].data[i][0], 0])
+            for j in [0..data_to_draw.length - 1]
+              bar_data[0].data[i][1] += data_to_draw[j].data[i][1]
+
+          add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label, true, false, COLORS)
+          add_axes(svg, container, bar_data, margin, width, height, x_label, y_label)
+          add_bar_chart(svg, container, data_to_draw, margin, width, height, COLORS)
       )
-      if d3.select(this).property("checked")
-        temp = []
-        for x, i in data
-          temp.push({})
-          temp[i].name = x.name
-          temp[i].color = x.color
-          temp[i].data = []
-          for y in x.data
-            temp[i].data.push([y[0], y[1]])
-
-        d3.select(this)
-          .transition()
-          .ease(d3.easeLinear)
-          .duration(500)
-          .style("background", "#6699CC")
-
-        svg.selectAll("g")
-            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
-            .transition()
-            .duration(500)
-            .style("opacity", "0")
-            .remove()
-
-        data_to_draw = []
-        legend.selectAll("div")
-                .filter(() -> +d3.select(this).attr("active"))
-                .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
-
-        bar_data = [{"data" : []}]
-        for i in [0..data_to_draw[0].data.length - 1]
-          bar_data[0].data.push([data[0].data[i][0], 0])
-          for j in [0..data_to_draw.length - 1]
-            bar_data[0].data[i][1] += data_to_draw[j].data[i][1]
-
-        add_legend_events(legend, svg, container, temp, add_bar_chart, margin, width, height, x_label, y_label, true, false, COLORS)
-        add_axes(svg, container, bar_data, margin, width, height, x_label, y_label)
-        add_bar_chart(svg, container, data_to_draw, margin, width, height, COLORS)
-    )
 
     # table control buttons actions defining
     table_control.selectAll("div").on("click", (d, i) ->
