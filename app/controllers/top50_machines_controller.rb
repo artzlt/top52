@@ -1301,6 +1301,10 @@ class Top50MachinesController < Top50BaseController
 
   def update
     @top50_machine = Top50Machine.find(params[:id])
+    vendor_ids = params[:top50_machine][:vendor_ids]
+    vendor_ids.delete("")
+    vendor_ids.collect! {|x| x.to_i}
+    @top50_machine.vendor_ids = vendor_ids
     @top50_machine.update_attributes(top50machine_params)
     redirect_to :top50_machines
   end
@@ -2780,7 +2784,7 @@ class Top50MachinesController < Top50BaseController
   private
   
   def top50machine_params
-    params.require(:top50_machine).permit(:name, :name_eng, :type_id, :vendor_id, :org_id, :contact_id, :website, :top50_contact, :contact_id, :is_valid)
+    params.require(:top50_machine).permit(:name, :name_eng, :website, :type_id, :org_id, :vendor_id, :vendor_ids, :contact_id, :installation_date, :start_date, :end_date, :is_valid, :comment)
   end
 
   def top50_benchmark_result_params
