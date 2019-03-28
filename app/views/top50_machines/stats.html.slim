@@ -971,7 +971,6 @@ br
           - chart_data_by_tp["Peak (1-50)"].unshift([date_val.value, top50_rpeak])
     
     tr
-  
       - @achart_data = []
       - chart_data_by_tp.each_key do |key|
         - @achart_data << {name: key, data: chart_data_by_tp[key]}
