@@ -24,3 +24,4 @@
 //= require chartkick
 //= require ckeditor/init
 //= require_tree .
+//= require d3js/d3.min.js
