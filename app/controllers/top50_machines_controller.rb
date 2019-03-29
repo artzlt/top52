@@ -769,8 +769,12 @@ class Top50MachinesController < Top50BaseController
   end
 
   def fetch_archive_list(list_id)
-    avail_lists = get_top50_lists
-    list = avail_lists.find(list_id)
+    if current_user and current_user.may_edit_top50?
+      list = Top50Benchmark.find(list_id)
+    else
+      avail_lists = get_top50_lists
+      list = avail_lists.find(list_id)
+    end
     calc_machine_attrs
     prepare_archive(list.id)
     return Top50Machine.select("top50_machines.*, ed_results.result").
