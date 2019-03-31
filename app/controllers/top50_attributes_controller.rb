@@ -14,7 +14,6 @@ class Top50AttributesController < Top50BaseController
 
   def create
     @top50_attribute = Top50Attribute.new(top50attribute_params)
-    @top50_attribute[:is_valid] = 0
     @top50_attribute[:comment] = "Added attribute"
     if @top50_attribute.save
       redirect_to :top50_attributes
@@ -48,6 +47,6 @@ class Top50AttributesController < Top50BaseController
   private
 
   def top50attribute_params
-    params.require(:top50_attribute).permit(:name, :name_eng, :attr_type)
+    params.require(:top50_attribute).permit(:name, :name_eng, :attr_type, :is_valid)
   end
 end

@@ -115,21 +115,21 @@
             - t = top50_cpu.cnt * top50_node.cnt
             - cpucnt += t
             - cores = @l2_attrdb_hash[top50_cpu.id].find{|x| x.attr_id == @core_qty_attrid}
-            - if cores
+            - if cores.present?
               - corecnt_cpu += t * cores.value.to_i
           - top50_gpus.each do |top50_gpu|
             - t = top50_gpu.cnt * top50_node.cnt
             - cores = @l2_attrdb_hash[top50_gpu.id].find{|x| x.attr_id == @core_qty_attrid}
-            - gpucores = @l2_attrdb_hash[top50_gpu.id].find{|x| x.attr_id == @gpucore_qty_attrid}
-            - if cores
+            - microcores = @l2_attrdb_hash[top50_gpu.id].find{|x| x.attr_id == @microcore_qty_attrid}
+            - if cores.present?
               - corecnt_gpu += t * cores.value.to_i
-            - if gpucores
-              - gpucorecnt += t * gpucores.value.to_i
+            - if microcores.present?
+              - gpucorecnt += t * microcores.value.to_i
             - acccnt += t
           - top50_cops.each do |top50_cop|
             - t = top50_cop.cnt * top50_node.cnt
             - cores = @l2_attrdb_hash[top50_cop.id].find{|x| x.attr_id == @core_qty_attrid}
-            - if cores
+            - if cores.present?
               - corecnt_cop += t * cores.value.to_i
             - acccnt += t
           - nodcnt += top50_node.cnt
@@ -163,14 +163,14 @@
                   - if top50_cpu.cnt > 0 
                     = format("%dx ", top50_cpu.cnt)
                   - cpu_vendor = @l2_attrd_hash[top50_cpu.id].find{|x| x.attr_id == @cpu_vendor_attrid}
-                  - if cpu_vendor
+                  - if cpu_vendor.present?
                     = link_to cpu_vendor.elem_name, top50_machines_archive_comp_attrd_path(@bench.id, cpu_vendor.elem_id), :title => "Производитель CPU"
                     = " "
                   - cpu_model = @l2_attrd_hash[top50_cpu.id].find{|x| x.attr_id == @cpu_model_attrid}
-                  - if cpu_model
+                  - if cpu_model.present?
                      = link_to cpu_model.elem_name, top50_machines_archive_comp_path(@bench.id, top50_cpu.id), :title => "Модель CPU"
                   - ram_size_val = @l1_attrdb_hash[top50_node.id].find{|x| x.attr_id == @ram_size_attrid}
-                  - if ram_size_val and ram_size_val.value.to_f > 0
+                  - if ram_size_val.present? and ram_size_val.value.to_f > 0
                     - if top50_cpus.any?
                       = ", "
                     = format("%s GB RAM", number_with_precision(ram_size_val.value.to_f, precision: 1, strip_insignificant_zeros: true))
@@ -187,11 +187,11 @@
                     - if top50_gpu.cnt > 0 
                       = format("%dx ", top50_gpu.cnt)
                     - gpu_vendor = @l2_attrd_hash[top50_gpu.id].find{|x| x.attr_id == @gpu_vendor_attrid}
-                    - if gpu_vendor
+                    - if gpu_vendor.present?
                       = link_to gpu_vendor.elem_name, top50_machines_archive_comp_attrd_path(@bench.id, gpu_vendor.elem_id), :title => "Производитель GPU"
                       = " "
                     - gpu_model = @l2_attrd_hash[top50_gpu.id].find{|x| x.attr_id == @gpu_model_attrid}
-                    - if gpu_model
+                    - if gpu_model.present?
                       = link_to gpu_model.elem_name, top50_machines_archive_comp_path(@bench.id, top50_gpu.id), :title => "Модель GPU"
                   - top50_cops.each_with_index do |top50_cop, i|
                     - if i > 0
@@ -199,27 +199,27 @@
                     - if top50_cop.cnt > 0 
                       = format("%dx ", top50_cop.cnt)
                     - cop_vendor = @l2_attrd_hash[top50_cop.id].find{|x| x.attr_id == @cop_vendor_attrid}
-                    - if cop_vendor
+                    - if cop_vendor.present?
                       = link_to cop_vendor.elem_name, top50_machines_archive_comp_attrd_path(@bench.id, cop_vendor.elem_id), :title => "Производитель ускорителя"
                       = " "
                     - cop_model = @l2_attrd_hash[top50_cop.id].find{|x| x.attr_id == @cop_model_attrid}
-                    - if cop_model
+                    - if cop_model.present?
                         = link_to cop_model.elem_name, top50_machines_archive_comp_path(@bench.id, top50_cop.id), :title => "Модель ускорителя"
         br
         - com_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @com_net_attrid}
         - serv_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @serv_net_attrid}
         - tran_net = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @tran_net_attrid}
-        - if com_net
+        - if com_net.present?
           = link_to com_net.elem_name, top50_machines_archive_attr_dict_path(@bench.id, com_net.attr_id, com_net.elem_id), :title => "Коммуникационная сеть"
         - else
           = "нд"
         = " / "
-        - if serv_net
+        - if serv_net.present?
           = link_to serv_net.elem_name, top50_machines_archive_attr_dict_path(@bench.id, serv_net.attr_id, serv_net.elem_id), :title => "Сервисная сеть"
         - else
           = "нд"
         = " / "
-        - if tran_net
+        - if tran_net.present?
           = link_to tran_net.elem_name, top50_machines_archive_attr_dict_path(@bench.id, tran_net.attr_id, tran_net.elem_id), :title => "Транспортная сеть"
         - else
           = "нд"
@@ -232,7 +232,7 @@
           - else
             = (rmax_record.result / 1000000.0).round(2)
         - rpeak_record = @mach_attrdb_hash[top50_machine["id"]].find{|x| x.attr_id == @rpeak_attrid}
-        - if rpeak_record
+        - if rpeak_record.present?
           br
           = (rpeak_record.value.to_f / 1000000.0).round(2) 
       td class="col-2"
@@ -241,7 +241,7 @@
           = link_to vendor.name, top50_machines_archive_vendor_path(@bench.id, vendor), class: "css_class", style: "font-weight: bold", :title => "Участвующий разработчик"
           br
         - app_area = @mach_attrd_hash[top50_machine["id"]].find{|x| x.attr_id == @app_area_attrid}
-        - if app_area
+        - if app_area.present?
           br
           = link_to app_area.elem_name, top50_machines_archive_attr_dict_path(@bench.id, app_area.attr_id, app_area.elem_id), :class => "txt-ital", :title => "Область применения"
       td class="col-1"

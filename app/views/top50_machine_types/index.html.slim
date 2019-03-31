@@ -9,10 +9,17 @@ div class="panel panel-default"
     table class="table table-hover"
       tr
         th = Top50MachineType.human_attribute_name(:name)
+        th Статус
         th
       - @top50_machine_types.each do |top50_machine_type|
         tr
-          td class="col-xs-10" = top50_machine_type.name
+          td class="col-10" = top50_machine_type.name
+          td class="col-5"
+            = top50_machine_type.is_valid
+            - val = Top50ValidType.where(id: top50_machine_type.is_valid).first
+            - if val.present?
+              = format(" (%s)", val.name)
+
           td class="btn-group"
             = link_to t("actions.edit"), [:edit, top50_machine_type], class: "btn btn-default btn-sm"
             button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"

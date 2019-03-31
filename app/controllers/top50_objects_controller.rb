@@ -117,8 +117,6 @@ class Top50ObjectsController < Top50BaseController
     redirect_to :top50_objects
   end
 
-
-
   def default
     Top50Object.default!
   end
@@ -126,19 +124,19 @@ class Top50ObjectsController < Top50BaseController
   private
 
   def top50_object_params
-    params.require(:top50_object).permit(:type_id)
+    params.require(:top50_object).permit(:type_id, :is_valid)
   end
 
   def top50_attr_val_dbval_params
-    params.require(:top50_attribute_val_dbval).permit(:attr_id, :value)
+    params.require(:top50_attribute_val_dbval).permit(:attr_id, :value, :is_valid)
   end
 
   def top50_attr_val_dict_params
-    params.require(:top50_attribute_val_dict).permit(:attr_id, :dict_elem_id)
+    params.require(:top50_attribute_val_dict).permit(:attr_id, :dict_elem_id, :is_valid)
   end
 
   def top50_nested_object_params
-    params.require(:top50_relation).permit(:top50_relation => [:type_id, :sec_obj_qty], :top50_object => [:type_id])
+    params.require(:top50_relation).permit(:top50_relation => [:type_id, :sec_obj_qty, :is_valid], :top50_object => [:type_id, :is_valid])
   end
 
 end

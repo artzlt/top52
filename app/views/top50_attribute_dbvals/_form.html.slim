@@ -5,6 +5,7 @@ div class="row"
         = f1.text_field :name
         = f1.text_field :name_eng
         = f1.select :attr_type, [['Attribute-value', 1]] 
+        = f1.collection_select :is_valid, Top50ValidType.all, :id, :name, {include_blank: true, label: "Статус"}
       = f.fields_for @top50_attribute_dbval do |f2| 
         =f2.collection_select :datatype_id, Top50AttributeDatatype.all, :id, :db_code 
       = f.form_group do
