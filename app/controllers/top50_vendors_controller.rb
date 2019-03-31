@@ -42,13 +42,7 @@ class Top50VendorsController < Top50BaseController
   end
 
   def create
-    @linked_obj = Top50Object.new
-    @linked_obj[:type_id] = 3
-    @linked_obj[:is_valid] = 0
-    @linked_obj[:comment] = "NewVendor"
-    @linked_obj.save!
     @top50_vendor = Top50Vendor.new(top50vendor_params)
-    @top50_vendor.id = @linked_obj.id
     if @top50_vendor.save
       redirect_to :back
     else
@@ -68,12 +62,9 @@ class Top50VendorsController < Top50BaseController
 
   def destroy
     @top50_vendor = Top50Vendor.find(params[:id])
-    Top50Object.delete_all(id: params[:id])
     @top50_vendor.destroy
     redirect_to :top50_vendors
   end
-
-
 
   def default
     Top50Vendor.default!
@@ -82,6 +73,6 @@ class Top50VendorsController < Top50BaseController
   private
 
   def top50vendor_params
-    params.require(:top50_vendor).permit(:name, :name_eng, :website)
+    params.require(:top50_vendor).permit(:name, :name_eng, :website, :is_valid)
   end
 end

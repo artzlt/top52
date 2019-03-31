@@ -45,8 +45,6 @@ class Top50DictionaryElemsController < Top50BaseController
     redirect_to @top50_dictionary
   end
 
-
-
   def default
     Top50Dictionary.default!
   end
@@ -54,7 +52,6 @@ class Top50DictionaryElemsController < Top50BaseController
   private
 
   def top50_dictionary_elem_params
-    params.require(:top50_dictionary_elem).permit(:name, :name_eng)
-    #params.require(:top50_dictionary).permit(:top50_dictionary => [:dict_id], :top50_attribute => [:name, :name_eng, :attr_type])
+    params.require(:top50_dictionary_elem).permit(:name, :name_eng, :is_valid)
   end
 end

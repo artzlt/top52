@@ -1,7 +1,7 @@
 class Top50AttributeDbvalsController < Top50BaseController
 
   def index
-    @top50_attributes_dbval = Top50AttributeDbval.includes(:top50_attribute).all
+    @top50_attributes_dbval = Top50AttributeDbval.all
   end
 
   def show
@@ -45,8 +45,6 @@ class Top50AttributeDbvalsController < Top50BaseController
     redirect_to :top50_attribute_dbvals
   end
 
-
-
   def default
     Top50AttributeDbval.default!
   end
@@ -54,7 +52,7 @@ class Top50AttributeDbvalsController < Top50BaseController
   private
 
   def top50_attribute_dbval_params
-    params.require(:top50_attribute_dbval).permit(:top50_attribute_dbval => [:datatype_id], :top50_attribute => [:name, :name_eng, :attr_type])
+    params.require(:top50_attribute_dbval).permit(:top50_attribute_dbval => [:datatype_id], :top50_attribute => [:name, :name_eng, :attr_type, :is_valid])
   end
 
 end

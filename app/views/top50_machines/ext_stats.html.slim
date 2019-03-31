@@ -6,8 +6,10 @@ br
   - c_chart_data = []
   - list_num = @num_vals.find_by(obj_id: @edition_id)
   - date_val = @date_vals.find_by(obj_id: @edition_id)
+  - year = date_val.value.split(".")[2]
+  - month = date_val.value.split(".")[1]
   - if list_num.present?
-    = link_to "Редакция №#{list_num.value} от #{date_val.value}", top50_machines_archive_path(@edition_id)
+    = link_to "Редакция №#{list_num.value} от #{date_val.value}", get_archive_path(year, month)
   - @top50_mtypes.each do |top50_mtype|
     - c_cnt = Top50Machine.all.where("#{top50_mtype.id} = type_id").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: @edition_id))).count
     - c_chart_data << [top50_mtype.name, c_cnt]

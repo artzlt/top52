@@ -64,6 +64,7 @@ p
 - corecnt_gpu = 0
 - corecnt_cop = 0
 - gpucorecnt = 0
+- copcorecnt = 0
 - top50_nodes.each do |top50_node| 
   - top50_cpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cpu_objects)
   - top50_acc = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@acc_objects).first
@@ -79,17 +80,20 @@ p
     - t = top50_gpu.sec_obj_qty * top50_node.sec_obj_qty
     - gpucnt += t
     - cores = @core_qty_attr_vals.find_by(obj_id: top50_gpu.top50_object)
-    - gpucores = @gpucore_qty_attr_vals.find_by(obj_id: top50_gpu.top50_object)
+    - microcores = @microcore_qty_attr_vals.find_by(obj_id: top50_gpu.top50_object)
     - if cores.present?
       - corecnt_gpu += t * cores.value.to_i
-    - if gpucores.present?
-      - gpucorecnt += t * gpucores.value.to_i
+    - if microcores.present?
+      - gpucorecnt += t * microcores.value.to_i
   - top50_cops.each do |top50_cop|
     - t = top50_cop.sec_obj_qty * top50_node.sec_obj_qty
     - copcnt += t
     - cores = @core_qty_attr_vals.find_by(obj_id: top50_cop.top50_object)
+    - microcores = @microcore_qty_attr_vals.find_by(obj_id: top50_cop.top50_object)
     - if cores.present?
       - corecnt_cop += t * cores.value.to_i
+    - if microcores.present?
+      - copcorecnt += t * microcores.value.to_i
 - cpu_qty_val = @cpu_qty_attr_vals.find_by(obj_id: @top50_machine.id)
 - core_qty_val = @core_qty_attr_vals.find_by(obj_id: @top50_machine.id)
 - nodcnt = top50_nodes.sum(:sec_obj_qty)
@@ -118,16 +122,16 @@ p
     strong = "Количество GPU-ускорителей: "
     = gpucnt
     
-- if gpucorecnt > 0
-  p style="text-indent:20px;"
-    strong = "Количество GPU-ядер: "
-    = gpucorecnt
-    
 - if corecnt_gpu > 0
   p style="text-indent:20px;"
     strong = "Количество мультипроцессорных блоков GPU: "
     = corecnt_gpu
-    
+
+- if gpucorecnt > 0
+  p style="text-indent:20px;"
+    strong = "Количество GPU-ядер/CUDA-ядер: "
+    = gpucorecnt
+
 - if copcnt > 0
   p
     strong = "Количество сопроцессоров: "
@@ -137,6 +141,11 @@ p
   p style="text-indent:20px;"
     strong = "Количество ядер сопроцессоров: "
     = corecnt_cop
+
+- if copcorecnt > 0
+  p style="text-indent:20px;"
+    strong = "Количество микроядер сопроцессоров: "
+    = copcorecnt
 
 - if corecnt_cpu + corecnt_gpu + corecnt_cop > 0
   p
@@ -265,9 +274,11 @@ table class="table fit"
       td class="fit"
         - list_num = @list_nums.find_by(obj_id: top50_res.benchmark_id)
         - date_val = @date_vals.find_by(obj_id: top50_res.benchmark_id)
+        - list_year = date_val.value.split(".")[2]
+        - list_month = date_val.value.split(".")[1]
         - cert_path = nil
         - if list_num.present?
-          = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_res.benchmark_id)
+          = link_to "#{list_num.value}-я (#{date_val.value})", get_archive_path(list_year, list_month)
           - l_chart_data << [Date.parse(date_val.value), top50_res.result.to_i]
           - l_dates << Date.parse(date_val.value).to_time.to_i * 1000
           - cert_path = format("public/cert_create/certificates/rev%d_%02d.pdf", list_num.value, top50_res.result.to_i)

@@ -48,8 +48,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         td align="right" 
           - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @hybrid_mach).count
           = c_cnt
@@ -130,11 +132,14 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
-          - if list_num.present?
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
+        - @top50_cpuvendors.each do |top50_cpuvendor|
+          td align="right" 
             / adding csv row
             - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
             - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_cpuvendors.each_with_index do |top50_cpuvendor, j|
           td align="right" i=list_num.value j=j
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cpuvendor_id_hash[top50_cpuvendor.id]).count
@@ -153,7 +158,7 @@ br
       / adding csv row
       - @csv_arr.push(csv_srting)
       - @csv_arr_per.push(csv_srting_per)
-      
+
     tr
       - @achart_data = []
       - chart_data_by_tp.each_key do |key|
@@ -233,11 +238,13 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
             / adding csv row
             - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
             - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - sel_top50_areas.each_with_index do |top50_area, j|
           td align="right" i=list_num.value j=j
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @area_id_hash[top50_area.area_id]).count
@@ -295,8 +302,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_ccnts.each do |top50_ccnt|
           td align="right" 
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @ccnt_id_hash[top50_ccnt]).count
@@ -371,11 +380,13 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
             / adding csv row
             - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
             - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_cnets.each_with_index do |top50_cnet, j|
           td align="right" i=list_num.value j=j
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cnet_id_hash[top50_cnet.cnet_id]).count
@@ -435,8 +446,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - c_sum = 0
         - @top50_cpufams.each do |top50_cpufam|
           td align="right" 
@@ -447,7 +460,7 @@ br
         - if c_sum > c_sum_max
           - c_sum_max = c_sum
         td align="right" 
-          = link_to "Подробнее", top50_stats_per_list_path(@stat_section, top50_list.id)
+          = link_to "Подробнее", get_stats_per_list_path(@stat_section, list_year, list_month)
     tr
       - @achart_data = []
       - chart_data_by_tp.each_key do |key|
@@ -512,11 +525,13 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
             / adding csv row
             - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
             - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_vendors.each_with_index do |top50_vendor, j|
           td align="right" i=list_num.value j=j
             - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
@@ -526,7 +541,7 @@ br
               - sel_vendor_ids << prec_vid
             - c_cnt = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids) ").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
             - by_per = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids) ").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
-            = c_cnt
+            = link_to c_cnt, get_archive_vendor_path(list_year, list_month, top50_vendor.id)
             - chart_data_by_tp[top50_vendor.name].unshift([date_val.value, c_cnt])
             - chart_data_by_per[top50_vendor.name].unshift([date_val.value, by_per])
             / adding csv row
@@ -602,8 +617,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_vendors.each do |top50_vendor|
           td align="right" 
             - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
@@ -666,8 +683,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_vendors.each do |top50_vendor|
           td align="right" 
             - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
@@ -725,8 +744,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_vendors.each do |top50_vendor|
           td align="right" 
             - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
@@ -778,8 +799,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_vendors.each do |top50_vendor|
           td align="right" 
             - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
@@ -787,7 +810,7 @@ br
             - if prec_vendor.present?
               - prec_vid = prec_vendor.prim_obj_id
               - sel_vendor_ids << prec_vid
-            = link_to Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+            = link_to Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count, get_archive_vendor_path(list_year, list_month, top50_vendor.id)
             = " ("
             = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").sum("rmax_res.result") / 1000000.0).round(2)
             = ")"
@@ -817,8 +840,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_vendors.each do |top50_vendor|
           td align="right" 
             - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
@@ -827,7 +852,7 @@ br
               - prec_vid = prec_vendor.prim_obj_id
               - sel_vendor_ids << prec_vid
             - c_cnt = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
-            = link_to c_cnt, top50_machines_archive_vendor_path(top50_list.id, top50_vendor.id)
+            = link_to c_cnt, get_archive_vendor_path(list_year, list_month, top50_vendor.id)
             = " ("
             - c_avg = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids)").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results rmax_res on rmax_res.machine_id = top50_machines.id").joins("join top50_benchmarks lb on lb.id = rmax_res.benchmark_id and lb.name_eng = 'Linpack'").average("rmax_res.result").to_f / 1000000.0).round(2)
             = c_avg
@@ -891,8 +916,10 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_mtypes.each do |top50_mtype|
           td align="right" 
             - c_cnt = Top50Machine.all.where("#{top50_mtype.id} = type_id").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
@@ -903,7 +930,7 @@ br
         - c_oth_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_machine_types on top50_machine_types.id = type_id and top50_machine_types.id in (#{sel_mtype_ids.join(',')})").where("top50_machine_types.id is null").count
         - oth_cnt += c_oth_cnt
         td align="right" 
-          = link_to "Диаграмма", top50_ext_stats_path(top50_list.id)
+          = link_to "Диаграмма", get_ext_stats_path(list_year, list_month)
       - hlist_chart_data[top50_list.id] = c_chart_data
       - hlist_dates[top50_list.id] = date_val.value
       - hlist_nums[top50_list.id] = list_num.value
@@ -954,9 +981,12 @@ br
         td class="fit" 
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
+
           - if list_num.present?
             - @csv_string.push("#{list_num.value}я (#{date_val.value})," + top5_rmax.to_s + "," + top50_rmax.to_s + "," + top5_rpeak.to_s + "," + top50_rpeak.to_s)
-            = link_to "#{list_num.value}я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         td align="right" i=list_num.value j=0 value=top5_rmax title="Суммарная производительность топ 5 суперкомпьютеров на тесте Linpack"
           = top5_rmax
           - chart_data_by_tp["Linpack (1-5)"].unshift([date_val.value, top5_rmax])
@@ -1018,9 +1048,11 @@ br
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
           - if list_num.present?
             - @csv_string.push("#{list_num.value}-я (#{date_val.value})," + arr_rmax.join(","))
-            = link_to "#{list_num.value}-я (#{date_val.value})", top50_machines_archive_path(top50_list.id)
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - (0..50).step(10).each do |i|
           - ind = i
           - if i == 0

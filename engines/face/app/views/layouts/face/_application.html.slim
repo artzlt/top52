@@ -20,7 +20,7 @@ html
       center
         table width="740" border="0" cellspacing="0" cellpadding="0"
           td id="logo" 
-            = link_to image_tag("logo.gif", alt: "TOP 50 | Суперкомпьютеры", width: "178", height: "64", border: "0"), "/"
+            = link_to image_tag("logo.gif", alt: "TOP 50 | Суперкомпьютеры", width: "178", height: "64", border: "0"), "/", title: "Перейти на главную страницу"
           td align="right"
             = image_tag "b-540x90-2.gif", alt: "", width: "401", height: "111", border: "0"
     div class="navbar navbar-default navbar-static-top" role="navigation" 
@@ -29,19 +29,21 @@ html
           a class="navbar-brand" href="/newsfeed" Новости
         div class="navbar-collapse collapse"
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines_list" Текущий рейтинг
+            a class="navbar-brand" href="/list" Текущий рейтинг
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines_archive" Архив
+            a class="navbar-brand" href="/archive" Архив
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_stats" Статистика
+            a class="navbar-brand" href="/stats" Статистика
           ul class="nav navbar-nav"
-            a class="navbar-brand" href="/top50_machines/application/new" Подать заявку
+            a class="navbar-brand" href="/application/new" Подать заявку
           - if current_user && current_user.may_manage_certs?
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/certificates/page1" Создать сертификат
           - if current_user && current_user.may_edit_top50?
             ul class="nav navbar-nav"
               = link_to 'Новая редакция', top50_machines_new_list_path, class: "navbar-brand"
+            ul class="nav navbar-nav"
+              = link_to 'Редактирование данных', admin_links_path, class: "navbar-brand"
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/auth/session" Выйти (#{current_user.email})
 
@@ -52,19 +54,20 @@ html
             = render "face/shared/flashes"
             = content
           td id="rightBlock" align="center"
-            = image_tag "parallel141x114blue.gif", :alt=>"Информационно-аналитический центр по параллельным вычислениям", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"
+            = link_to image_tag("parallel141x114blue.gif", :alt=>"Информационно-аналитический центр по параллельным вычислениям", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"), 'https://www.parallel.ru', target: :_blank, title: "Информационно-аналитический центр по параллельным вычислениям"
+
             br
             br
             br
             = "Организаторы рейтинга:"
             br
-            = image_tag "logo-srcc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
+            = link_to image_tag("logo-srcc.gif", alt: "Научно-исследовательский вычислительный центр МГУ", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"), 'https://rcc.msu.ru', target: :_blank, title: "Научно-исследовательский вычислительный центр МГУ"
             br
-            = image_tag "logo-jscc.gif", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"
+            = link_to image_tag("logo-jscc.gif", alt: "Межведомственный Суперкомпьютерный Центр РАН", :width=>"60", :height=>"60", :border=>"0", :style=>"margin: 0"), "http://www.jscc.ru", target: :_blank, title: "Межведомственный Суперкомпьютерный Центр РАН"
             br
             br
             br
-            = image_tag "rffi1.gif", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"
+            = link_to image_tag("rffi1.gif", alt: "Работа выполнена при поддержке РФФИ", :width=>"141", :height=>"111", :border=>"0", :style=>"margin: 0"), "http://www.rfbr.ru", target: :_blank, title: "Работа выполнена при поддержке РФФИ"
         
       div id="footer"
         = link_to 'НИВЦ МГУ имени М.В. Ломоносова', 'http://srcc.msu.ru', target: '_blank'

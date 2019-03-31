@@ -14,8 +14,7 @@ class Top50MeasureScalesController < Top50BaseController
 
   def create
     @top50_measure_scale = Top50MeasureScale.new(top50measure_scale_params)
-    @top50_measure_scale[:is_valid] = 0
-    @top50_measure_scale[:comment] = "Added type"
+    @top50_measure_scale[:comment] = "Added scale"
     if @top50_measure_scale.save
       redirect_to :top50_measure_scales
     else
@@ -39,8 +38,6 @@ class Top50MeasureScalesController < Top50BaseController
     redirect_to :top50_measure_scales
   end
 
-
-
   def default
     Top50MeasureScale.default!
   end
@@ -48,6 +45,6 @@ class Top50MeasureScalesController < Top50BaseController
   private
 
   def top50measure_scale_params
-    params.require(:top50_measure_scale).permit(:name, :name_eng, :scale, :measure_unit_id)
+    params.require(:top50_measure_scale).permit(:name, :name_eng, :scale, :measure_unit_id, :is_valid)
   end
 end

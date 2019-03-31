@@ -4,10 +4,11 @@ div class="page-header"
 div class="panel panel-default"
     div class="panel-body"
       table class="table table-hover"
-		- @top50_slists.each do |top50_list|
-		  tr
-		    - date_attr = @date_vals.find_by(obj_id: top50_list.id)
-			- ldate = ""
-			- if date_attr.present?
-			  - ldate = date_attr.value
-			td class="col-xs-10" = link_to "Редакция №#{top50_list.num} списка Top50 от #{ldate}", top50_machines_archive_path(top50_list)
+        - @top50_slists.each do |top50_list|
+          tr
+            td class="col-xs-10"
+              - date_attr = @date_vals.find_by(obj_id: top50_list.id)
+              - ldate = date_attr.value
+              - year = ldate.split(".")[2]
+              - month = ldate.split(".")[1]
+              = link_to "Редакция №#{top50_list.num} списка Top50 от #{ldate}", get_archive_path(year, month)

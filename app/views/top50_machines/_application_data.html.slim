@@ -87,23 +87,29 @@ br
 - top50_nodes.each do |top50_node|
   - t = top50_node[:node_cnt].to_i
   - nodcnt += t
-  - if top50_node[:cpu_model_obj_id].present? or top50_node[:custom_cpu_model].present?
+  - if top50_node[:cpu_model_obj_id].present? or top50_node[:custom_cpu_from_node].present? or top50_node[:custom_cpu_model].present?
     - t1 = t * top50_node[:cpu_cnt].to_i
     - cpucnt += t1
     - if top50_node[:cpu_model_obj_id].present?
       - cores = @core_qty_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).value
     - else
-      - cores = top50_node[:custom_cpu_core_cnt]
+      - cpu_src_node = top50_node
+      - if top50_node[:custom_cpu_from_node].present?
+        - cpu_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_cpu_from_node])]
+      - cores = cpu_src_node[:custom_cpu_core_cnt]
     - corecnt_cpu += t1 * cores.to_i
-  - if top50_node[:acc_model_obj_id].present? or top50_node[:custom_acc_model].present?
+  - if top50_node[:acc_model_obj_id].present? or top50_node[:custom_acc_from_node].present? or top50_node[:custom_acc_model].present?
     - t1 = t * top50_node[:acc_cnt].to_i
     - acccnt += t1
     - if top50_node[:acc_model_obj_id].present?
       - cores = @core_qty_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).value
       - microcores = @microcore_qty_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).value
     - else
-      - cores = top50_node[:custom_acc_core_cnt]
-      - microcores =  top50_node[:custom_acc_microcore_cnt]
+      - acc_src_node = top50_node
+      - if top50_node[:custom_acc_from_node].present?
+        - acc_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_acc_from_node])] 
+      - cores = acc_src_node[:custom_acc_core_cnt]
+      - microcores = acc_src_node[:custom_acc_microcore_cnt]
     - corecnt_acc += t1 * cores.to_i
     - if microcores.present?
       - microcorecnt_acc += t1 * microcores.to_i
@@ -154,30 +160,34 @@ p
   p style="text-indent:20px;"
     = format("узлов: %s ", top50_node[:node_cnt])
     = "["
-    - if top50_node[:cpu_model_obj_id].present? or top50_node[:custom_cpu_model].present?
+    - if top50_node[:cpu_model_obj_id].present? or top50_node[:custom_cpu_from_node].present? or top50_node[:custom_cpu_model].present?
       = format("%sx ", top50_node[:cpu_cnt])
       - if top50_node[:cpu_model_obj_id].present?
         - cpu_vendor = @cpu_vendor_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).top50_dictionary_elem.name
         - cpu_model = @cpu_model_attr_vals.find_by(obj_id: top50_node[:cpu_model_obj_id]).top50_dictionary_elem.name
         - cpu_str = format("%s %s", cpu_vendor, cpu_model)
       - else
-        - if top50_node[:custom_cpu_vendor_id].present?
-          - cpu_vendor = Top50DictionaryElem.find(top50_node[:custom_cpu_vendor_id]).name
+        - cpu_src_node = top50_node
+        - if top50_node[:custom_cpu_from_node].present?
+          - cpu_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_cpu_from_node])]
+
+        - if cpu_src_node[:custom_cpu_vendor_id].present?
+          - cpu_vendor = Top50DictionaryElem.find(cpu_src_node[:custom_cpu_vendor_id]).name
         - else
-          - cpu_vendor = top50_node[:custom_cpu_vendor]
-        - if top50_node[:custom_cpu_gen_id].present?
-          - cpu_gen = Top50DictionaryElem.find(top50_node[:custom_cpu_gen_id]).name
+          - cpu_vendor = cpu_src_node[:custom_cpu_vendor]
+        - if cpu_src_node[:custom_cpu_gen_id].present?
+          - cpu_gen = Top50DictionaryElem.find(cpu_src_node[:custom_cpu_gen_id]).name
         - else
-          - cpu_gen = top50_node[:custom_cpu_gen]
-        - if top50_node[:custom_cpu_family_id].present?
-          - cpu_fam = Top50DictionaryElem.find(top50_node[:custom_cpu_family_id]).name
+          - cpu_gen = cpu_src_node[:custom_cpu_gen]
+        - if cpu_src_node[:custom_cpu_family_id].present?
+          - cpu_fam = Top50DictionaryElem.find(cpu_src_node[:custom_cpu_family_id]).name
         - else
-          - cpu_fam = top50_node[:custom_cpu_family]
-        - cpu_str = format("%s %s %s MHz (%s ядер, поколение: %s, семейство: %s)", cpu_vendor, top50_node[:custom_cpu_model], top50_node[:custom_cpu_freq], top50_node[:custom_cpu_core_cnt], cpu_gen, cpu_fam)
+          - cpu_fam = cpu_src_node[:custom_cpu_family]
+        - cpu_str = format("%s %s %s MHz (ядер: %s, микроархитектура: %s, семейство: %s)", cpu_vendor, cpu_src_node[:custom_cpu_model], cpu_src_node[:custom_cpu_freq], cpu_src_node[:custom_cpu_core_cnt], cpu_gen, cpu_fam)
       = cpu_str
       = ", "
     = format("%s GB RAM", top50_node[:ram_size])
-    - if top50_node[:acc_model_obj_id].present? or top50_node[:custom_acc_model].present?
+    - if top50_node[:acc_model_obj_id].present? or top50_node[:custom_acc_from_node].present? or top50_node[:custom_acc_model].present?
       = "; "
       = "Ускорители: "
       = format("%sx ", top50_node[:acc_cnt])
@@ -186,15 +196,19 @@ p
         - acc_model = @comp_model_attr_vals.find_by(obj_id: top50_node[:acc_model_obj_id]).top50_dictionary_elem.name
         - acc_str = format("%s %s", acc_vendor, acc_model)
       - else
-        - if top50_node[:custom_acc_vendor_id].present?
-          - acc_vendor = Top50DictionaryElem.find(top50_node[:custom_acc_vendor_id]).name
+        - acc_src_node = top50_node
+        - if top50_node[:custom_acc_from_node].present?
+          - acc_src_node = @step2_data[format('top50_node_%s', top50_node[:custom_acc_from_node])] 
+
+        - if acc_src_node[:custom_acc_vendor_id].present?
+          - acc_vendor = Top50DictionaryElem.find(acc_src_node[:custom_acc_vendor_id]).name
         - else
-          - acc_vendor = top50_node[:custom_acc_vendor]
-        - if top50_node[:custom_acc_type_id].present?
-          - acc_type = Top50ObjectType.find(top50_node[:custom_acc_type_id]).name
+          - acc_vendor = acc_src_node[:custom_acc_vendor]
+        - if acc_src_node[:custom_acc_type_id].present?
+          - acc_type = Top50ObjectType.find(acc_src_node[:custom_acc_type_id]).name
         - else
-          - acc_type = top50_node[:custom_acc_type]
-        - acc_str = format("%s %s (тип: %s, частота: %s, ядер: %s, микроядер: %s)", acc_vendor, top50_node[:custom_acc_model], acc_type, top50_node[:custom_acc_freq], top50_node[:custom_acc_core_cnt], top50_node[:custom_acc_microcore_cnt])
+          - acc_type = acc_src_node[:custom_acc_type]
+        - acc_str = format("%s %s (тип: %s, частота: %s, ядер: %s, микроядер: %s)", acc_vendor, acc_src_node[:custom_acc_model], acc_type, acc_src_node[:custom_acc_freq], acc_src_node[:custom_acc_core_cnt], acc_src_node[:custom_acc_microcore_cnt])
       = acc_str
     = "]"    
     br
