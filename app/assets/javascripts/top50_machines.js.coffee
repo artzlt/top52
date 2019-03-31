@@ -761,6 +761,11 @@
           .scaleExtent([1, 32])
           .on("zoom", zoom_func)
 
+    if navigator.userAgent.search(/firefox/i) != -1
+        zoom.wheelDelta(() ->
+              return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 500
+            )
+
     svg.call(zoom) 
 
     # view control buttons actions defining
@@ -1144,6 +1149,11 @@ add_axes =  (svg, container, data, margin, width, height, x_label, y_label) ->
           .translateExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
           .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
           .on("zoom", zoom_func)
+
+  if navigator.userAgent.search(/firefox/i) != -1
+        zoom.wheelDelta(() ->
+              return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 500
+            )
 
   svg.call(zoom)
   return axes
