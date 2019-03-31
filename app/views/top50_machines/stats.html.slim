@@ -283,7 +283,7 @@ br
       coffee:
         d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
         d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
-        draw_area(data, data_per, "chart", "Область применения", "Редакция (ММ.ГГ)", "Доля систем")
+        draw_area(data, data_per, "chart", "Область применения", "Редакция (ММ.ГГ)", "Доля систем", d3.schemePaired)
       /= area_chart @achart_data, max: 50, stacked: true, height: "750px"
       br
 

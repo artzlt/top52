@@ -399,6 +399,11 @@
             .scaleExtent([1, 1.5])
             .on("zoom", zoom_func)
 
+      if navigator.userAgent.search(/firefox/i) != -1
+        zoom.wheelDelta(() ->
+              return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 500
+            )
+
       svg.call(zoom) 
 
     add_legend_events(legend, svg, container, data, add_pies, margin, width, height, x_label, y_label, false, true, COLORS)
@@ -1135,9 +1140,9 @@ add_axes =  (svg, container, data, margin, width, height, x_label, y_label) ->
     add_bar_chart_event(svg, container, newXScale, newBarYScale)
 
   zoom = d3.zoom()
-          .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+          .scaleExtent([1, 100])
           .translateExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
-          .scaleExtent([1, Infinity])
+          .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
           .on("zoom", zoom_func)
 
   svg.call(zoom)
