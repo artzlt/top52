@@ -1024,7 +1024,8 @@ br
       - ind = 1
     - chart_data_by_tp["##{ind}"] = []
   - chart_data_by_tp["Средняя"] = []
-  - @csv_string = ["Редакция,№1,№10,№20,№30,№40,№50,Средняя"]
+  - chart_data_by_tp["Медиана"] = []
+  - @csv_string = ["Редакция,№1,№10,№20,№30,№40,№50,Средняя,Медиана"]
   a class="button" style="background: #6699CC; float: right" target="_blank" download="Different_performance.csv" id="download2"
     = "Скачать"
   table class="table table-hover" id="table_chart_2"
@@ -1036,6 +1037,7 @@ br
           - ind = 1
         th = "##{ind}"
       th = "Средняя"
+      th = "Медиана"
     - @top50_slists.each do |top50_list|
       - arr_rmax = []
       - (0..50).step(10).each do |i|
@@ -1044,6 +1046,7 @@ br
           - ind = 1
         - arr_rmax.push((Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result = #{ind}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2))
       - avg_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").average("br.result") / 1000000.0).round(2)
+      - rmax_med = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result = 25").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2)
       tr
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
@@ -1067,6 +1070,9 @@ br
         td align="right"
           = avg_rmax
           - chart_data_by_tp["Средняя"].unshift([date_val.value, avg_rmax])
+        td align="right"
+          = rmax_med
+          - chart_data_by_tp["Медиана"].unshift([date_val.value, rmax_med])
 
     tr
 
@@ -1077,12 +1083,12 @@ br
         var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
         var csv = JSON.parse("#{@csv_string}".replace(/&quot;/g, '"')).join("\n");
         var COLORS = d3.schemeOrRd[8].reverse()
-        COLORS.splice(6, 2, "#5181C0")
+        COLORS.splice(6, 2, "#5181C0", "#19C457")
         console.log(COLORS)
 
       coffee:
         d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv)
-        draw_performance(data, "chart_2", "Средняя производительность и производительность 1, 10, 20, 30, 40 и 50 систем рейтинга (ПФлоп/с)", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)", COLORS, true)
+        draw_performance(data, "chart_2", "Средняя производительность, медиана и производительность 1, 10, 20, 30, 40 и 50 систем рейтинга (ПФлоп/с)", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)", COLORS, true)
       /= line_chart @achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
       br
 

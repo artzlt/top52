@@ -262,18 +262,18 @@
                   elem.text(val)
                 if mode[1]
                   if j % 2
-                    elem.text("---> " + perc + "%")
-                  else
                     elem.text(perc + "%")
+                  else
+                    elem.text(perc + "% --->")
 
               elem.style("background-color", "white")
               if mode[2] and mode[1]
-                if perc - perc_pred > 0.01
+                if perc > perc_pred
                   elem.style("background-color", "rgba(0, 255, 0, 0.05)")
-                if perc - perc_pred < -0.01
+                if perc < perc_pred 
                   elem.style("background-color", "rgba(255, 0, 0, 0.05)")
               else if mode[2] and mode[0]
-                if val - val_pred > val_pred
+                if val > val_pred
                   elem.style("background-color", "rgba(0, 255, 0, 0.05)")
             )
     )
