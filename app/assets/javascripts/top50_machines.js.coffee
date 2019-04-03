@@ -262,18 +262,18 @@
                   elem.text(val)
                 if mode[1]
                   if j % 2
-                    elem.text("---> " + perc + "%")
-                  else
                     elem.text(perc + "%")
+                  else
+                    elem.text(perc + "% --->")
 
               elem.style("background-color", "white")
               if mode[2] and mode[1]
-                if perc - perc_pred > 0.01
+                if perc > perc_pred
                   elem.style("background-color", "rgba(0, 255, 0, 0.05)")
-                if perc - perc_pred < -0.01
+                if perc < perc_pred 
                   elem.style("background-color", "rgba(255, 0, 0, 0.05)")
               else if mode[2] and mode[0]
-                if val - val_pred > val_pred
+                if val > val_pred
                   elem.style("background-color", "rgba(0, 255, 0, 0.05)")
             )
     )
@@ -398,6 +398,11 @@
       zoom = d3.zoom()
             .scaleExtent([1, 1.5])
             .on("zoom", zoom_func)
+
+      if navigator.userAgent.search(/firefox/i) != -1
+        zoom.wheelDelta(() ->
+              return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 500
+            )
 
       svg.call(zoom) 
 
@@ -755,6 +760,11 @@
     zoom = d3.zoom()
           .scaleExtent([1, 32])
           .on("zoom", zoom_func)
+
+    if navigator.userAgent.search(/firefox/i) != -1
+        zoom.wheelDelta(() ->
+              return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 500
+            )
 
     svg.call(zoom) 
 
@@ -1135,10 +1145,15 @@ add_axes =  (svg, container, data, margin, width, height, x_label, y_label) ->
     add_bar_chart_event(svg, container, newXScale, newBarYScale)
 
   zoom = d3.zoom()
-          .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+          .scaleExtent([1, 100])
           .translateExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
-          .scaleExtent([1, Infinity])
+          .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
           .on("zoom", zoom_func)
+
+  if navigator.userAgent.search(/firefox/i) != -1
+        zoom.wheelDelta(() ->
+              return -d3.event.deltaY * (d3.event.deltaMode ? 120 : 1) / 500
+            )
 
   svg.call(zoom)
   return axes
