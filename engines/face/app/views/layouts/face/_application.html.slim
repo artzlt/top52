@@ -44,6 +44,7 @@ html
               = link_to 'Новая редакция', top50_machines_new_list_path, class: "navbar-brand"
             ul class="nav navbar-nav"
               = link_to 'Редактирование данных', admin_links_path, class: "navbar-brand"
+          - if current_user
             ul class="nav navbar-nav"
               a class="navbar-brand" href="/auth/session" Выйти (#{current_user.email})
 

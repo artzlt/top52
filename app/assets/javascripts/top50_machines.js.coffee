@@ -300,7 +300,7 @@
       data[i].data[j][0] = new Date(+s[2], +s[1] - 1, +s[0])
       data[i].data[j][1] = +data[i].data[j][1]
       s = data_per[i].data[j][0].split(".")
-      data_per[i].data[j][0] = new Date(+s[2], +s[1], +s[0])
+      data_per[i].data[j][0] = new Date(+s[2], +s[1] - 1, +s[0])
       data_per[i].data[j][1] = +data_per[i].data[j][1]
 
   console.log(data)
