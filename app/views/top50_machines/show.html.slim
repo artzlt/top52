@@ -4,7 +4,7 @@
   h2 =  "Сведения о системе:"
   
 - if current_user and current_user.may_edit_top50?
-    = link_to t("Редактировать"), top50_machines_moderate_path(@top50_machine), class: "btn btn-default"
+    = link_to t("Редактировать"), [:edit, @top50_machine], class: "btn btn-default"
     br
     br
         

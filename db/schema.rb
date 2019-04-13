@@ -27,6 +27,117 @@ ActiveRecord::Schema.define(version: 20181016090412) do
 
   add_index "abilities", ["group_id"], name: "index_abilities_on_group_id", using: :btree
 
+  create_table "algoalgorithms", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "wiki_link"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algobenchmarkresults", force: true do |t|
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "launch_id"
+    t.integer  "nodegroup_id"
+  end
+
+  create_table "algobenchmarkresultswithdup", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "benchmark_id"
+    t.integer  "machine_id"
+    t.float    "result"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "launch_id"
+    t.integer  "nodegroup_id"
+  end
+
+  create_table "algobenchmarks", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "measure_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "algoimplaunches", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "imp_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "performer"
+  end
+
+  create_table "algoimplauncheswithdup", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "imp_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "performer"
+  end
+
+  create_table "algoimplementations", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "algorithm_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "repo_link"
+  end
+
+  create_table "algoplatforms", force: true do |t|
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
+  end
+
+  create_table "algorealizations", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "measure_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "announcement_recipients", force: true do |t|
     t.integer "user_id"
     t.integer "announcement_id"
