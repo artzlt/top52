@@ -407,7 +407,7 @@
       svg.call(zoom) 
 
     add_legend_events(legend, svg, container, data, add_pies, margin, width, height, x_label, y_label, false, true, COLORS)
-    add_pies(svg, container, data, {"top": 10, "bottom": 80, "right": 10 + width / 2, "left": 80}, width, height)
+    add_pies(svg, container, data, {"top": 10, "bottom": 80, "right": 10, "left": 80}, width, height)
 
     # table control processing
     table_control = d3.selectAll("g").filter(() -> d3.select(this).attr("id") == "table_control_" + src_id)
@@ -526,7 +526,7 @@
                 .each(() -> data_to_draw.push(temp[+d3.select(this).attr("number")]))
 
         add_legend_events(legend, svg, container, temp, add_pies, margin, width, height, x_label, y_label, false, true, COLORS)
-        add_pies(svg, container, data_to_draw, {"top": 10, "bottom": 80, "right": 10 + width / 2, "left": 80}, width, height)
+        add_pies(svg, container, data_to_draw, {"top": 10, "bottom": 80, "right": 10, "left": 80}, width, height)
     )
 
     log_button.on("click", () ->
@@ -912,31 +912,36 @@ add_legend_events = (legend, svg, container, data, construct, margin, width, hei
                 .filter(() -> +d3.select(this).attr("active"))
                 .each(() -> temp.push(data[+d3.select(this).attr("number")]))
 
+          trs_num = 0
           svg.selectAll("g")
-              .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
-              .transition()
-              .duration(500)
-              .style("opacity", "0")
-              .remove()
+            .filter(() -> d3.select(this).attr("id") == "chart" || d3.select(this).attr("id") == "axes")
+            .transition()
+            .duration(500)
+            .each(() -> trs_num++)
+            .style("opacity", "0")
+            .remove()
+            .on("end", () ->
+              trs_num--
+              if !trs_num
+                axes_data = temp
+                if accumulation
+                  axes_data = [{"data" : []}]
+                  for i in [0..temp[0].data.length - 1]
+                    axes_data[0].data.push([data[0].data[i][0], 0])
+                    for j in [0..temp.length - 1]
+                      axes_data[0].data[i][1] += temp[j].data[i][1]
 
-          axes_data = temp
-          if accumulation
-            axes_data = [{"data" : []}]
-            for i in [0..temp[0].data.length - 1]
-              axes_data[0].data.push([data[0].data[i][0], 0])
-              for j in [0..temp.length - 1]
-                axes_data[0].data[i][1] += temp[j].data[i][1]
+                if !pie
+                  add_axes(svg, container, axes_data, margin, width, height, x_label, y_label)
+                  construct(svg, container, temp, margin, width, height, colors)
+                else
+                  zoom_func = construct(svg, container, temp, margin, width, height, colors)
+                  zoom = d3.zoom()
+                          .scaleExtent([1, 1.5])
+                          .on("zoom", zoom_func)
 
-          if !pie
-            add_axes(svg, container, axes_data, margin, width, height, x_label, y_label)
-            construct(svg, container, temp, margin, width, height, colors)
-          else
-            zoom_func = construct(svg, container, temp, margin, width, height, colors)
-            zoom = d3.zoom()
-                    .scaleExtent([1, 1.5])
-                    .on("zoom", zoom_func)
-
-            svg.call(zoom)
+                  svg.call(zoom)
+            )
     )
 
 
@@ -1412,7 +1417,31 @@ add_bar_chart = (svg, container, data, margin, width, height, colors = d3.scheme
 # WARNING!!! returning zoom function
 # not setting zoom automaticly
 add_pie_chart = (svg, container, data, margin, width, height, colors = d3.schemeSet1, measure = "Количество систем") ->
+  need_arrows = true
+  arrows = svg.selectAll("g[id=arrows]")
+              .each(() -> need_arrows = !need_arrows)
+
   chart = svg.append("g").attr("id", "chart")
+  if need_arrows
+    # making arrows
+    triangle = d3.symbol().type(d3.symbolTriangle)
+    arrows = chart.append("g")
+                  .attr("id", "arrows")
+                  .attr("fill", "#6699CC")
+    up = arrows.append("path")
+              .attr("class", "button")
+              .attr("id", "u")
+              .attr("d", triangle.size(200))
+              .attr("title", "следущая редакция")
+    down = arrows.append("path")
+                .attr("transform", "translate(0, 15) rotate(60)")
+                .attr("class", "button")
+                .attr("id", "d")
+                .attr("d", triangle.size(200))
+                .attr("title", "предыдущая редакция")
+  else
+    up = arrows.selectAll("path[id=u]")
+    down = arrows.selectAll("path[id=d]")
 
   pie = d3.pie().value((d) -> d.data[d.data.length - 1][1])
   loc_colors = data.map((d) -> d.color)
@@ -1427,6 +1456,7 @@ add_pie_chart = (svg, container, data, margin, width, height, colors = d3.scheme
 
   total_value = 0
   arcs = chart.selectAll("g")
+              .filter(() -> d3.select(this).attr("id") != "arrows")
               .data(pie(data))
               .enter()
               .append("g")
@@ -1557,47 +1587,88 @@ add_pie_chart = (svg, container, data, margin, width, height, colors = d3.scheme
             .style("opacity", 0)
             .style("top", "0px")
     )
+
+  # draw redaction function
+  draw_redaction = (cur_number) ->
+    pie.value((d) -> d.data[cur_number][1])
+
+    total_value = 0
+    chart.selectAll("g")
+        .filter((d) -> d3.select(this).attr("id") == "arc")
+        .data(pie(data))
+        .attr("value", (d) -> d.value)
+        .attr("redaction", cur_number)
+        .each((d) -> total_value += d.value)
+
+    chart.selectAll("path")
+        .filter(() -> d3.select(this).attr("id") != "u" && d3.select(this).attr("id") != "d")
+        .data(pie(data))
+        .attr("value", (d) -> d.value)
+        .attr("redaction", cur_number)
+        .transition()
+        .duration(300)
+        .attr("d", arc)
+
+    chart.selectAll("text")
+        .filter((d) -> d3.select(this).attr("id") == "label")
+        .data(pie(data))
+        .attr("transform", (d) ->
+              trans = [label_arc.centroid(d)[0] + center.left, label_arc.centroid(d)[1] + center.top]
+              "translate(" + trans + ")"
+        )
+        .style("opacity", (d) -> +(Math.round(+d3.select(this.parentNode).attr("value") * 100 / total_value) >= 5))
+        .text((d) -> Math.round(+d3.select(this.parentNode).attr("value") * 100 / total_value) + "%")
+
+    date = data[0].data[cur_number][0]
+    date_str = (cur_number + 1) + "-я редакция (" + (date.getMonth() + 1) + "." + date.getFullYear() + ")"
+    chart.selectAll("text")
+          .filter((d) -> d3.select(this).attr("id") == "redaction")
+          .transition()
+          .duration(300)
+          .text(date_str)
+
+  # arrows appearing
+  arrows.attr("transform", "translate(" + (width - 50) + ",-50)")
+        .transition()
+        .duration(1000)
+        .ease(d3.easeBackOut)
+        .attr("transform", "translate(" + (width - 50) + "," + (margin.top + 20) + ")")
+
+  # arrows action
+  up_fun = () ->
+    cur_number = +chart.selectAll("g")
+                      .filter((d) -> d3.select(this).attr("id") == "arc")
+                      .attr("redaction")
+    if cur_number + 1 < data[0].data.length
+      draw_redaction(cur_number + 1)
+  down_fun = () ->
+      cur_number = +chart.selectAll("g")
+                        .filter((d) -> d3.select(this).attr("id") == "arc")
+                        .attr("redaction")
+      if cur_number - 1 > 0
+        draw_redaction(cur_number - 1)
+    
+  if need_arrows
+    up.on("click", up_fun)
+    down.on("click", down_fun)
+  else 
+    old_up_fun = up.on("click")
+    old_down_fun = down.on("click")
+    up.on("click", () ->
+      old_up_fun()
+      up_fun()
+    )
+    down.on("click", () ->
+      old_down_fun()
+      down_fun()
+    )
   
   # adiing pie chart zooming
   zoom_func = () ->
     scale_step = 0.5 / (data[0].data.length - 1)
     cur_number = Math.floor((d3.event.transform.k - 1) / scale_step)
     if cur_number != +chart.select("path").attr("redaction")
-      pie.value((d) -> d.data[cur_number][1])
-
-      total_value = 0
-      chart.selectAll("g")
-          .filter((d) -> d3.select(this).attr("id") == "arc")
-          .data(pie(data))
-          .attr("value", (d) -> d.value)
-          .attr("redaction", cur_number)
-          .each((d) -> total_value += d.value)
-
-      chart.selectAll("path")
-          .data(pie(data))
-          .attr("value", (d) -> d.value)
-          .attr("redaction", cur_number)
-          .transition()
-          .duration(300)
-          .attr("d", arc)
-
-      chart.selectAll("text")
-          .filter((d) -> d3.select(this).attr("id") == "label")
-          .data(pie(data))
-          .attr("transform", (d) ->
-                trans = [label_arc.centroid(d)[0] + center.left, label_arc.centroid(d)[1] + center.top]
-                "translate(" + trans + ")"
-          )
-          .style("opacity", (d) -> +(Math.round(+d3.select(this.parentNode).attr("value") * 100 / total_value) >= 5))
-          .text((d) -> Math.round(+d3.select(this.parentNode).attr("value") * 100 / total_value) + "%")
-
-      date = data[0].data[cur_number][0]
-      date_str = (cur_number + 1) + "-я редакция (" + (date.getMonth() + 1) + "." + date.getFullYear() + ")"
-      chart.selectAll("text")
-            .filter((d) -> d3.select(this).attr("id") == "redaction")
-            .transition()
-            .duration(300)
-            .text(date_str)
+      draw_redaction(cur_number)
 
   return zoom_func
 

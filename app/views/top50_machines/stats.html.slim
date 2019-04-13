@@ -25,7 +25,7 @@ table
 
 br
               
-- if @stat_section == "hybrid_inter" or @stat_section == "hybrid_intra"
+- if @stat_section == "hybrid_intra"
   - hlist_chart_data = {}
   - hlist_dates = {}
   - hlist_nums = {}
@@ -38,9 +38,6 @@ br
       th = "Прочие"
       - chart_data_by_tp["Гибридные"] = []
       - chart_data_by_tp["Прочие"] = []
-    javascript:
-      var test = JSON.parse("#{@top50_slists.to_json}".replace(/&quot;/g, '"'));
-      console.log(test);
     - @top50_slists.each do |top50_list|
       - c_chart_data = []
       - sum_cnt = Top50BenchmarkResult.where(benchmark_id: top50_list.id).count
@@ -74,16 +71,52 @@ br
         - @achart_data << {name: key, data: chart_data_by_tp[key]}
       javascript:
         var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
-      - ch_title = ""
-      - if @stat_section == "hybrid_inter"
-        coffee:
-          draw_type(data, "chart_1", "Доля гибридных систем (между узлами) в редакциях Top50", "Дата (MM.YY)", "Количество систем")
-      - if @stat_section == "hybrid_intra"
-        coffee:
-          draw_type(data, "chart_1", "Доля гибридных систем (по наличию ускорителей) в редакциях Top50", "Дата (MM.YY)", "Количество систем")
+      coffee:
+        draw_type(data, "chart_1", "Количество гибридных систем (по наличию ускорителей) в редакциях Top50", "Дата (MM.YY)", "Количество систем")
       /= area_chart achart_data, max: 50, stacked: true, height: "500px"
       br
 
+- elsif @stat_section == "hybrid_inter"
+  - chart_data_by_tp = {}
+  div id="chart_1"
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      - @hybrid_mach.each do |key, value|
+        th = key
+        - chart_data_by_tp[key] = []
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      - sum_cnt = Top50BenchmarkResult.where(benchmark_id: top50_list.id).count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
+        - @hybrid_mach.each do |key, value|
+          td align="right" 
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", value).count
+            = c_cnt
+            = " (#{100 * c_cnt / sum_cnt}%)"
+            - c_chart_data << [key, c_cnt]
+            - chart_data_by_tp[key].unshift([date_val.value, c_cnt])
+    tr
+      - @achart_data = []
+
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var COLORS = [], name = "";
+        for (var i = 0; i < data.length; i++) {
+          COLORS.push(d3.interpolatePlasma(i * 1. / (data.length - 1)));
+        }
+      coffee:
+        draw_type(data, "chart_1", "Количество гибридных систем (по числу типов узлов) в редакциях Top50", "Дата (MM.YY)", "Количество систем", COLORS)
+      br
 
 - elsif @stat_section == "cpu_vendor"
   - hlist_chart_data = {}
@@ -333,7 +366,7 @@ br
       br
       
       
-- elsif @stat_section == "comm_net"
+- elsif @stat_section == "comm_net" || @stat_section == "comm_net_sep"
   - chart_data_by_tp = {}
   - chart_data_by_per = {}
   - @csv_arr = [""]
@@ -359,8 +392,8 @@ br
       - @top50_cnets.each do |top50_cnet|
         th = top50_cnet.cnet_name
         / adding headers of csv
-        - @csv_arr[0] += top50_cnet.cnet_name + ","
-        - @csv_arr_per[0] += top50_cnet.cnet_name + ","
+        - @csv_arr[0] += top50_cnet.cnet_name.gsub(/"/, "") + ","
+        - @csv_arr_per[0] += top50_cnet.cnet_name.gsub(/"/, "") + ","
         - chart_data_by_tp[top50_cnet.cnet_name] = []
         - chart_data_by_per[top50_cnet.cnet_name] = []
       th = "Прочие"
@@ -416,15 +449,25 @@ br
       - chart_data_by_per.each_key do |key|
         - @achart_data_per << {name: key, data: chart_data_by_per[key]}
       javascript:
-        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
-        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;/g, '"'));
-        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;/g, '"')).join("\n");
-        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;/g, '"')).join("\n");
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"'));
+        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"')).join("\n");
+        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"')).join("\n");
+        var COLORS = [], name = "";
+        for (var i = 0; i < data.length; i++) {
+          COLORS.push(d3.interpolateRainbow(i * 1. / (data.length - 1)));
+        }
 
       coffee:
         d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
         d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
-        draw_area(data, data_per, "chart", "Коммуникационная сеть", "Редакция (ММ.ГГ)", "Доля систем", d3.schemePaired)
+      - if @stat_section == "comm_net"
+        coffee:
+          draw_area(data, data_per, "chart", "Семейства коммуникационных сетей", "Редакция (ММ.ГГ)", "Доля систем", d3.schemePaired)
+      - elsif @stat_section == "comm_net_sep"
+        coffee:
+          draw_area(data, data_per, "chart", "Коммуникационные сети", "Редакция (ММ.ГГ)", "Доля систем", COLORS)
+
       /= area_chart @achart_data, max: 50, stacked: true, height: "500px"
       br
 
@@ -467,7 +510,7 @@ br
         - @achart_data << {name: key, data: chart_data_by_tp[key]}
       javascript:
         // Italy replace for operton
-        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"').replace("\"Italy\"", "\\\"Italy\\\""));
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"'));
 
       coffee:
         draw_type(data, "chart", "Процессоры", "Редакция (ММ.ГГ)", "Количество систем", d3.schemeSpectral[10])
