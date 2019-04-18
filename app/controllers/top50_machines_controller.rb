@@ -1023,7 +1023,7 @@ class Top50MachinesController < Top50BaseController
     @section_headers["performance"] = "производительность систем"
     @section_headers["area"] = "область применения"
     @section_headers["type"] = "типы систем"
-    @section_headers["hybrid_inter"] = "гибридность систем (наличие узлов разных типов)"
+    @section_headers["hybrid_inter"] = "гибридность систем (количество узлов разных типов)"
     @section_headers["hybrid_intra"] = "гибридность систем (наличие ускорителей на узлах)"
     @section_headers["vendors"] = "разработчики вычислительных систем"
     @section_headers["cpu_vendor"] = "производители CPU"
@@ -1031,7 +1031,8 @@ class Top50MachinesController < Top50BaseController
     @section_headers["cpu_gen"] = "микроархитектура CPU"
     @section_headers["cpu_cnt"] = "количество CPU"
     @section_headers["core_cnt"] = "количество вычислительных ядер"
-    @section_headers["comm_net"] = "коммуникационная сеть"
+    @section_headers["comm_net"] = "семейства коммуникационных сетей"
+    @section_headers["comm_net_sep"] = "коммуникационные сети"
     
     @header_text = "Статистика: " + @section_headers["performance"]
     if @stat_section.present? 
@@ -1060,12 +1061,18 @@ class Top50MachinesController < Top50BaseController
     @top50_slists = get_top50_lists_sorted
     if @stat_section == 'hybrid_inter'
       comp_node_id = Top50ObjectType.where(name_eng: 'Compute node').first.id
-      @hybrid_mach = Top50Machine.select("top50_machines.id").
-        joins("join top50_relations r on r.prim_obj_id = top50_machines.id and r.type_id = #{rel_contain_id}").
-        joins("join top50_objects o on o.id = r.sec_obj_id and o.type_id = #{comp_node_id}").
-        group("top50_machines.id").
-        having("count(1) >= 2").
-        pluck("top50_machines.id")
+      @hybrid_mach = {}
+      machines = Top50Machine.select("top50_machines.id").
+          joins("join top50_relations r on r.prim_obj_id = top50_machines.id and r.type_id = #{rel_contain_id}").
+          joins("join top50_objects o on o.id = r.sec_obj_id and o.type_id = #{comp_node_id}").
+          group("top50_machines.id")
+      (1..20).each do |i|
+        ids = machines.having("count(1) = #{i}").
+          pluck("top50_machines.id")
+        if ids.count > 0
+          @hybrid_mach[i] = ids
+        end
+      end
     elsif @stat_section == 'hybrid_intra'
       acc_type_id = Top50ObjectType.where(name_eng: 'Accelerator').first.id
       acc_child_types = Top50ObjectType.where(parent_id: acc_type_id).pluck(:id)
@@ -1245,7 +1252,7 @@ class Top50MachinesController < Top50BaseController
           @ccnt_id_hash[bucket] << mach
         end
       end
-    elsif  @stat_section == 'comm_net'
+    elsif @stat_section == 'comm_net'
       cnet_dict_id = Top50Dictionary.where(name_eng: 'Net families').first.id
       @mach_x_cnets = Top50DictionaryElem.all.select("top50_dictionary_elems.id cnet_id, top50_dictionary_elems.name cnet_name, top50_machines.id mach_id").
         joins("join top50_attribute_val_dicts on top50_attribute_val_dicts.dict_elem_id = top50_dictionary_elems.id").
@@ -1253,6 +1260,7 @@ class Top50MachinesController < Top50BaseController
         where("top50_dictionary_elems.dict_id = #{cnet_dict_id}
            AND top50_machines.id IN (?)", @mach_approved).
         map(&:attributes)
+        
       _cnet = Struct.new('Cnet', :cnet_id, :cnet_name)
       @cnet_id_hash = Hash.new{|h, k| h[k] = []}
       @top50_cnets = []
@@ -1261,6 +1269,40 @@ class Top50MachinesController < Top50BaseController
           @top50_cnets << _cnet.new(rec["cnet_id"], rec["cnet_name"])
         end
         @cnet_id_hash[rec["cnet_id"]] << rec["mach_id"]
+      end
+    elsif @stat_section == 'comm_net_sep'
+      comm_net_attrid = Top50Attribute.where(name_eng: "Communication network").first.id
+      @mach_x_cnets = Top50DictionaryElem.all.select("top50_dictionary_elems.id cnet_id, top50_dictionary_elems.name cnet_name, top50_machines.id mach_id").
+       joins("join top50_attribute_val_dicts on top50_attribute_val_dicts.dict_elem_id = top50_dictionary_elems.id").
+       joins("join top50_machines on top50_machines.id = top50_attribute_val_dicts.obj_id").
+       where("top50_attribute_val_dicts.attr_id = #{comm_net_attrid}
+          AND top50_machines.id IN (?)", @mach_approved).
+       map(&:attributes)
+        
+      _cnet = Struct.new('Cnet', :cnet_id, :cnet_name)
+      @cnet_id_hash = Hash.new{|h, k| h[k] = []}
+      @top50_cnets = []
+      @pop_cnets = {}
+      @mach_x_cnets.each do |rec|
+        if @cnet_id_hash[rec["cnet_id"]].empty?
+          @top50_cnets << _cnet.new(rec["cnet_id"], rec["cnet_name"])
+          @pop_cnets[rec["cnet_name"]] = false
+        end
+        @cnet_id_hash[rec["cnet_id"]] << rec["mach_id"]
+      end
+
+      @top50_slists.each do |list|
+        @top50_cnets.each do |cnet|
+          c_cnt = Top50BenchmarkResult.where("benchmark_id = #{list.id} AND machine_id IN (?)", @cnet_id_hash[cnet.cnet_id]).count
+          if c_cnt > 2
+            @pop_cnets[cnet.cnet_name] = true
+          end
+        end
+      end
+      @pop_cnets.each do |key, value|
+        if !value
+          @top50_cnets.delete_if{|el| el.cnet_name == key}
+        end
       end
     end
   end
