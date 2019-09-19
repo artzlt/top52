@@ -1,4 +1,11 @@
 div class="page-header"
   h1 = t(".title", default: "Assign new attribute")
 
-= render "form_attr_val_dict"
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_tag url: top50_object_top50_attribute_val_dict_set_attr_path do |f|
+      = f.collection_select :attr_id, Top50Attribute.where(attr_type: 2), :id, :name, label: "Выберите атрибут"
+
+      = f.form_group do
+        = f.submit "Далее"
+

@@ -123,9 +123,19 @@ Octoshell::Application.routes.draw do
   
   post 'objects/:id/attribute_val_dbvals', to: 'top50_objects#create_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbvals'
   get 'objects/:id/attribute_val_dbvals/new', to: 'top50_objects#new_attribute_val_dbval', as:'new_top50_object_top50_attribute_val_dbval'
- 
-  post 'objects/:id/attribute_val_dicts', to: 'top50_objects#create_attribute_val_dict', as:'top50_object_top50_attribute_val_dicts'
+  patch 'objects/:id/attribute_val_dbvals/:avid', to: 'top50_objects#save_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbval_save'
+  get 'objects/:id/attribute_val_dbvals/:avid', to: 'top50_objects#edit_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbval_edit'
+  delete 'objects/:id/attribute_val_dbvals/:avid', to: 'top50_objects#destroy_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbval_destroy'
+
+
   get 'objects/:id/attribute_val_dicts/new', to: 'top50_objects#new_attribute_val_dict', as:'new_top50_object_top50_attribute_val_dict'
+  post 'objects/:id/attribute_val_dicts/new', to: 'top50_objects#new_attribute_val_dict_set_attr', as:'top50_object_top50_attribute_val_dict_set_attr'
+  patch 'objects/:id/attribute_val_dicts/:avid', to: 'top50_objects#save_attribute_val_dict', as:'top50_object_top50_attribute_val_dict_save'
+  get 'objects/:id/attribute_val_dicts/:avid', to: 'top50_objects#edit_attribute_val_dict', as:'top50_object_top50_attribute_val_dict_edit'
+  delete 'objects/:id/attribute_val_dicts/:avid', to: 'top50_objects#destroy_attribute_val_dict', as:'top50_object_top50_attribute_val_dict_destroy'
+
+  post 'objects/:id/attribute_val_dicts', to: 'top50_objects#create_attribute_val_dict', as:'top50_object_top50_attribute_val_dicts'
+  get 'objects/:id/attribute_val_dicts/:attrid/new', to: 'top50_objects#new_attribute_val_dict_step2', as:'new_top50_object_top50_attribute_val_dict_step2'
 
   get 'attribute_dicts/:attr_id/dictionary_elems', to: 'top50_dictionary_elems#index', as:'top50_attribute_dict_top50_dictionary_elems'
 

@@ -26,7 +26,6 @@ div class="panel panel-default"
             - if val.present?
               = format(" (%s)", val.name)
 
-
 div class="panel panel-default"
   div class="panel-heading"
     = link_to "Задать атрибут-значение", new_top50_object_top50_attribute_val_dbval_path(@top50_object), class: "btn btn-default"
@@ -48,6 +47,16 @@ div class="panel panel-default"
             - val = Top50ValidType.where(id: top50_attribute_val.is_valid).first
             - if val.present?
               = format(" (%s)", val.name)
+          td class="btn-group"
+            = link_to t("actions.edit"), top50_object_top50_attribute_val_dbval_edit_path(@top50_object, top50_attribute_val.id), class: "btn btn-default btn-sm"
+            button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"
+              span class="caret"
+            ul class="dropdown-menu" role="menu"
+              - name = t("actions.delete")
+              - confirm = t("actions.confirm", default: "Are You shure?")
+              - data = { method: :delete, confirm: confirm }
+              li class="text-left"
+                = link_to name, top50_object_top50_attribute_val_dbval_destroy_path(@top50_object, top50_attribute_val.id), data: data
 
       - @top50_object.top50_attribute_val_dicts.each do |top50_attribute_val|
         tr
@@ -58,4 +67,39 @@ div class="panel panel-default"
             - val = Top50ValidType.where(id: top50_attribute_val.is_valid).first
             - if val.present?
               = format(" (%s)", val.name)
+          td class="btn-group"
+            = link_to t("actions.edit"), top50_object_top50_attribute_val_dict_edit_path(@top50_object, top50_attribute_val.id), class: "btn btn-default btn-sm"
+            button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"
+              span class="caret"
+            ul class="dropdown-menu" role="menu"
+              - name = t("actions.delete")
+              - confirm = t("actions.confirm", default: "Are You shure?")
+              - data = { method: :delete, confirm: confirm }
+              li class="text-left"
+                = link_to name, top50_object_top50_attribute_val_dict_destroy_path(@top50_object, top50_attribute_val.id), data: data
 
+
+div class="panel panel-default"
+  div class="panel-heading"
+    h4 = "Обратные связи" 
+  div class="panel-body"
+    table class="table table-hover"
+      tr
+        th = "ID родительского объекта"
+        th = "Тип родительского объекта"
+        th = "Связь"
+        th = "В количестве"
+        th Статус связи
+      - Top50Relation.where(sec_obj_id: @top50_object).each do |top50_relation|
+        - obj = Top50Object.find(top50_relation.prim_obj_id)
+        tr
+          td class="col-3"
+            = link_to obj.id, top50_object_path(obj)
+          td class="col-4" = obj.top50_object_type.name
+          td class="col-4" = top50_relation.top50_relation_type.name
+          td class="col-3" = top50_relation.sec_obj_qty
+          td class="col-5"
+            = top50_relation.is_valid
+            - val = Top50ValidType.where(id: top50_relation.is_valid).first
+            - if val.present?
+              = format(" (%s)", val.name)
