@@ -940,10 +940,30 @@ class Top50MachinesController < Top50BaseController
     @top50_machine = Top50Machine.find(params[:id])
     @top50_benchmark_result = @top50_machine.top50_benchmark_results.build(top50_benchmark_result_params)
     if @top50_benchmark_result.save
-      redirect_to :top50_machine_top50_benchmark_results
+      redirect_to proc { top50_machine_top50_benchmark_results_path(@top50_machine.id) }
     else
       render :new_top50_machine_top50_benchmark_result
     end
+  end
+
+  def edit_benchmark_result
+    @top50_benchmark_result = Top50BenchmarkResult.find(params[:brid])
+    @top50_machine = Top50Machine.find(params[:id])
+  end
+
+  def save_benchmark_result
+    @top50_benchmark_result = Top50BenchmarkResult.find(params[:brid])
+    @top50_machine = Top50Machine.find(params[:id])
+    @top50_benchmark_result.update(top50_benchmark_result_params)
+    @top50_benchmark_result.save!
+    redirect_to proc { top50_machine_top50_benchmark_results_path(@top50_machine.id) }
+  end
+
+  def destroy_benchmark_result
+    @top50_benchmark_result = Top50BenchmarkResult.find(params[:brid])
+    @top50_machine = Top50Machine.find(params[:id])
+    @top50_benchmark_result.destroy!
+    redirect_to proc { top50_machine_top50_benchmark_results_path(@top50_machine.id) }
   end
 
   def tree_prec_sql(obj_id)

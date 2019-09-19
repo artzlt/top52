@@ -158,10 +158,12 @@ Octoshell::Application.routes.draw do
   get 'components/info/:id', to: 'top50_objects#show_info', as:'top50_objects_show_info'
 
   get 'systems/:id/benchmark_results', to: 'top50_machines#benchmark_results', as:'top50_machine_top50_benchmark_results'
-
   post 'systems/:id/benchmark_results', to: 'top50_machines#create_benchmark_result'
-
   get 'systems/:id/benchmark_results/add', to: 'top50_machines#add_benchmark_result', as:'new_top50_machine_top50_benchmark_result'
+  patch 'systems/:id/benchmark_results/:brid', to: 'top50_machines#save_benchmark_result', as:'top50_machine_top50_benchmark_result_save'
+  get 'systems/:id/benchmark_results/:brid', to: 'top50_machines#edit_benchmark_result', as:'top50_machine_top50_benchmark_result_edit'
+  delete 'systems/:id/benchmark_results/:brid', to: 'top50_machines#destroy_benchmark_result', as:'top50_machine_top50_benchmark_result_destroy'
+
   get 'organizations/:org_id/suborgs', to: 'top50_organizations#suborg', as:'top50_organization_suborg'
 
   resources :newsfeed, only: [:new, :index]

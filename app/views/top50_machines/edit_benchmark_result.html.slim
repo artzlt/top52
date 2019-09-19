@@ -1,6 +1,8 @@
+div class="page-header"
+  h1 = t(".title", default: "Edit benchmark result")
 div class="row"
-  div class="col-xs-8"
-    = bootstrap_form_for [@top50_machine, @top50_machine.top50_benchmark_results.build], url: top50_machine_top50_benchmark_results_path(@top50_machine) do |f|
+  div class="col-8"
+    = bootstrap_form_for @top50_benchmark_result, url: top50_machine_top50_benchmark_result_save_path(@top50_machine, @top50_benchmark_result) do |f|
       = f.collection_select :benchmark_id, Top50Benchmark.all, :id, :name
       = f.number_field :result, step: :any
       = f.collection_select :is_valid, Top50ValidType.all, :id, :name, {include_blank: true, label: "Статус"}
