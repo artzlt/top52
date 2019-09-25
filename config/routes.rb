@@ -139,10 +139,12 @@ Octoshell::Application.routes.draw do
 
   get 'attribute_dicts/:attr_id/dictionary_elems', to: 'top50_dictionary_elems#index', as:'top50_attribute_dict_top50_dictionary_elems'
 
-  get 'objects/:id/nested_objects', to: 'top50_objects#nested_objects', as:'top50_object_top50_nested_objects'
-
-  post 'objects/:id/nested_objects', to: 'top50_objects#create_nested_object'
-  get 'objects/:id/nested_objects/new', to: 'top50_objects#new_nested_object', as:'new_top50_object_top50_nested_object'
+  get 'objects/:id/relations', to: 'top50_objects#show_relations', as:'top50_object_relations'
+  post 'objects/:id/relations', to: 'top50_objects#create_relation'
+  get 'objects/:id/relations/new', to: 'top50_objects#new_relation', as:'new_top50_object_relation'
+  patch 'objects/:id/relations/:relid', to: 'top50_objects#save_relation', as:'top50_object_relation_save'
+  get 'objects/:id/relations/:relid', to: 'top50_objects#edit_relation', as:'top50_object_relation_edit'
+  delete 'objects/:id/relation/:relid', to: 'top50_objects#destroy_relation', as:'top50_object_relation_destroy'
   
   get 'systems/:id/add_component', to: 'top50_machines#add_component', as:'add_top50_machine_component'
   post 'systems/:id/add_component', to: 'top50_machines#create_component'

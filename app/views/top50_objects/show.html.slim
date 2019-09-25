@@ -12,7 +12,7 @@ div class="panel panel-default"
   div class="panel-heading"
     h4 = "Связанные объекты"
   div class="panel-heading"
-    = link_to "Добавить связанный объект", new_top50_object_top50_nested_object_path(@top50_object), class: "btn btn-default"
+    = link_to "Добавить связанный объект", new_top50_object_relation_path(@top50_object), class: "btn btn-default"
 
   div class="panel-body"
     table class="table table-hover"
@@ -22,6 +22,7 @@ div class="panel panel-default"
         th = "Связь"
         th = "Количество"
         th Статус связи
+        th
       - @top50_object.top50_relations.each do |top50_relation|
         tr
           td class="col-3"
@@ -29,11 +30,23 @@ div class="panel panel-default"
           td class="col-4" = top50_relation.top50_object.top50_object_type.name
           td class="col-4" = top50_relation.top50_relation_type.name
           td class="col-3" = top50_relation.sec_obj_qty
-          td class="col-5"
+          td class="col-4"
             = top50_relation.is_valid
             - val = Top50ValidType.where(id: top50_relation.is_valid).first
             - if val.present?
               = format(" (%s)", val.name)
+          td class="btn-group"
+            = link_to t("actions.edit"), top50_object_relation_edit_path(@top50_object, top50_relation.id), class: "btn btn-default btn-sm"
+            button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"
+              span class="caret"
+            ul class="dropdown-menu" role="menu"
+              - name = t("actions.delete")
+              - confirm = t("actions.confirm", default: "Are You shure?")
+              - data = { method: :delete, confirm: confirm }
+              li class="text-left"
+                = link_to name, top50_object_relation_destroy_path(@top50_object, top50_relation.id), data: data
+
+
 
 div class="panel panel-default"
   div class="panel-heading"

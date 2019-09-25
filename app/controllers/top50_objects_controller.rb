@@ -79,17 +79,17 @@ class Top50ObjectsController < Top50BaseController
     redirect_to @top50_object
   end
 
-  def nested_objects
+  def relations
     @top50_object = Top50Object.find(params[:id])
   end
 
-  def new_nested_object
+  def new_relation
     @top50_object = Top50Object.find(params[:id])
     @top50_nested_object = Top50Object.new
     @top50_relation = Top50Relation.new
   end
 
-  def create_nested_object
+  def create_relation
     @top50_object = Top50Object.find(params[:id])
     @top50_relation = @top50_object.top50_relations.build(top50_nested_object_params[:top50_relation])
     if top50_nested_object_params[:top50_object][:id].present?
@@ -102,7 +102,7 @@ class Top50ObjectsController < Top50BaseController
     if @top50_relation.save
       redirect_to @top50_object
     else
-      render :new_nested_obj
+      render :new_relation
     end
   end
 
