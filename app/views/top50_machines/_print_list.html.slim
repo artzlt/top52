@@ -95,7 +95,11 @@ table class="table table-responsive table-striped"
               br
               = link_to top50_parent_org.name, get_archive_org_path(@list_year, @list_month, top50_parent_org), :title => "Организация"
           - if not (top50_parent_org_rel.present? and top50_parent_org.present?)
-                = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Организация"
+            = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Организация"
+          - if top50_org.top50_city.present?
+             = ", "
+             = top50_org.top50_city.name
+ 
       td class="col-xs-1"
         - cpucnt = 0
         - acccnt = 0
