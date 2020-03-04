@@ -28,5 +28,22 @@ class Top50Organization < ActiveRecord::Base
     obj.destroy!
   end
 
+  def get_rel_contain_id
+    return Top50RelationType.where(name_eng: 'Contains').first.id
+  end
+
+  def parent_org_id
+    parent_rel = Top50Relation.find_by(sec_obj_id: self.id, type_id: get_rel_contain_id)
+    if parent_rel.present?
+      return parent_rel.prim_obj_id 
+    end
+  end
+
+  def parent_org
+    parent_rel = Top50Relation.find_by(sec_obj_id: self.id, type_id: get_rel_contain_id)
+    if parent_rel.present?
+      return Top50Organization.find_by(id: parent_rel.prim_obj_id)
+    end
+  end
 
 end

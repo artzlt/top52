@@ -9,11 +9,19 @@ div class="panel panel-default"
     table class="table table-hover"
       tr
         th = Top50Organization.human_attribute_name(:name)
+        th Parent
+        th Город
         th Статус
         th
       - @top50_organizations.each do |top50_organization|
         tr
-          td class="col-10" = top50_organization.name
+          td class="col-8" = top50_organization.name
+          td class="col-8"
+            - if top50_organization.parent_org.present?
+              = top50_organization.parent_org.name
+          td class="col-8"
+            - if top50_organization.top50_city.present?
+              = top50_organization.top50_city.name
           td class="col-5"
             = top50_organization.is_valid
             - val = Top50ValidType.where(id: top50_organization.is_valid).first
