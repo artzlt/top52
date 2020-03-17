@@ -1967,6 +1967,7 @@ class Top50MachinesController < Top50BaseController
       })
       rmax_benchid = Top50Benchmark.where(name_eng: "Linpack").first.id
       nmax_attrid = Top50Attribute.where(name_eng: "Linpack Nmax").first.id
+      linpack_out_attrid = Top50Attribute.where(name_eng: "Linpack Output").first.id
       rpeak_attrid = Top50Attribute.where(name_eng: "Rpeak (MFlop/s)").first.id
       rpeak = Top50AttributeValDbval.find_by(attr_id: rpeak_attrid, obj_id: top50_machine.id, is_valid: 1)
       if rpeak.present?
@@ -1978,6 +1979,10 @@ class Top50MachinesController < Top50BaseController
         nmax = Top50AttributeValDbval.find_by(attr_id: nmax_attrid, obj_id: rmax.id, is_valid: 1)
         if nmax.present?
           @step4_data[:top50_perf][:msize] = nmax.value.to_i
+        end
+        linpack_out = Top50AttributeValDbval.find_by(attr_id: linpack_out_attrid, obj_id: rmax.id, is_valid: 1)
+        if linpack_out.present?
+          @step4_data[:top50_perf][:linpack_output] = linpack_out.value
         end
       end
       @cur_data = @step1_data
@@ -2835,6 +2840,16 @@ class Top50MachinesController < Top50BaseController
       is_valid: 2,
       comment: format("Nmax for machine %d", @top50_machine.id)
     )
+    if @step4_data[:top50_perf][:linpack_output].present?
+      linpack_out_attrid = Top50Attribute.where(name_eng: "Linpack Output").first.id
+      Top50AttributeValDbval.create(
+        attr_id: linpack_out_attrid,
+        obj_id: bres_id,
+        value: @step4_data[:top50_perf][:linpack_output],
+        is_valid: 2,
+        comment: format("Linpack output for machine %d", @top50_machine.id)
+      )
+    end
     rpeak_attrid = Top50Attribute.where(name_eng: "Rpeak (MFlop/s)").first.id
     Top50AttributeValDbval.create(
       attr_id: rpeak_attrid,

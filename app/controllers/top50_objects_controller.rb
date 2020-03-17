@@ -12,6 +12,7 @@ class Top50ObjectsController < Top50BaseController
   end
   
   def objects_of_type
+    # if ['CPU', 'GPU', 'Coprocessor', 'Acceletator'] include? Top50ObjectType.find(params[:tid]).name_eng
     model_attrid = Top50Attribute.where(name_eng: "Accelerator model").first
     case Top50ObjectType.find(params[:tid]).name_eng
     when 'CPU'
@@ -24,8 +25,8 @@ class Top50ObjectsController < Top50BaseController
     @top50_objects = Top50Object.select("top50_objects.*, de.name").
       joins("left join top50_attribute_val_dicts avd on avd.obj_id = top50_objects.id").
       joins("left join top50_dictionary_elems de on de.id = avd.dict_elem_id").
-      where("top50_objects.type_id = ? and avd.attr_id = ?", params[:tid], model_attrid).
-      order("de.name")
+      where("top50_objects.type_id = ? and (avd.attr_id = ? or avd.attr_id is null)", params[:tid], model_attrid).
+      order("de.name, top50_objects.id") 
     cpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "CPU model"))
     @cpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_model_attrs)
     gpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU model"))
