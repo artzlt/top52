@@ -97,7 +97,8 @@ table class="table table-responsive table-striped"
           - if not (top50_parent_org_rel.present? and top50_parent_org.present?)
             = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Организация"
           - if top50_org.top50_city.present?
-             = ", "
+             = ","
+             br
              = link_to top50_org.top50_city.name, get_archive_city_path(@list_year, @list_month, top50_org.top50_city), :title => "Город"
  
       td class="col-xs-1"
