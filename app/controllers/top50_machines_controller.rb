@@ -1,7 +1,7 @@
 # encoding: UTF-8
 class Top50MachinesController < Top50BaseController
-  skip_before_filter :require_login, only: [:list, :get_archive, :get_archive_by_vendor, :get_archive_by_org, :get_archive_by_vendor_excl, :get_archive_by_comp, :get_archive_by_comp_attrd, :get_archive_by_attr_dict, :archive, :archive_lists, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :get_ext_stats, :ext_stats, :get_stats_per_list, :stats_per_list, :download_certificate, :app_form_new, :app_form_new_post, :app_form_upgrade, :app_form_upgrade_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
-  skip_before_filter :require_admin_rights, only: [:list, :get_archive, :get_archive_by_vendor, :get_archive_by_org, :get_archive_by_vendor_excl, :get_archive_by_comp, :get_archive_by_comp_attrd, :get_archive_by_attr_dict, :archive, :archive_lists, :archive_by_vendor, :archive_by_org, :archive_by_vendor_excl, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :get_ext_stats, :ext_stats, :get_stats_per_list, :stats_per_list, :download_certificate, :app_form_new, :app_form_new_post, :app_form_upgrade, :app_form_upgrade_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
+  skip_before_filter :require_login, only: [:list, :get_archive, :get_archive_by_vendor, :get_archive_by_org, :get_archive_by_city, :get_archive_by_country, :get_archive_by_vendor_excl, :get_archive_by_comp, :get_archive_by_comp_attrd, :get_archive_by_attr_dict, :archive, :archive_lists, :archive_by_vendor, :archive_by_org, :archive_by_city, :archive_by_country, :archive_by_vendor_excl, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :get_ext_stats, :ext_stats, :get_stats_per_list, :stats_per_list, :download_certificate, :app_form_new, :app_form_new_post, :app_form_upgrade, :app_form_upgrade_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
+  skip_before_filter :require_admin_rights, only: [:list, :get_archive, :get_archive_by_vendor, :get_archive_by_org, :get_archive_by_city, :get_archive_by_country, :get_archive_by_vendor_excl, :get_archive_by_comp, :get_archive_by_comp_attrd, :get_archive_by_attr_dict, :archive, :archive_lists, :archive_by_vendor, :archive_by_org, :archive_by_city, :archive_by_country, :archive_by_vendor_excl, :archive_by_comp, :archive_by_comp_attrd, :archive_by_attr_dict, :show, :stats, :get_ext_stats, :ext_stats, :get_stats_per_list, :stats_per_list, :download_certificate, :app_form_new, :app_form_new_post, :app_form_upgrade, :app_form_upgrade_post, :app_form_step1, :app_form_step1_presave, :app_form_step2_presave, :app_form_step3_presave, :app_form_step4_presave, :app_form_confirm_post, :app_form_finish]
   def index
     @top50_machines = Top50Machine.all
   end
@@ -863,7 +863,49 @@ class Top50MachinesController < Top50BaseController
     eid = params[:eid].to_i
     archive_by_org_common(eid)
   end
-    
+
+  def archive_by_city_common(list_id)
+    @city = Top50City.find(params[:cid])
+    @top50_machines = fetch_archive_list(list_id).
+      where("top50_machines.org_id in (select id from top50_organizations a where a.city_id = #{@city.id})").
+      order("ed_results.result asc").
+      map(&:attributes)
+  end
+
+  def get_archive_by_city
+    year = params[:year]
+    month = params[:month]
+    archive_by_city_common(get_list_id_by_date(year, month))
+    render :archive_by_city
+    return
+  end
+
+  def archive_by_city
+    eid = params[:eid].to_i
+    archive_by_city_common(eid)
+  end
+  
+  def archive_by_country_common(list_id)
+    @country = Top50Country.find(params[:cid])
+    @top50_machines = fetch_archive_list(list_id).
+      where("top50_machines.org_id in (select a.id from top50_organizations a join top50_cities b on a.city_id = b.id join top50_regions c on b.region_id = c.id where c.country_id = #{@country.id})").
+      order("ed_results.result asc").
+      map(&:attributes)
+  end
+
+  def get_archive_by_country
+    year = params[:year]
+    month = params[:month]
+    archive_by_country_common(get_list_id_by_date(year, month))
+    render :archive_by_country
+    return
+  end
+
+  def archive_by_country
+    eid = params[:eid].to_i
+    archive_by_country_common(eid)
+  end
+   
   def archive_by_comp_common(list_id)
     @comp = Top50Object.find(params[:oid])
     @top50_machines = fetch_archive_list(list_id).
@@ -1042,6 +1084,7 @@ class Top50MachinesController < Top50BaseController
     @section_headers = {}
     @section_headers["performance"] = "производительность систем"
     @section_headers["area"] = "область применения"
+    @section_headers["city"] = "расположение систем"
     @section_headers["type"] = "типы систем"
     @section_headers["hybrid_inter"] = "гибридность систем (количество узлов разных типов)"
     @section_headers["hybrid_intra"] = "гибридность систем (наличие ускорителей на узлах)"
@@ -1208,6 +1251,21 @@ class Top50MachinesController < Top50BaseController
         end
         @area_id_hash[rec["area_id"]] << rec["mach_id"]
       end
+    elsif  @stat_section == 'city'
+      @mach_x_cities = Top50City.all.select("top50_cities.id, top50_cities.name, top50_machines.id mach_id").
+        joins("join top50_organizations o on o.city_id = top50_cities.id").
+        joins("join top50_machines on top50_machines.org_id = o.id").
+        where("top50_machines.id IN (?)", @mach_approved).
+        map(&:attributes)
+      @city_id_hash = Hash.new{|h, k| h[k] = []}
+      @top50_cities = []
+      @mach_x_cities.each do |rec|
+        if @city_id_hash[rec["id"]].empty?
+          @top50_cities << Top50City.find_by(id: rec["id"])
+        end
+        @city_id_hash[rec["id"]] << rec["mach_id"]
+      end
+
     elsif @stat_section == 'cpu_cnt' or @stat_section == 'core_cnt'
       if @stat_section == 'cpu_cnt'
         cpu_typeid = Top50ObjectType.where(name_eng: "CPU").first.id

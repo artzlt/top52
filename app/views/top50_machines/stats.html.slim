@@ -320,6 +320,107 @@ br
       /= area_chart @achart_data, max: 50, stacked: true, height: "750px"
       br
 
+- elsif @stat_section == "city"
+  - chart_data_by_tp = {}
+  - chart_data_per = {}
+  - @csv_arr = [""]
+  - @csv_arr_per = [""]
+
+  div id="chart"
+  g id="table_control_chart"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "Системы"
+    div class="button" style="background: gray; float: left" id=1
+      = "ПФлоп/с"
+    div class="button" style="background: gray; float: left" id=2
+      = "%"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Area_performance.csv" id="download2"
+    = "Таблица производительности"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Area_systems.csv" id="download1"
+    = "Таблица систем"
+  table class="table table-hover" id="table_chart"
+    tr
+      th = "Редакция"
+      / adding headers of csv
+      - @csv_arr[0] += "Редакция,"
+      - @csv_arr_per[0] += "Редакция,"
+      - sel_top50_cities = []
+      - @top50_cities.each do |top50_city|
+        - @city_id_hash[top50_city.id] = @city_id_hash[top50_city.id].uniq
+        - if @city_id_hash[top50_city.id].count > 3
+          th = top50_city.name
+          / adding headers of csv
+          - @csv_arr[0] += top50_city.name + ","
+          - @csv_arr_per[0] += top50_city.name + ","
+          - chart_data_by_tp[top50_city.name] = []
+          - chart_data_per[top50_city.name] = []
+          - sel_top50_cities << top50_city
+      th = "Не указано/Прочие"
+      / adding headers of csv
+      - @csv_arr[0] += "Не указано/Прочие"
+      - @csv_arr_per[0] += "Не указано/Прочие"
+      - chart_data_by_tp["Не указано/Прочие"] = []
+      - chart_data_per["Не указано/Прочие"] = []
+    - @top50_slists.each do |top50_list|
+      / adding csv row
+      - csv_srting = ""
+      - csv_srting_per = ""
+      - c_chart_data = []
+      - oth_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id}").count
+      - all_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
+          - if list_num.present?
+            / adding csv row
+            - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+            - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
+        - sel_top50_cities.each_with_index do |top50_city, j|
+          td align="right" i=list_num.value j=j
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @city_id_hash[top50_city.id]).count
+            - by_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} AND top50_benchmark_results.machine_id IN (?)", @city_id_hash[top50_city.id]).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
+            = c_cnt
+            - oth_cnt = oth_cnt - c_cnt
+            - all_per = (all_per - by_per).round(2)
+            - chart_data_by_tp[top50_city.name].unshift([date_val.value, c_cnt])
+            - chart_data_per[top50_city.name].unshift([date_val.value, by_per])
+            / adding csv row
+            - csv_srting += c_cnt.to_s + ","
+            - csv_srting_per += by_per.to_s + ","
+        td align="right" i=list_num.value j=sel_top50_cities.length
+          - chart_data_by_tp["Не указано/Прочие"].unshift([date_val.value, oth_cnt])
+          - chart_data_per["Не указано/Прочие"].unshift([date_val.value, all_per])
+          = oth_cnt
+          / adding csv row
+          - csv_srting += oth_cnt.to_s
+          - csv_srting_per += all_per.to_s
+          - @csv_arr.push(csv_srting)
+          - @csv_arr_per.push(csv_srting_per)
+    tr
+
+      - @achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      - @achart_data_per = []
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data_per << {name: key, data: chart_data_per[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;/g, '"')).join("\n");
+        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;/g, '"')).join("\n");
+
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
+        draw_area(data, data_per, "chart", "Город", "Редакция (ММ.ГГ)", "Доля систем", d3.schemePaired)
+      /= area_chart @achart_data, max: 50, stacked: true, height: "750px"
+      br
+
 - elsif @stat_section == "cpu_cnt" or @stat_section == "core_cnt"
   - chart_data_by_tp = {}
   div id="chart"
