@@ -55,6 +55,7 @@ Octoshell::Application.routes.draw do
   get 'application/finish', to: 'top50_machines#app_form_finish', as: 'top50_machines_app_form_finish'
 
   get 'new_list', to: 'top50_machines#new_list', as: 'top50_machines_new_list'
+  get 'new_list/:list_date', to: 'top50_machines#new_list', as: 'top50_machines_new_list_with_date'
   post 'new_list', to: 'top50_machines#submit_list', as: 'top50_machines_submit_list'
   get 'delete_list/:id', to: 'top50_machines#destroy_list', as: 'top50_machines_destroy_list'
   get 'edit_list/:id', to: 'top50_machines#new_list', as: 'top50_machines_edit_list'

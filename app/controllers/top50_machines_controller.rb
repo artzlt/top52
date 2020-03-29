@@ -308,7 +308,11 @@ class Top50MachinesController < Top50BaseController
       end
 
       @ed_num = (Top50AttributeValDbval.where(attr_id: @ed_num_attrid, obj_id: top50_prev_id).first.value).to_i + 1
-      @pdate = Date.today
+      if params.include?(:list_date)
+        @pdate = Date.parse(params[:list_date])
+      else
+        @pdate = Date.today
+      end
       @bench = Top50Benchmark.find(top50_prev_id)
     end
 
@@ -733,7 +737,7 @@ class Top50MachinesController < Top50BaseController
     end
 
     if params['commit'] == 'Обновить статусы'
-      redirect_to :top50_machines_new_list
+      redirect_to proc { top50_machines_new_list_with_date_path(@pdate.to_s(:db)) }
       return
     end
 

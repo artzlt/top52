@@ -23,7 +23,7 @@ class Top50Vendor < ActiveRecord::Base
   end
 
   def machines
-    return Top50Machine.where("ANY(vendor_ids) = #{self.id}")
+    return Top50Machine.where("#{self.id} = ANY(vendor_ids)")
   end
 
 end
