@@ -733,7 +733,10 @@ class Top50MachinesController < Top50BaseController
     end
 
     params['status'].each do |id, value|
-      Top50Machine.update(id.to_i, is_valid: value.to_i)
+      mach = Top50Machine.find(id.to_i)
+      if mach.is_valid != value.to_i
+        mach.update(is_valid: value.to_i)
+      end
     end
 
     if params['commit'] == 'Обновить статусы'
