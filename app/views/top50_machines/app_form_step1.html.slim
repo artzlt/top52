@@ -46,7 +46,7 @@ div class="col-8" id="form-new_machine"
         = f.text_field :name, label: "Официальное название системы", value: get_cur(:name)
         = f.text_field :name_eng, label: "Название системы (на английском языке)", value: get_cur(:name_eng)
  
-        = f.number_field :installation_date, label: "Год установки вычислительной системы (*)", in: 1990...2020, value: get_cur(:installation_date)
+        = f.number_field :installation_date, label: "Год установки вычислительной системы (*)", in: 1990...2021, value: get_cur(:installation_date)
         br
         = f.text_field :website, label: "Веб-сайт с информацией о системе", value: get_cur(:website)
 
