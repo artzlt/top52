@@ -1,6 +1,8 @@
 div class="page-header"
   h1 = @top50_object.top50_object_type.name + " (ID " + @top50_object.id.to_s + ")"
-
+  - val = Top50ValidType.find_by(id: @top50_object.is_valid)
+  h3 = "Статус: " + (val.present? ? val.name : "Отсутствует")
+  = link_to "Редактировать", [:edit, @top50_object], class: "btn btn-default"
 
 - if @top50_object.top50_object_type.name_eng == 'Machine'
   br

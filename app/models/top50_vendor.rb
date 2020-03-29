@@ -22,4 +22,8 @@ class Top50Vendor < ActiveRecord::Base
     obj.destroy!
   end
 
+  def machines
+    return Top50Machine.where("ANY(vendor_ids) = #{self.id}")
+  end
+
 end

@@ -1,12 +1,15 @@
 ﻿div class="page-header"
   - if @top50_machine.name.present? and @top50_machine.name.length > 0
     h2 = @top50_machine.name
-  h2 =  "Сведения о системе:"
   
-- if current_user and current_user.may_edit_top50?
-    = link_to t("Редактировать"), [:edit, @top50_machine], class: "btn btn-default"
+  - if current_user and current_user.may_edit_top50?
+    - val = Top50ValidType.find_by(id: @top50_machine.is_valid)
+    h4 = "(Статус: " + (val.present? ? val.name : "Отсутствует")+ ")"
+    = link_to "Редактировать", [:edit, @top50_machine], class: "btn btn-default"
+    = link_to "К объекту", @top50_machine.top50_object, class: "btn btn-default"
     br
-    br
+
+  h2 =  "Сведения о системе:"
         
 - if @top50_machine.name.present? and @top50_machine.name.length > 0
   p

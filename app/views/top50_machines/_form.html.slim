@@ -5,10 +5,31 @@ div class="row"
       = f.text_field :name_eng
       = f.text_field :website
       = f.collection_select :type_id, Top50MachineType.all.order(:name), :id, :name, include_blank: true
+      - if @top50_machine.type_id.present?
+        = link_to "К типу", [:edit, @top50_machine.top50_machine_type]
+        br
+        br
       = f.collection_select :org_id, Top50Organization.all.order(:name), :id, :name, include_blank: true
+      - if @top50_machine.org_id.present?
+        = link_to "К организации", [:edit, @top50_machine.top50_organization]
+        br
+        br
       = f.collection_select :vendor_id, Top50Vendor.all.order(:name), :id, :name, include_blank: true
+      - if @top50_machine.vendor_id.present?
+        = link_to "К вендору", [:edit, @top50_machine.top50_vendor]
+        br
+        br
       = f.collection_select :vendor_ids, Top50Vendor.all.order(:name), :id, :name, {include_blank: true}, {multiple: true}
+      - if @top50_machine.vendor_ids.present?
+        - @top50_machine.vendors.each_with_index do |vendor, i|
+          = link_to "К вендору ##{i + 1}", [:edit, vendor]
+          br
+        br
       = f.collection_select :contact_id, Top50Contact.all.order(:surname), :id, :full_name, include_blank: true
+      - if @top50_machine.contact_id.present?
+        = link_to "К контактному лицу", [:edit, @top50_machine.top50_contact]
+        br
+        br
       = f.date_field :installation_date
       = f.date_field :start_date
       = f.date_field :end_date

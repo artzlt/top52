@@ -5,7 +5,7 @@ class Top50Machine < ActiveRecord::Base
   belongs_to :top50_machine_type, foreign_key: "type_id"
   belongs_to :top50_contact, foreign_key: "contact_id"
   belongs_to :top50_organization, foreign_key: "org_id"
-  belongs_to :top50_vendor, foreign_key: "vendor_ids"
+  belongs_to :top50_vendor, foreign_key: "vendor_id"
   has_many :top50_benchmark_results, foreign_key: "machine_id"
 
   before_save do
@@ -27,6 +27,16 @@ class Top50Machine < ActiveRecord::Base
     Top50BenchmarkResult.where(machine_id: self.id).destroy_all
     obj = Top50Object.find(self.id)
     obj.destroy!
+  end
+
+  def vendors
+    res = []
+    if self.vendor_ids.present?
+      vendor_ids.each do |vid|
+        res.append(Top50Vendor.find(vid))
+      end
+      return res
+    end
   end
 
   # validates :cond, acceptance: { message: 'Для подачи заявки необходимо подтвердить согласие на обработку данных.' }
