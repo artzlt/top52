@@ -18,9 +18,9 @@ class Top50Machine < ActiveRecord::Base
       obj.save!
       self.id = obj.id
     end
-    if self.vendor_id.present?
-      self.vendor_ids = ([self.vendor_id] + self.vendor_ids).uniq
-    end
+    # if self.vendor_id.present?
+    #  self.vendor_ids = ([self.vendor_id] + self.vendor_ids).uniq
+    # end
   end
 
   before_destroy do

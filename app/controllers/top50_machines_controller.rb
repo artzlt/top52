@@ -1432,6 +1432,9 @@ class Top50MachinesController < Top50BaseController
     vendor_ids = params[:top50_machine][:vendor_ids]
     vendor_ids.delete("")
     vendor_ids.collect! {|x| x.to_i}
+    if params[:top50_machine][:vendor_id].present?
+      vendor_ids = ([params[:top50_machine][:vendor_id].to_i] + vendor_ids).uniq
+    end
     @top50_machine.vendor_ids = vendor_ids
     @top50_machine.update_attributes(top50machine_params)
     redirect_to :top50_machines
