@@ -429,13 +429,13 @@ class Top50MachinesController < Top50BaseController
       @top50_machines = Top50Machine.select("top50_machines.*, ed_results.result, 1 as in_top50").
         joins("join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
         order("ed_results.result desc").
-        where("top50_machines.is_valid > 0 and (top50_machines.start_date is null or top50_machines.start_date <= NOW()) and (top50_machines.end_date is null or top50_machines.end_date > NOW())").
+        where("top50_machines.is_valid > 0 and (top50_machines.start_date is null or top50_machines.start_date <= '#{@pdate}') and (top50_machines.end_date is null or top50_machines.end_date > '#{@pdate}')").
         limit(50).
         map(&:attributes)
       @top50_machines.concat(Top50Machine.select("top50_machines.*, coalesce(ed_results.result, 0) as result, 0 as in_top50").
         joins("left join top50_benchmark_results ed_results on ed_results.machine_id = top50_machines.id and ed_results.benchmark_id = #{@rmax_benchid}").
         order("coalesce(ed_results.result, 0) desc").
-        where("(top50_machines.is_valid > 1 and (top50_machines.start_date is null or top50_machines.start_date <= NOW()) and (top50_machines.end_date is null or top50_machines.end_date > NOW())) and top50_machines.id not in (?)", @top50_machines.collect{ |x| x['id'] }).
+        where("(top50_machines.is_valid > 1 and (top50_machines.start_date is null or top50_machines.start_date <= '#{@pdate}') and (top50_machines.end_date is null or top50_machines.end_date > '#{@pdate}')) and top50_machines.id not in (?)", @top50_machines.collect{ |x| x['id'] }).
         map(&:attributes)
       )
     end
