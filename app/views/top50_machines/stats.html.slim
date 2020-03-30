@@ -167,12 +167,10 @@ br
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
           - list_year = date_val.value.split(".")[2]
           - list_month = date_val.value.split(".")[1]
-        - @top50_cpuvendors.each do |top50_cpuvendor|
-          td align="right" 
-            / adding csv row
-            - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
-            - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
+          / adding csv row
+          - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+          - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+          = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
         - @top50_cpuvendors.each_with_index do |top50_cpuvendor, j|
           td align="right" i=list_num.value j=j
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cpuvendor_id_hash[top50_cpuvendor.id]).count
