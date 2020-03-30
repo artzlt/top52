@@ -167,7 +167,17 @@ p
       - top50_gpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects)
       - top50_cops = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects)
       - if top50_node.sec_obj_qty > 0
-        = "узлов: #{top50_node.sec_obj_qty} "
+        - node_platform_wlist = []
+        - node_platform_vendor = @node_platform_vendor_attr_vals.find_by(obj_id: top50_node.top50_object)
+        - if node_platform_vendor.present?
+          - node_platform_wlist.append(node_platform_vendor.top50_dictionary_elem.name)
+        - node_platform = @node_platform_attr_vals.find_by(obj_id: top50_node.top50_object)
+        - if node_platform.present?
+          - node_platform_wlist.append(node_platform.top50_dictionary_elem.name)
+        - if not node_platform_wlist.empty?
+           = "узлы #{node_platform_wlist.join(' ')}: #{top50_node.sec_obj_qty} "
+        - else
+          = "узлов: #{top50_node.sec_obj_qty} "
       = "["
       - top50_cpus.each_with_index do |top50_cpu, i|
         - if i > 0

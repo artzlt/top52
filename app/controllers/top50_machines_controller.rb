@@ -93,6 +93,10 @@ class Top50MachinesController < Top50BaseController
     @nmax_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(nmax_attrs)
     prec_relation = Top50Relation.all.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Precedes"))
     @prec_machines = prec_relation.joins(:top50_object).merge(Top50Object.joins(:top50_object_type).merge(Top50ObjectType.where(name_eng: "Machine")))
+    node_platform_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Node platform"))
+    @node_platform_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(node_platform_attrs)
+    node_platform_vendor_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Node platform Vendor"))
+    @node_platform_vendor_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(node_platform_vendor_attrs)
 
     microcore_qty_attrs = Top50AttributeDbval.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "Number of micro cores"))
     @microcore_qty_attr_vals = Top50AttributeValDbval.all.joins(:top50_attribute_dbval).merge(microcore_qty_attrs)
@@ -129,6 +133,8 @@ class Top50MachinesController < Top50BaseController
     @rmax_benchid = Top50Benchmark.where(name_eng: "Linpack").first.id
     @place_measureid = Top50MeasureUnit.where(name_eng: 'place').first.id
     @perf_measureid = Top50MeasureUnit.where(name_eng: 'MFlop/s').first.id
+    @node_platform_attrid = Top50Attribute.where(name_eng: "Node platform").first.id
+    @node_platform_vendor_attrid = Top50Attribute.where(name_eng: "Node platform Vendor").first.id
     
   end
   

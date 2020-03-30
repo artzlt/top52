@@ -154,6 +154,17 @@ table class="table table-responsive table-striped"
               td align="right" valign="top"
                 - if top50_node.cnt > 0
                    = "#{top50_node.cnt}:"
+              td colspan="2"
+                - node_platform_vendor = @l1_attrd_hash[top50_node.id].find{|x| x.attr_id == @node_platform_vendor_attrid}
+                - if node_platform_vendor.present?
+                  = " "
+                  = node_platform_vendor.elem_name
+                - node_platform = @l1_attrd_hash[top50_node.id].find{|x| x.attr_id == @node_platform_attrid}
+                - if node_platform.present?
+                  = " "
+                  = node_platform.elem_name
+            tr
+              td
               td
                 - if top50_cpus.any?
                   = "CPU: "
