@@ -1,6 +1,5 @@
 div class="page-header"
   h1 = @top50_dictionary.name
-#  h2 = @top50_dictionary.name_eng
 div class="well"
   = link_to t("actions.edit"), [:edit, @top50_dictionary], class: "btn btn-default"
   = link_to t(".new_element"), [:new, @top50_dictionary, :top50_dictionary_elem], class: "btn btn-default"
@@ -10,16 +9,23 @@ div class="panel-body"
       tr
         th = Top50DictionaryElem.human_attribute_name(:name)
         th Статус
+        th Вхождения
         th
       - @top50_dictionary.top50_dictionary_elems.each do |top50_dictionary_elem|
         tr
-          td class="col-10" = top50_dictionary_elem.name
-          td class="col-5"
+          td class="col-8" = top50_dictionary_elem.name
+          td class="col-4"
             = top50_dictionary_elem.is_valid
             - val = Top50ValidType.where(id: top50_dictionary_elem.is_valid).first
             - if val.present?
               = format(" (%s)", val.name)
-
+          td class="col-8"
+            - attr_statuses = top50_dictionary_elem.top50_attribute_val_dicts.group(:is_valid).order(:is_valid).count.map do |valid, cnt|
+              - if valid.present?
+                = "статус #{valid}: #{cnt}"
+              - else
+                = "без статуса: #{cnt}"
+              br
           td class="btn-group"
             = link_to t("actions.edit"), [:edit, top50_dictionary_elem], class: "btn btn-default btn-sm"
             button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"
