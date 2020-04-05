@@ -741,7 +741,11 @@ class Top50MachinesController < Top50BaseController
     params['status'].each do |id, value|
       mach = Top50Machine.find(id.to_i)
       if mach.is_valid != value.to_i
-        mach.update(is_valid: value.to_i)
+        if value.to_i == 1
+          mach.confirm
+        else
+          mach.update(is_valid: value.to_i)
+        end
       end
     end
 
@@ -1446,6 +1450,9 @@ class Top50MachinesController < Top50BaseController
     end
     @top50_machine.vendor_ids = vendor_ids
     @top50_machine.update_attributes(top50machine_params)
+    if top50machine_params[:is_valid].to_i == 1
+      @top50_machine.confirm
+    end
     redirect_to :top50_machines
   end
 

@@ -13,10 +13,13 @@ class Top50Machine < ActiveRecord::Base
       m_typeid = Top50ObjectType.where(name_eng: "Machine").first.id
       obj = Top50Object.new
       obj[:type_id] = m_typeid
-      obj[:is_valid] = self.is_valid.present? ? self.is_valid : 1
+      obj[:is_valid] = self.is_valid
       obj[:comment] = format('New machine (%s)', self.comment)
       obj.save!
       self.id = obj.id
+    end
+    if self.is_valid != self.top50_object.is_valid
+      self.top50_object.update(is_valid: self.is_valid)
     end
     # if self.vendor_id.present?
     #  self.vendor_ids = ([self.vendor_id] + self.vendor_ids).uniq
@@ -37,6 +40,20 @@ class Top50Machine < ActiveRecord::Base
       end
       return res
     end
+  end
+
+  def confirm
+    if self.is_valid != 1
+      self.is_valid = 1
+      self.save
+    end
+    self.top50_benchmark_results.each do |r|
+      r.confirm
+    end
+    if self.top50_contact.present?
+      self.top50_contact.confirm
+    end
+    self.top50_object.confirm
   end
 
   # validates :cond, acceptance: { message: 'Для подачи заявки необходимо подтвердить согласие на обработку данных.' }

@@ -28,6 +28,9 @@ class Top50BenchmarksController < Top50BaseController
   def update
     @top50_benchmark = Top50Benchmark.find(params[:id])
     @top50_benchmark.update_attributes(top50benchmark_params)
+    if top50benchmark_params[:is_valid].to_i == 1
+      @top50_benchmark.confirm
+    end
     redirect_to :top50_benchmarks
   end
 

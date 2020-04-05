@@ -59,6 +59,9 @@ class Top50OrganizationsController < Top50BaseController
         parent_rel.destroy!
       end
     end
+    if top50organization_params[:is_valid].to_i == 1
+      @top50_organization.confirm
+    end
     redirect_to :top50_organizations
   end
 
