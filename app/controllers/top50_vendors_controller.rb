@@ -57,6 +57,9 @@ class Top50VendorsController < Top50BaseController
   def update
     @top50_vendor = Top50Vendor.find(params[:id])
     @top50_vendor.update_attributes(top50vendor_params)
+    if top50vendor_params[:is_valid].to_i == 1
+      @top50_vendor.confirm
+    end
     redirect_to :top50_vendors
   end
 

@@ -12,10 +12,24 @@ class Top50ObjectsController < Top50BaseController
   end
   
   def objects_of_type
-    @top50_objects = Top50Object.where(type_id: params[:tid])
+    # if ['CPU', 'GPU', 'Coprocessor', 'Acceletator'] include? Top50ObjectType.find(params[:tid]).name_eng
+    model_attrid = Top50Attribute.where(name_eng: "Accelerator model").first
+    case Top50ObjectType.find(params[:tid]).name_eng
+    when 'CPU'
+      model_attrid = Top50Attribute.where(name_eng: "CPU model").first
+    when 'GPU'
+      model_attrid = Top50Attribute.where(name_eng: "GPU model").first
+    when 'Coprocessor'
+      model_attrid = Top50Attribute.where(name_eng: "Coprocessor model").first
+    end
+    @top50_objects = Top50Object.select("top50_objects.*, de.name").
+      joins("left join top50_attribute_val_dicts avd on avd.obj_id = top50_objects.id").
+      joins("left join top50_dictionary_elems de on de.id = avd.dict_elem_id").
+      where("top50_objects.type_id = ? and (avd.attr_id = ? or avd.attr_id is null)", params[:tid], model_attrid).
+      order("de.name, top50_objects.id") 
     cpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "CPU model"))
     @cpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(cpu_model_attrs)
-	gpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU model"))
+    gpu_model_attrs = Top50AttributeDict.all.joins(:top50_attribute).merge(Top50Attribute.where(name_eng: "GPU model"))
     @gpu_model_attr_vals = Top50AttributeValDict.all.joins(:top50_attribute_dict).merge(gpu_model_attrs)
   end
 
@@ -46,27 +60,87 @@ class Top50ObjectsController < Top50BaseController
     end
   end
 
-  def nested_objects
+  def edit_attribute_val_dbval
+    @top50_attr_val = Top50AttributeValDbval.find(params[:avid])
     @top50_object = Top50Object.find(params[:id])
   end
 
-  def new_nested_object
+  def save_attribute_val_dbval
+    @top50_attr_val = Top50AttributeValDbval.find(params[:avid])
+    @top50_object = Top50Object.find(params[:id])
+    @top50_attr_val.update(top50_attr_val_dbval_params)
+    @top50_attr_val.save!
+    redirect_to @top50_object
+  end
+
+  def destroy_attribute_val_dbval
+    @top50_attr_val = Top50AttributeValDbval.find(params[:avid])
+    @top50_object = Top50Object.find(params[:id])
+    @top50_attr_val.destroy!
+    redirect_to @top50_object
+  end
+
+  def relations
+    @top50_object = Top50Object.find(params[:id])
+  end
+
+  def new_relation
     @top50_object = Top50Object.find(params[:id])
     @top50_nested_object = Top50Object.new
     @top50_relation = Top50Relation.new
   end
 
-  def create_nested_object
+  def create_relation
     @top50_object = Top50Object.find(params[:id])
     @top50_relation = @top50_object.top50_relations.build(top50_nested_object_params[:top50_relation])
-    @top50_nested_object = Top50Object.new(top50_nested_object_params[:top50_object])
-    @top50_nested_object.save!
+    if top50_nested_object_params[:top50_object][:id].present?
+      @top50_nested_object = Top50Object.find(top50_nested_object_params[:top50_object][:id])
+    else
+      @top50_nested_object = Top50Object.new(top50_nested_object_params[:top50_object])
+      @top50_nested_object.save!
+    end
     @top50_relation.sec_obj_id = @top50_nested_object.id
     if @top50_relation.save
       redirect_to @top50_object
     else
-      render :new_nested_obj
+      render :new_relation
     end
+  end
+
+  def new_attribute_val_dict_set_attr
+    attr = Top50AttributeDict.find(params[:attr_id])
+    redirect_to proc { new_top50_object_top50_attribute_val_dict_step2_path(params[:id], attr.id) }
+    return
+  end
+
+  def new_attribute_val_dict_step2
+    @top50_object = Top50Object.find(params[:id])
+    attr = Top50AttributeDict.find(params[:attrid])
+    @attr_id = attr.id
+    @dict_id = attr.dict_id
+  end
+
+  def edit_attribute_val_dict
+    @top50_attr_val = Top50AttributeValDict.find(params[:avid])
+    attr = Top50AttributeDict.find(@top50_attr_val.attr_id)
+    @attr_id = attr.id
+    @dict_id = attr.dict_id
+    @top50_object = Top50Object.find(params[:id])
+  end
+
+  def save_attribute_val_dict
+    @top50_attr_val = Top50AttributeValDict.find(params[:avid])
+    @top50_object = Top50Object.find(params[:id])
+    @top50_attr_val.update(top50_attr_val_dict_params)
+    @top50_attr_val.save!
+    redirect_to @top50_object
+  end
+
+  def destroy_attribute_val_dict
+    @top50_attr_val = Top50AttributeValDict.find(params[:avid])
+    @top50_object = Top50Object.find(params[:id])
+    @top50_attr_val.destroy!
+    redirect_to @top50_object
   end
 
   def new_attribute_val_dict
@@ -80,7 +154,7 @@ class Top50ObjectsController < Top50BaseController
     if @top50_attr_val.save
       redirect_to @top50_object
     else
-      render :new_attribute_val_dict
+      redirect_to proc { new_top50_object_top50_attribute_val_dict_step2_path(@top50_object, @top50_attr_val.attr_id) }
     end
   end
 
@@ -108,7 +182,7 @@ class Top50ObjectsController < Top50BaseController
   def update
     @top50_object = Top50Object.find(params[:id])
     @top50_object.update_attributes(top50_object_params)
-    redirect_to :top50_objects
+    redirect_to @top50_object
   end
 
   def destroy
@@ -136,7 +210,7 @@ class Top50ObjectsController < Top50BaseController
   end
 
   def top50_nested_object_params
-    params.require(:top50_relation).permit(:top50_relation => [:type_id, :sec_obj_qty, :is_valid], :top50_object => [:type_id, :is_valid])
+    params.require(:top50_relation).permit(:top50_relation => [:type_id, :sec_obj_qty, :is_valid], :top50_object => [:id, :type_id, :is_valid])
   end
 
 end

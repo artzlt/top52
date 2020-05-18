@@ -247,5 +247,5 @@
       td class="col-1"
         = select_tag format("status[%d]", top50_machine["id"]), options_from_collection_for_select(Top50ValidType.all, :id, :name, @status_hash.present? ? @status_hash[top50_machine["id"].to_s] : top50_machine["is_valid"]), include_blank: true
       td class="col-1"
-        = link_to 'Редактировать', top50_machines_moderate_path(top50_machine["id"])
+        = link_to 'Редактировать', top50_machines_show_path(top50_machine["id"])
 

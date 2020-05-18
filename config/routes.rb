@@ -55,6 +55,7 @@ Octoshell::Application.routes.draw do
   get 'application/finish', to: 'top50_machines#app_form_finish', as: 'top50_machines_app_form_finish'
 
   get 'new_list', to: 'top50_machines#new_list', as: 'top50_machines_new_list'
+  get 'new_list/:list_date', to: 'top50_machines#new_list', as: 'top50_machines_new_list_with_date'
   post 'new_list', to: 'top50_machines#submit_list', as: 'top50_machines_submit_list'
   get 'delete_list/:id', to: 'top50_machines#destroy_list', as: 'top50_machines_destroy_list'
   get 'edit_list/:id', to: 'top50_machines#new_list', as: 'top50_machines_edit_list'
@@ -104,6 +105,8 @@ Octoshell::Application.routes.draw do
   get 'archive/:eid/vendor/:vid', to: 'top50_machines#archive_by_vendor', as:'top50_machines_archive_vendor'
   get 'archive/:eid/vendor/:vid/exclusive', to: 'top50_machines#archive_by_vendor_excl', as:'top50_machines_archive_vendor_excl'
   get 'archive/:eid/organization/:oid', to: 'top50_machines#archive_by_org', as:'top50_machines_archive_org'
+  get 'archive/:eid/city/:cid', to: 'top50_machines#archive_by_city', as:'top50_machines_archive_city'
+  get 'archive/:eid/country/:cid', to: 'top50_machines#archive_by_country', as:'top50_machines_archive_country'
   get 'archive/:eid/component/:oid', to: 'top50_machines#archive_by_comp', as:'top50_machines_archive_comp'  
   get 'archive/:eid/component_spec/:elid', to: 'top50_machines#archive_by_comp_attrd', as:'top50_machines_archive_comp_attrd'
   get 'archive/:eid/spec/:aid/:elid', to: 'top50_machines#archive_by_attr_dict', as:'top50_machines_archive_attr_dict'
@@ -112,6 +115,8 @@ Octoshell::Application.routes.draw do
   get 'archive/:year/:month/vendor/:vid', to: 'top50_machines#get_archive_by_vendor', as:'get_archive_vendor'
   get 'archive/:year/:month/vendor/:vid/exclusive', to: 'top50_machines#get_archive_by_vendor_excl', as:'get_archive_vendor_excl'
   get 'archive/:year/:month/organization/:oid', to: 'top50_machines#get_archive_by_org', as:'get_archive_org'
+  get 'archive/:year/:month/city/:cid', to: 'top50_machines#get_archive_by_city', as:'get_archive_city'
+  get 'archive/:year/:month/country/:cid', to: 'top50_machines#get_archive_by_country', as:'get_archive_country'
   get 'archive/:year/:month/component/:oid', to: 'top50_machines#get_archive_by_comp', as:'get_archive_comp'  
   get 'archive/:year/:month/component_spec/:elid', to: 'top50_machines#get_archive_by_comp_attrd', as:'get_archive_comp_attrd'
   get 'archive/:year/:month/spec/:aid/:elid', to: 'top50_machines#get_archive_by_attr_dict', as:'get_archive_attr_dict'
@@ -128,16 +133,28 @@ Octoshell::Application.routes.draw do
   
   post 'objects/:id/attribute_val_dbvals', to: 'top50_objects#create_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbvals'
   get 'objects/:id/attribute_val_dbvals/new', to: 'top50_objects#new_attribute_val_dbval', as:'new_top50_object_top50_attribute_val_dbval'
- 
-  post 'objects/:id/attribute_val_dicts', to: 'top50_objects#create_attribute_val_dict', as:'top50_object_top50_attribute_val_dicts'
+  patch 'objects/:id/attribute_val_dbvals/:avid', to: 'top50_objects#save_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbval_save'
+  get 'objects/:id/attribute_val_dbvals/:avid', to: 'top50_objects#edit_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbval_edit'
+  delete 'objects/:id/attribute_val_dbvals/:avid', to: 'top50_objects#destroy_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbval_destroy'
+
+
   get 'objects/:id/attribute_val_dicts/new', to: 'top50_objects#new_attribute_val_dict', as:'new_top50_object_top50_attribute_val_dict'
+  post 'objects/:id/attribute_val_dicts/new', to: 'top50_objects#new_attribute_val_dict_set_attr', as:'top50_object_top50_attribute_val_dict_set_attr'
+  patch 'objects/:id/attribute_val_dicts/:avid', to: 'top50_objects#save_attribute_val_dict', as:'top50_object_top50_attribute_val_dict_save'
+  get 'objects/:id/attribute_val_dicts/:avid', to: 'top50_objects#edit_attribute_val_dict', as:'top50_object_top50_attribute_val_dict_edit'
+  delete 'objects/:id/attribute_val_dicts/:avid', to: 'top50_objects#destroy_attribute_val_dict', as:'top50_object_top50_attribute_val_dict_destroy'
+
+  post 'objects/:id/attribute_val_dicts', to: 'top50_objects#create_attribute_val_dict', as:'top50_object_top50_attribute_val_dicts'
+  get 'objects/:id/attribute_val_dicts/:attrid/new', to: 'top50_objects#new_attribute_val_dict_step2', as:'new_top50_object_top50_attribute_val_dict_step2'
 
   get 'attribute_dicts/:attr_id/dictionary_elems', to: 'top50_dictionary_elems#index', as:'top50_attribute_dict_top50_dictionary_elems'
 
-  get 'objects/:id/nested_objects', to: 'top50_objects#nested_objects', as:'top50_object_top50_nested_objects'
-
-  post 'objects/:id/nested_objects', to: 'top50_objects#create_nested_object'
-  get 'objects/:id/nested_objects/new', to: 'top50_objects#new_nested_object', as:'new_top50_object_top50_nested_object'
+  get 'objects/:id/relations', to: 'top50_objects#show_relations', as:'top50_object_relations'
+  post 'objects/:id/relations', to: 'top50_objects#create_relation'
+  get 'objects/:id/relations/new', to: 'top50_objects#new_relation', as:'new_top50_object_relation'
+  patch 'objects/:id/relations/:relid', to: 'top50_objects#save_relation', as:'top50_object_relation_save'
+  get 'objects/:id/relations/:relid', to: 'top50_objects#edit_relation', as:'top50_object_relation_edit'
+  delete 'objects/:id/relation/:relid', to: 'top50_objects#destroy_relation', as:'top50_object_relation_destroy'
   
   get 'systems/:id/add_component', to: 'top50_machines#add_component', as:'add_top50_machine_component'
   post 'systems/:id/add_component', to: 'top50_machines#create_component'
@@ -160,10 +177,12 @@ Octoshell::Application.routes.draw do
   get 'components/info/:id', to: 'top50_objects#show_info', as:'top50_objects_show_info'
 
   get 'systems/:id/benchmark_results', to: 'top50_machines#benchmark_results', as:'top50_machine_top50_benchmark_results'
-
   post 'systems/:id/benchmark_results', to: 'top50_machines#create_benchmark_result'
-
   get 'systems/:id/benchmark_results/add', to: 'top50_machines#add_benchmark_result', as:'new_top50_machine_top50_benchmark_result'
+  patch 'systems/:id/benchmark_results/:brid', to: 'top50_machines#save_benchmark_result', as:'top50_machine_top50_benchmark_result_save'
+  get 'systems/:id/benchmark_results/:brid', to: 'top50_machines#edit_benchmark_result', as:'top50_machine_top50_benchmark_result_edit'
+  delete 'systems/:id/benchmark_results/:brid', to: 'top50_machines#destroy_benchmark_result', as:'top50_machine_top50_benchmark_result_destroy'
+
   get 'organizations/:org_id/suborgs', to: 'top50_organizations#suborg', as:'top50_organization_suborg'
 
   resources :newsfeed, only: [:new, :index]

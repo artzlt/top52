@@ -28,6 +28,9 @@ class Top50ContactsController < Top50BaseController
   def update
     @top50_contact = Top50Contact.find(params[:id])
     @top50_contact.update_attributes(top50contact_params)
+    if top50contact_params[:is_valid].to_i == 1
+      @top50_contact.confirm
+    end
     redirect_to :top50_contacts
   end
 

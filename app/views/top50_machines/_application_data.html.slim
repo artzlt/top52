@@ -255,6 +255,9 @@ p
   strong = "Размер матрицы, на котором было достигнута указанная производительность на тесте Linpack (Nmax): "
   = @step4_data[:top50_perf][:msize]
 p
+  strong = "Полная выдача теста Linpack (Linpack Output): "
+  = @step4_data[:top50_perf][:linpack_output]
+p
   strong = "Комментарии: "
   = @step4_data[:comment]
 

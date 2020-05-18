@@ -25,11 +25,12 @@ table
 
 br
               
-- if @stat_section == "hybrid_inter" or @stat_section == "hybrid_intra"
+- if @stat_section == "hybrid_intra"
   - hlist_chart_data = {}
   - hlist_dates = {}
   - hlist_nums = {}
   - chart_data_by_tp = {}
+  div id="chart_1"
   table class="table table-hover"
     tr
       th = "Редакция"
@@ -64,80 +65,206 @@ br
       - hlist_dates[top50_list.id] = date_val.value
       - hlist_nums[top50_list.id] = list_num.value
     tr
-      - achart_data = []
+      - @achart_data = []
 
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      - ch_title = ""
-      - if @stat_section == "hybrid_inter"
-        - ch_title = "Доля гибридных систем (между узлами) в редакциях Top50"
-      - if @stat_section == "hybrid_intra"
-        - ch_title = "Доля гибридных систем (по наличию ускорителей) в редакциях Top50"
-      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+      coffee:
+        draw_type(data, "chart_1", "Количество гибридных систем (по наличию ускорителей) в редакциях Top50", "Дата (MM.YY)", "Количество систем")
+      /= area_chart achart_data, max: 50, stacked: true, height: "500px"
       br
 
+- elsif @stat_section == "hybrid_inter"
+  - chart_data_by_tp = {}
+  div id="chart_1"
+  table class="table table-hover"
+    tr
+      th = "Редакция"
+      - @hybrid_mach.each do |key, value|
+        th = key
+        - chart_data_by_tp[key] = []
+    - @top50_slists.each do |top50_list|
+      - c_chart_data = []
+      - sum_cnt = Top50BenchmarkResult.where(benchmark_id: top50_list.id).count
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
+          - if list_num.present?
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
+        - @hybrid_mach.each do |key, value|
+          td align="right" 
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", value).count
+            = c_cnt
+            = " (#{100 * c_cnt / sum_cnt}%)"
+            - c_chart_data << [key, c_cnt]
+            - chart_data_by_tp[key].unshift([date_val.value, c_cnt])
+    tr
+      - @achart_data = []
+
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var COLORS = [], name = "";
+        for (var i = 0; i < data.length; i++) {
+          COLORS.push(d3.interpolatePlasma(i * 1. / (data.length - 1)));
+        }
+      coffee:
+        draw_type(data, "chart_1", "Количество гибридных систем (по числу типов узлов) в редакциях Top50", "Дата (MM.YY)", "Количество систем", COLORS)
+      br
 
 - elsif @stat_section == "cpu_vendor"
   - hlist_chart_data = {}
   - hlist_dates = {}
   - hlist_nums = {}
   - chart_data_by_tp = {}
-  table class="table table-hover"
+  - chart_data_by_per = {}
+  - @csv_arr = [""]
+  - @csv_arr_per = [""]
+  div id="chart"
+  g id="table_control_chart"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "Системы"
+    div class="button" style="background: gray; float: left" id=1
+      = "ПФлоп/с"
+    div class="button" style="background: gray; float: left" id=2
+      = "%"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="CPU_vendors_performance.csv" id="download2"
+    = "Таблица производительности"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="CPU_vendors_systems.csv" id="download1"
+    = "Таблица систем"
+  table class="table table-hover" id="table_chart"
     - sel_mtype_ids = []
     - oth_cnt = 0
     - sum_cnt = 0
     tr
       th = "Редакция"
+      / adding headers of csv
+      - @csv_arr[0] += "Редакция,"
+      - @csv_arr_per[0] += "Редакция,"
       - @top50_cpuvendors.each do |top50_cpuvendor|
         th = top50_cpuvendor.name
+        / adding headers of csv
+        - @csv_arr[0] += top50_cpuvendor.name + ","
+        - @csv_arr_per[0] += top50_cpuvendor.name + ","
         - chart_data_by_tp[top50_cpuvendor.name] = []
+        - chart_data_by_per[top50_cpuvendor.name] = []
     - @top50_slists.each do |top50_list|
+      / adding csv row
+      - csv_srting = ""
+      - csv_srting_per = ""
       - c_chart_data = []
       - sum_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+      - sum_cnt_per = (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
       tr
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
           - list_year = date_val.value.split(".")[2]
           - list_month = date_val.value.split(".")[1]
-          - if list_num.present?
-            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
-        - @top50_cpuvendors.each do |top50_cpuvendor|
-          td align="right" 
+          / adding csv row
+          - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+          - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+          = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
+        - @top50_cpuvendors.each_with_index do |top50_cpuvendor, j|
+          td align="right" i=list_num.value j=j
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cpuvendor_id_hash[top50_cpuvendor.id]).count
+            - by_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} AND top50_benchmark_results.machine_id IN (?)", @cpuvendor_id_hash[top50_cpuvendor.id]).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
             = c_cnt
             - oth_cnt = oth_cnt - c_cnt
-            = " (#{100 * c_cnt / sum_cnt}%)"
           - c_chart_data << [top50_cpuvendor.name, c_cnt]
           - chart_data_by_tp[top50_cpuvendor.name].unshift([date_val.value, c_cnt])
+          - chart_data_by_per[top50_cpuvendor.name].unshift([date_val.value, by_per])
+          / adding csv row
+          - csv_srting += c_cnt.to_s + ","
+          - csv_srting_per += by_per.to_s + ","
       - hlist_chart_data[top50_list.id] = c_chart_data
       - hlist_dates[top50_list.id] = date_val.value
       - hlist_nums[top50_list.id] = list_num.value
-      
+      / adding csv row
+      - @csv_arr.push(csv_srting)
+      - @csv_arr_per.push(csv_srting_per)
+
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      - @achart_data_per = []
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data_per << {name: key, data: chart_data_by_per[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;/g, '"')).join("\n");
+        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;/g, '"')).join("\n");
+
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
+        # COLORS:
+        #   Intel
+        #   AMD
+        #   IBM
+        #   HP
+        #   Sun
+        COLORS = ["#5489D1", "#EB002B", "#335FBD", "#00BD86", "#5B83A1"]
+        draw_area(data, data_per, "chart", "Производители процессоров", "Редакция (ММ.ГГ)", "Доля систем", COLORS)
+      /= area_chart @achart_data, max: 50, stacked: true, height: "500px"
       br
 
 - elsif @stat_section == "area"
   - chart_data_by_tp = {}
-  table class="table table-hover"
+  - chart_data_per = {}
+  - @csv_arr = [""]
+  - @csv_arr_per = [""]
+
+  div id="chart"
+  g id="table_control_chart"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "Системы"
+    div class="button" style="background: gray; float: left" id=1
+      = "ПФлоп/с"
+    div class="button" style="background: gray; float: left" id=2
+      = "%"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Area_performance.csv" id="download2"
+    = "Таблица производительности"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Area_systems.csv" id="download1"
+    = "Таблица систем"
+  table class="table table-hover" id="table_chart"
     tr
       th = "Редакция"
+      / adding headers of csv
+      - @csv_arr[0] += "Редакция,"
+      - @csv_arr_per[0] += "Редакция,"
       - sel_top50_areas = []
       - @top50_areas.each do |top50_area|
         - @area_id_hash[top50_area.area_id] = @area_id_hash[top50_area.area_id].uniq
         - if @area_id_hash[top50_area.area_id].count > 3
           th = top50_area.area_name
+          / adding headers of csv
+          - @csv_arr[0] += top50_area.area_name + ","
+          - @csv_arr_per[0] += top50_area.area_name + ","
           - chart_data_by_tp[top50_area.area_name] = []
+          - chart_data_per[top50_area.area_name] = []
           - sel_top50_areas << top50_area
       th = "Не указано/Прочие"
+      / adding headers of csv
+      - @csv_arr[0] += "Не указано/Прочие"
+      - @csv_arr_per[0] += "Не указано/Прочие"
       - chart_data_by_tp["Не указано/Прочие"] = []
+      - chart_data_per["Не указано/Прочие"] = []
     - @top50_slists.each do |top50_list|
+      / adding csv row
+      - csv_srting = ""
+      - csv_srting_per = ""
       - c_chart_data = []
       - oth_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id}").count
+      - all_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
       tr
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
@@ -145,26 +272,156 @@ br
           - list_year = date_val.value.split(".")[2]
           - list_month = date_val.value.split(".")[1]
           - if list_num.present?
+            / adding csv row
+            - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+            - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
             = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
-        - sel_top50_areas.each do |top50_area|
-          td align="right" 
+        - sel_top50_areas.each_with_index do |top50_area, j|
+          td align="right" i=list_num.value j=j
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @area_id_hash[top50_area.area_id]).count
+            - by_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} AND top50_benchmark_results.machine_id IN (?)", @area_id_hash[top50_area.area_id]).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
             = c_cnt
-            - oth_cnt = oth_cnt - c_cnt  
+            - oth_cnt = oth_cnt - c_cnt
+            - all_per = (all_per - by_per).round(2)
             - chart_data_by_tp[top50_area.area_name].unshift([date_val.value, c_cnt])
-        td align="right"
+            - chart_data_per[top50_area.area_name].unshift([date_val.value, by_per])
+            / adding csv row
+            - csv_srting += c_cnt.to_s + ","
+            - csv_srting_per += by_per.to_s + ","
+        td align="right" i=list_num.value j=sel_top50_areas.length
           - chart_data_by_tp["Не указано/Прочие"].unshift([date_val.value, oth_cnt])
+          - chart_data_per["Не указано/Прочие"].unshift([date_val.value, all_per])
           = oth_cnt
+          / adding csv row
+          - csv_srting += oth_cnt.to_s
+          - csv_srting_per += all_per.to_s
+          - @csv_arr.push(csv_srting)
+          - @csv_arr_per.push(csv_srting_per)
     tr
 
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 50, stacked: true, height: "750px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      - @achart_data_per = []
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data_per << {name: key, data: chart_data_per[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;/g, '"')).join("\n");
+        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;/g, '"')).join("\n");
+
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
+        draw_area(data, data_per, "chart", "Область применения", "Редакция (ММ.ГГ)", "Доля систем", d3.schemePaired)
+      /= area_chart @achart_data, max: 50, stacked: true, height: "750px"
+      br
+
+- elsif @stat_section == "city"
+  - chart_data_by_tp = {}
+  - chart_data_per = {}
+  - @csv_arr = [""]
+  - @csv_arr_per = [""]
+
+  div id="chart"
+  g id="table_control_chart"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "Системы"
+    div class="button" style="background: gray; float: left" id=1
+      = "ПФлоп/с"
+    div class="button" style="background: gray; float: left" id=2
+      = "%"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Area_performance.csv" id="download2"
+    = "Таблица производительности"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Area_systems.csv" id="download1"
+    = "Таблица систем"
+  table class="table table-hover" id="table_chart"
+    tr
+      th = "Редакция"
+      / adding headers of csv
+      - @csv_arr[0] += "Редакция,"
+      - @csv_arr_per[0] += "Редакция,"
+      - sel_top50_cities = []
+      - @top50_cities.each do |top50_city|
+        - @city_id_hash[top50_city.id] = @city_id_hash[top50_city.id].uniq
+        - if @city_id_hash[top50_city.id].count > 3
+          th = top50_city.name
+          / adding headers of csv
+          - @csv_arr[0] += top50_city.name + ","
+          - @csv_arr_per[0] += top50_city.name + ","
+          - chart_data_by_tp[top50_city.name] = []
+          - chart_data_per[top50_city.name] = []
+          - sel_top50_cities << top50_city
+      th = "Не указано/Прочие"
+      / adding headers of csv
+      - @csv_arr[0] += "Не указано/Прочие"
+      - @csv_arr_per[0] += "Не указано/Прочие"
+      - chart_data_by_tp["Не указано/Прочие"] = []
+      - chart_data_per["Не указано/Прочие"] = []
+    - @top50_slists.each do |top50_list|
+      / adding csv row
+      - csv_srting = ""
+      - csv_srting_per = ""
+      - c_chart_data = []
+      - oth_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id}").count
+      - all_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
+      tr
+        td class="fit"
+          - list_num = @num_vals.find_by(obj_id: top50_list.id)
+          - date_val = @date_vals.find_by(obj_id: top50_list.id)
+          - list_year = date_val.value.split(".")[2]
+          - list_month = date_val.value.split(".")[1]
+          - if list_num.present?
+            / adding csv row
+            - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+            - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+            = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
+        - sel_top50_cities.each_with_index do |top50_city, j|
+          td align="right" i=list_num.value j=j
+            - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @city_id_hash[top50_city.id]).count
+            - by_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} AND top50_benchmark_results.machine_id IN (?)", @city_id_hash[top50_city.id]).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
+            = c_cnt
+            - oth_cnt = oth_cnt - c_cnt
+            - all_per = (all_per - by_per).round(2)
+            - chart_data_by_tp[top50_city.name].unshift([date_val.value, c_cnt])
+            - chart_data_per[top50_city.name].unshift([date_val.value, by_per])
+            / adding csv row
+            - csv_srting += c_cnt.to_s + ","
+            - csv_srting_per += by_per.to_s + ","
+        td align="right" i=list_num.value j=sel_top50_cities.length
+          - chart_data_by_tp["Не указано/Прочие"].unshift([date_val.value, oth_cnt])
+          - chart_data_per["Не указано/Прочие"].unshift([date_val.value, all_per])
+          = oth_cnt
+          / adding csv row
+          - csv_srting += oth_cnt.to_s
+          - csv_srting_per += all_per.to_s
+          - @csv_arr.push(csv_srting)
+          - @csv_arr_per.push(csv_srting_per)
+    tr
+
+      - @achart_data = []
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      - @achart_data_per = []
+      - chart_data_by_tp.each_key do |key|
+        - @achart_data_per << {name: key, data: chart_data_per[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;/g, '"')).join("\n");
+        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;/g, '"')).join("\n");
+
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
+        draw_area(data, data_per, "chart", "Город", "Редакция (ММ.ГГ)", "Доля систем", d3.schemePaired)
+      /= area_chart @achart_data, max: 50, stacked: true, height: "750px"
       br
 
 - elsif @stat_section == "cpu_cnt" or @stat_section == "core_cnt"
   - chart_data_by_tp = {}
+  div id="chart"
   table class="table table-hover"
     tr
       th = "Редакция"
@@ -187,26 +444,70 @@ br
             = c_cnt
             - chart_data_by_tp[top50_ccnt].unshift([date_val.value, c_cnt])
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 50, stacked: true, height: "750px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var COLORS = [], name = "";
+        for (var i = 0; i < data.length; i++) {
+          COLORS.push(d3.interpolateViridis(i * 1. / (data.length - 1)));
+        }
+        if ("#{@stat_section}" == "cpu_cnt") {
+          name = "Процессоры";
+        } else {
+          name = "Ядра";
+        }
+
+      coffee:
+        draw_type(data, "chart", name, "Редакция (ММ.ГГ)", "Количество систем", COLORS)
+      /= area_chart @achart_data, max: 50, stacked: true, height: "750px"
       br
       
       
-- elsif @stat_section == "comm_net"
+- elsif @stat_section == "comm_net" || @stat_section == "comm_net_sep"
   - chart_data_by_tp = {}
-  table class="table table-hover"
+  - chart_data_by_per = {}
+  - @csv_arr = [""]
+  - @csv_arr_per = [""]
+  div id="chart"
+  g id="table_control_chart"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "Системы"
+    div class="button" style="background: gray; float: left" id=1
+      = "ПФлоп/с"
+    div class="button" style="background: gray; float: left" id=2
+      = "%"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Comm_performance.csv" id="download2"
+    = "Таблица производительности"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Comm_systems.csv" id="download1"
+    = "Таблица систем"
+  table class="table table-hover" id="table_chart"
     tr
       th = "Редакция"
+      / adding headers of csv
+      - @csv_arr[0] += "Редакция,"
+      - @csv_arr_per[0] += "Редакция,"
       - @top50_cnets.each do |top50_cnet|
         th = top50_cnet.cnet_name
+        / adding headers of csv
+        - @csv_arr[0] += top50_cnet.cnet_name.gsub(/"/, "") + ","
+        - @csv_arr_per[0] += top50_cnet.cnet_name.gsub(/"/, "") + ","
         - chart_data_by_tp[top50_cnet.cnet_name] = []
+        - chart_data_by_per[top50_cnet.cnet_name] = []
       th = "Прочие"
+      / adding headers of csv
+      - @csv_arr[0] += "Не указано/Прочие"
+      - @csv_arr_per[0] += "Не указано/Прочие"
       - chart_data_by_tp["Прочие"] = []
+      - chart_data_by_per["Прочие"] = []
     - @top50_slists.each do |top50_list|
+      / adding csv row
+      - csv_srting = ""
+      - csv_srting_per = ""
       - c_chart_data = []
       - oth_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id}").count
+      - oth_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
       tr
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
@@ -214,27 +515,65 @@ br
           - list_year = date_val.value.split(".")[2]
           - list_month = date_val.value.split(".")[1]
           - if list_num.present?
+            / adding csv row
+            - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+            - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
             = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
-        - @top50_cnets.each do |top50_cnet|
-          td align="right" 
+        - @top50_cnets.each_with_index do |top50_cnet, j|
+          td align="right" i=list_num.value j=j
             - c_cnt = Top50BenchmarkResult.where("benchmark_id = #{top50_list.id} AND machine_id IN (?)", @cnet_id_hash[top50_cnet.cnet_id]).count
+            - c_per = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} AND top50_benchmark_results.machine_id IN (?)", @cnet_id_hash[top50_cnet.cnet_id]).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
             = c_cnt
             - oth_cnt = oth_cnt - c_cnt  
+            - oth_per = oth_per - c_per  
             - chart_data_by_tp[top50_cnet.cnet_name].unshift([date_val.value, c_cnt])
-        td align="right"
+            - chart_data_by_per[top50_cnet.cnet_name].unshift([date_val.value, c_per])
+            / adding csv row
+            - csv_srting += c_cnt.to_s + ","
+            - csv_srting_per += c_per.to_s + ","
+        td align="right" i=list_num.value j=@top50_cnets.length
           - chart_data_by_tp["Прочие"].unshift([date_val.value, oth_cnt])
-          = oth_cnt
+          - chart_data_by_per["Прочие"].unshift([date_val.value, oth_per])
+          = oth_cnt.to_s
+          / adding csv row
+          - csv_srting += oth_cnt.to_s
+          - csv_srting_per += oth_per.to_s
+          - @csv_arr.push(csv_srting)
+          - @csv_arr_per.push(csv_srting_per)
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      - @achart_data_per = []
+      - chart_data_by_per.each_key do |key|
+        - @achart_data_per << {name: key, data: chart_data_by_per[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"'));
+        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"')).join("\n");
+        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"')).join("\n");
+        var COLORS = [], name = "";
+        for (var i = 0; i < data.length; i++) {
+          COLORS.push(d3.interpolateRainbow(i * 1. / (data.length - 1)));
+        }
 
-      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
+      - if @stat_section == "comm_net"
+        coffee:
+          draw_area(data, data_per, "chart", "Семейства коммуникационных сетей", "Редакция (ММ.ГГ)", "Доля систем", d3.schemePaired)
+      - elsif @stat_section == "comm_net_sep"
+        coffee:
+          draw_area(data, data_per, "chart", "Коммуникационные сети", "Редакция (ММ.ГГ)", "Доля систем", COLORS)
+
+      /= area_chart @achart_data, max: 50, stacked: true, height: "500px"
       br
 
   
 - elsif @stat_section == "cpu_fam" || @stat_section == "cpu_gen"
   - chart_data_by_tp = {}
+  div id="chart"
   table class="table table-hover"
     tr
       th = "Редакция"
@@ -265,27 +604,65 @@ br
         td align="right" 
           = link_to "Подробнее", get_stats_per_list_path(@stat_section, list_year, list_month)
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, stacked: true, height: "500px", max: c_sum_max
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        // Italy replace for operton
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;&quot;/g, '"').replace(/&quot;/g, '"'));
+
+      coffee:
+        draw_type(data, "chart", "Процессоры", "Редакция (ММ.ГГ)", "Количество систем", d3.schemeSpectral[10])
+      /= area_chart @achart_data, stacked: true, height: "500px", max: c_sum_max
       br
       
 - elsif @stat_section == "vendors"
   - chart_data_by_tp = {}
-  table class="table table-hover"
+  - chart_data_by_per = {}
+  - @csv_arr = [""]
+  - @csv_arr_per = [""]
+
+  div id="chart"
+  g id="table_control_chart"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "Системы"
+    div class="button" style="background: gray; float: left" id=1
+      = "ПФлоп/с"
+    div class="button" style="background: gray; float: left" id=2
+      = "%"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Vendors_performance.csv" id="download2"
+    = "Таблица производительности"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Vendors_systems.csv" id="download1"
+    = "Таблица систем"
+  table class="table table-hover" id="table_chart"
     - sel_vendor_ids = []
     - oth_cnt = 0
+    - oth_per = 0
     tr
       th = "Редакция"
+      / adding headers of csv
+      - @csv_arr[0] += "Редакция,"
+      - @csv_arr_per[0] += "Редакция,"
       - @top50_vendors.each do |top50_vendor|
         th = top50_vendor.name
+        / adding headers of csv
+        - @csv_arr[0] += top50_vendor.name + ","
+        - @csv_arr_per[0] += top50_vendor.name + ","
         - sel_vendor_ids << top50_vendor.id
         - chart_data_by_tp[top50_vendor.name] = []
+        - chart_data_by_per[top50_vendor.name] = []
       th = "Прочие"
+      / adding headers of csv
+      - @csv_arr[0] += "Не указано/Прочие"
+      - @csv_arr_per[0] += "Не указано/Прочие"
       - chart_data_by_tp["Прочие"] = []
+      - chart_data_by_per["Прочие"] = []
     - @top50_slists.each do |top50_list|
+      / adding csv row
+      - csv_srting = ""
+      - csv_srting_per = ""
       - sum_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+      - all_per = (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
       tr
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
@@ -293,24 +670,38 @@ br
           - list_year = date_val.value.split(".")[2]
           - list_month = date_val.value.split(".")[1]
           - if list_num.present?
+            / adding csv row
+            - csv_srting += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
+            - csv_srting_per += "#{list_num.value}#{8209.chr}я (#{date_val.value}),"
             = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
-        - @top50_vendors.each do |top50_vendor|
-          td align="right" 
+        - @top50_vendors.each_with_index do |top50_vendor, j|
+          td align="right" i=list_num.value j=j
             - prec_vendor = @prec_vendors.find_by(sec_obj_id: top50_vendor.id)
             - prec_vid = 0
             - if prec_vendor.present?
               - prec_vid = prec_vendor.prim_obj_id
               - sel_vendor_ids << prec_vid
             - c_cnt = Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids) ").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).count
+            - by_per = (Top50Machine.all.where("#{top50_vendor.id} = ANY(vendor_ids) or #{prec_vid} = ANY(vendor_ids) ").joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
             = link_to c_cnt, get_archive_vendor_path(list_year, list_month, top50_vendor.id)
-            = " (#{100 * c_cnt / sum_cnt}%)"
             - chart_data_by_tp[top50_vendor.name].unshift([date_val.value, c_cnt])
+            - chart_data_by_per[top50_vendor.name].unshift([date_val.value, by_per])
+            / adding csv row
+            - csv_srting += c_cnt.to_s + ","
+            - csv_srting_per += by_per.to_s + ","
         - c_oth_cnt = Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").count
+        - oth_by_per = (Top50Machine.all.joins(:top50_benchmark_results).merge(Top50BenchmarkResult.all.joins(:top50_benchmark).merge(Top50Benchmark.where(id: top50_list.id))).joins("left join top50_vendors on top50_vendors.id = ANY(vendor_ids) and top50_vendors.id in (#{sel_vendor_ids.join(',')})").where("top50_vendors.id is null").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").sum("br.result") / 1000000.0).round(2)
         - oth_cnt += c_oth_cnt
-        td align="right" 
+        - oth_per += oth_by_per
+        td align="right" i=list_num.value j=@top50_vendors.length
           = c_oth_cnt
-          = " (#{100 * c_oth_cnt / sum_cnt}%)"
           - chart_data_by_tp["Прочие"].unshift([date_val.value, c_oth_cnt])
+          - chart_data_by_per["Прочие"].unshift([date_val.value, oth_by_per])
+          / adding csv row
+          - csv_srting += oth_by_per.to_s
+          - csv_srting_per += all_per.to_s
+          - @csv_arr.push(csv_srting)
+          - @csv_arr_per.push(csv_srting_per)
     tr
       th = "Итого"
       - @top50_vendors.each do |top50_vendor|
@@ -318,16 +709,37 @@ br
         - sel_vendor_ids << top50_vendor.id
       th = oth_cnt
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      - @achart_data_per = []
+      - chart_data_by_per.each_key do |key|
+        - @achart_data_per << {name: key, data: chart_data_by_per[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var data_per = JSON.parse("#{@achart_data_per.to_json}".replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_arr}".replace(/&quot;/g, '"')).join("\n");
+        var csv_per = JSON.parse("#{@csv_arr_per}".replace(/&quot;/g, '"')).join("\n");
+
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv_per)
+        # COLORS:
+        #   HP
+        #   IBM
+        #   T-Platforms
+        #   RSK
+        #   Others
+        COLORS = ["#00BD86", "#335FBD", "#283C55", "#271D7A", "#AD2FAD"]
+        draw_area(data, data_per, "chart", "Разработчики систем", "Редакция (ММ.ГГ)", "Доля систем", COLORS)
+      /= area_chart @achart_data, max: 50, stacked: true, height: "500px"
       br
 
  
 - elsif @stat_section == "vendors_rmax"
   - chart_data_by_tp = {}
   - chart_data_by_tp2 = {}
+  div id="chart"
   table class="table table-hover"
     tr
       - sel_vendor_ids = []
@@ -372,20 +784,28 @@ br
         td align="right"
           = (sum_rmax / 1000000.0).round(2)
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp2.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp2[key]}
-      = line_chart achart_data, height: "500px"
-      br
-      - achart_data = []
-      - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 1, stacked: true, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp2[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        # COLORS:
+        #   IBM
+        #   HP
+        #   T-Platforms
+        #   RSK
+        #   Others
+        COLORS = ["#335FBD", "#00BD86", "#283C55", "#271D7A", "#AD2FAD"]
+        draw_performance(data, "chart", "Суммарная производительность Rmax", "Редакция (ММ.ГГ)", "ПФлоп/с", COLORS)
+      /= line_chart @achart_data, height: "500px"
       br
   
 - elsif @stat_section == "vendors_rpeak"
   - chart_data_by_tp = {}
   - chart_data_by_tp2 = {}
+  div id="chart"
   table class="table table-hover"
     tr
       - sel_vendor_ids = []
@@ -430,19 +850,27 @@ br
         td align="right"
           = (sum_rpeak / 1000000.0).round(2)
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp2.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp2[key]}
-      = line_chart achart_data, height: "500px"
-      br
-      - achart_data = []
-      - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 1, stacked: true, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp2[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        # COLORS:
+        #   IBM
+        #   HP
+        #   T-Platforms
+        #   RSK
+        #   Others
+        COLORS = ["#335FBD", "#00BD86", "#283C55", "#271D7A", "#AD2FAD"]
+        draw_performance(data, "chart", "Суммарная производительность Rpeak", "Редакция (ММ.ГГ)", "ПФлоп/с", COLORS)
+      /= line_chart achart_data, height: "500px"
       br
 
 - elsif @stat_section == "vendors_int"          
   - chart_data_by_tp = {}
+  div id="chart"
   table class="table table-hover"
     tr
       - sel_vendor_ids = []
@@ -481,10 +909,22 @@ br
           = " (#{number_with_precision(c_oth_ven_avg, precision: 1, strip_insignificant_zeros: true)})"
           - chart_data_by_tp["Прочие"].unshift([date_val.value, c_oth_ven])
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = line_chart achart_data, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        # COLORS:
+        #   IBM
+        #   HP
+        #   T-Platforms
+        #   RSK
+        #   Others
+        COLORS = ["#335FBD", "#00BD86", "#283C55", "#271D7A", "#AD2FAD"]
+        draw_performance(data, "chart", "Количество интеграторов", "Редакция (ММ.ГГ)", "Количество интеграторов", COLORS)
+      /= line_chart @achart_data, height: "500px"
       br
         
 - elsif @stat_section == "vendors_cnt_rmax"
@@ -524,6 +964,7 @@ br
 
 - elsif @stat_section == "vendors_rmax_avg"
   - chart_data_by_tp = {}
+  div id="chart"
   table class="table table-hover"
     tr
       - sel_vendor_ids = []
@@ -576,13 +1017,26 @@ br
           = ")"
           - chart_data_by_tp["По всему списку"].unshift([date_val.value, c_all_avg])
     tr
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = line_chart achart_data, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        # COLORS:
+        #   IBM
+        #   HP
+        #   T-Platforms
+        #   RSK
+        #   Others
+        COLORS = ["#335FBD", "#00BD86", "#283C55", "#271D7A", "#AD2FAD"]
+        draw_performance(data, "chart", "Средняя производительность Rmax", "Редакция (ММ.ГГ)", "ПФлоп/с", COLORS)
+      /= line_chart achart_data, height: "500px"
       br
 
 - elsif @stat_section == "type"
+  div id="chart_1"
   - hlist_chart_data = {}
   - hlist_dates = {}
   - hlist_nums = {}
@@ -625,18 +1079,35 @@ br
       
     tr
 
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = area_chart achart_data, max: 50, stacked: true, height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+
+      coffee:
+        draw_type(data, "chart_1", "Типы систем", "Дата (ММ.ГГ)", "Количество систем")
+      /= area_chart achart_data, max: 50, stacked: true, height: "500px"
   
 - else
+  div id="chart_1"
   - chart_data_by_tp = {}
   - chart_data_by_tp["Linpack (1-5)"] = []
   - chart_data_by_tp["Linpack (1-50)"] = []
   - chart_data_by_tp["Peak (1-5)"] = []
   - chart_data_by_tp["Peak (1-50)"] = []
-  table class="table table-hover"
+  - @csv_string = ["Edition,Linpack (1-5),Linpack (1-50),Peak (1-5),Peak (1-50)"]
+
+  g id="table_control_chart_1"
+    div class="button" style="background: #6699CC; float: left" id=0
+      = "ПФлоп/с"
+    div class="button" style="background: gray; float: left" id=1
+      = "Процент от общей производительности"
+    div class="button" style="background: gray; float: left" id=2
+      = "Подсветка"
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Total_performance.csv" id="download1"
+    = "Скачать"
+  table class="table table-hover" id="table_chart_1"
     tr
       th = "Редакция"
       th = "Linpack (1-5)"
@@ -649,53 +1120,75 @@ br
       - top5_rpeak = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result <= 5").joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_benchmark_results.machine_id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)") / 1000000.0).round(2)
       - top50_rpeak = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_attribute_val_dbvals rpeak_res on rpeak_res.obj_id = top50_benchmark_results.machine_id").joins("join top50_attributes p on p.id = rpeak_res.attr_id and p.name_eng = 'Rpeak (MFlop/s)'").sum("cast(encode(rpeak_res.value, 'escape') as numeric)") / 1000000.0).round(2)
       tr
-        td class="fit"
+        td class="fit" 
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
           - date_val = @date_vals.find_by(obj_id: top50_list.id)
           - list_year = date_val.value.split(".")[2]
           - list_month = date_val.value.split(".")[1]
 
           - if list_num.present?
+            - @csv_string.push("#{list_num.value}я (#{date_val.value})," + top5_rmax.to_s + "," + top50_rmax.to_s + "," + top5_rpeak.to_s + "," + top50_rpeak.to_s)
             = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
-        td align="right"
+        td align="right" i=list_num.value j=0 value=top5_rmax title="Суммарная производительность топ 5 суперкомпьютеров на тесте Linpack"
           = top5_rmax
           - chart_data_by_tp["Linpack (1-5)"].unshift([date_val.value, top5_rmax])
-        td align="right"
+        td align="right" i=list_num.value j=1 value=top50_rmax title="Суммарная производительность на тесте Linpack"
           = top50_rmax
           - chart_data_by_tp["Linpack (1-50)"].unshift([date_val.value, top50_rmax])
-        td align="right"
+        td align="right" i=list_num.value j=2 value=top5_rpeak title="Суммарная производительность топ 5 суперкомпьютеров на тесте Peak"
           = top5_rpeak
           - chart_data_by_tp["Peak (1-5)"].unshift([date_val.value, top5_rpeak])
-        td align="right"
+        td align="right" i=list_num.value j=3 value=top50_rpeak title="Суммарная производительность на тесте Peak"
           = top50_rpeak
           - chart_data_by_tp["Peak (1-50)"].unshift([date_val.value, top50_rpeak])
     
     tr
-  
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = line_chart achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_string}".replace(/&quot;/g, '"')).join("\n");
+
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download1").attr("href", "data:attachment/csv," + csv)
+        draw_performance(data, "chart_1", "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)", d3.schemeSet1, true)
+      /= line_chart @achart_data, :title => "Суммарная производительность (ПФлоп/с) 5 и 50 лучших систем в редакциях Top50", height: "500px"
       br
+
     
+
+  div id="chart_2"
   - chart_data_by_tp = {}
-  - chart_data_by_tp["#1"] = []
-  - chart_data_by_tp["#25"] = []
-  - chart_data_by_tp["#50"] = []
+  - (0..50).step(10).each do |i|
+    - ind = i
+    - if i == 0
+      - ind = 1
+    - chart_data_by_tp["##{ind}"] = []
   - chart_data_by_tp["Средняя"] = []
-  table class="table table-hover"
+  - chart_data_by_tp["Медиана"] = []
+  - @csv_string = ["Редакция,№1,№10,№20,№30,№40,№50,Средняя,Медиана"]
+  a class="button" style="background: #6699CC; float: right" target="_blank" download="Different_performance.csv" id="download2"
+    = "Скачать"
+  table class="table table-hover" id="table_chart_2"
     tr
-      th = "Редакция"
-      th = "Максимальная (#1)"
-      th = "Медиана (#25)"
-      th = "Минимальная (#50)"
+      th = "Edition"
+      - (0..50).step(10).each do |i|
+        - ind = i
+        - if i == 0
+          - ind = 1
+        th = "##{ind}"
       th = "Средняя"
-    - global_max = 0
+      th = "Медиана"
     - @top50_slists.each do |top50_list|
+      - arr_rmax = []
+      - (0..50).step(10).each do |i|
+        - ind = i
+        - if i == 0
+          - ind = 1
+        - arr_rmax.push((Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result = #{ind}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2))
       - avg_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").average("br.result") / 1000000.0).round(2)
-      - max_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2)
-      - min_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id}").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").minimum("br.result") / 1000000.0).round(2)
-      - med_rmax = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result = 25").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2)
+      - rmax_med = (Top50BenchmarkResult.where("top50_benchmark_results.benchmark_id = #{top50_list.id} and top50_benchmark_results.result = 25").joins("join top50_benchmark_results br on br.machine_id = top50_benchmark_results.machine_id").where("br.benchmark_id = 27").maximum("br.result") / 1000000.0).round(2)
       tr
         td class="fit"
           - list_num = @num_vals.find_by(obj_id: top50_list.id)
@@ -703,26 +1196,41 @@ br
           - list_year = date_val.value.split(".")[2]
           - list_month = date_val.value.split(".")[1]
           - if list_num.present?
+            - @csv_string.push("#{list_num.value}-я (#{date_val.value})," + arr_rmax.join(","))
             = link_to "#{list_num.value}#{8209.chr}я (#{date_val.value})", get_archive_path(list_year, list_month)
-        td align="right"
-          = max_rmax
-          - chart_data_by_tp["#1"].unshift([date_val.value, max_rmax])
-          - if max_rmax > global_max
-            - global_max = max_rmax
-        td align="right"
-          = med_rmax
-          - chart_data_by_tp["#25"].unshift([date_val.value, med_rmax])
-        td align="right"
-          = min_rmax
-          - chart_data_by_tp["#50"].unshift([date_val.value, min_rmax])
+        - (0..50).step(10).each do |i|
+          - ind = i
+          - if i == 0
+            - ind = 1
+            - chart_data_by_tp["##{ind}"].unshift([date_val.value, arr_rmax[0]])
+            td align="right"
+              = arr_rmax[0]
+          - else
+            - chart_data_by_tp["##{ind}"].unshift([date_val.value, arr_rmax[i / 10]])
+            td align="right"
+              = arr_rmax[i / 10]
         td align="right"
           = avg_rmax
           - chart_data_by_tp["Средняя"].unshift([date_val.value, avg_rmax])
-    
+        td align="right"
+          = rmax_med
+          - chart_data_by_tp["Медиана"].unshift([date_val.value, rmax_med])
+
     tr
 
-      - achart_data = []
+      - @achart_data = []
       - chart_data_by_tp.each_key do |key|
-        - achart_data << {name: key, data: chart_data_by_tp[key]}
-      = line_chart achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
+        - @achart_data << {name: key, data: chart_data_by_tp[key]}
+      javascript:
+        var data = JSON.parse("#{@achart_data.to_json}".replace(/&quot;/g, '"'));
+        var csv = JSON.parse("#{@csv_string}".replace(/&quot;/g, '"')).join("\n");
+        var COLORS = d3.schemeOrRd[8].reverse()
+        COLORS.splice(6, 2, "#5181C0", "#19C457")
+        console.log(COLORS)
+
+      coffee:
+        d3.selectAll("a").filter(() -> d3.select(this).attr("id") == "download2").attr("href", "data:attachment/csv," + csv)
+        draw_performance(data, "chart_2", "Средняя производительность, медиана и производительность 1, 10, 20, 30, 40 и 50 систем рейтинга (ПФлоп/с)", "Дата (ММ.ГГ)", "Производительность (ПФлоп/с)", COLORS, true)
+      /= line_chart @achart_data, :title => "Максимальная, средняя и минимальная производительности систем (ПФлоп/с) в редакциях Top50", height: "800px", max: global_max
       br
+

@@ -16,10 +16,13 @@ class Top50Organization < ActiveRecord::Base
       c_typeid = Top50ObjectType.where(name_eng: "Organization").first.id
       obj = Top50Object.new
       obj[:type_id] = c_typeid
-      obj[:is_valid] = self.is_valid.present? ? self.is_valid : 1
+      obj[:is_valid] = self.is_valid
       obj[:comment] = format('New organization (%s)', self.comment)
       obj.save!
       self.id = obj.id
+    end
+    if self.is_valid != self.top50_object.is_valid
+      self.top50_object.update(is_valid: self.is_valid)
     end
   end
 
@@ -28,5 +31,33 @@ class Top50Organization < ActiveRecord::Base
     obj.destroy!
   end
 
+  def get_rel_contain_id
+    return Top50RelationType.where(name_eng: 'Contains').first.id
+  end
+
+  def parent_org_id
+    parent_rel = Top50Relation.find_by(sec_obj_id: self.id, type_id: get_rel_contain_id)
+    if parent_rel.present?
+      return parent_rel.prim_obj_id 
+    end
+  end
+
+  def parent_org
+    parent_rel = Top50Relation.find_by(sec_obj_id: self.id, type_id: get_rel_contain_id)
+    if parent_rel.present?
+      return Top50Organization.find_by(id: parent_rel.prim_obj_id)
+    end
+  end
+
+  def confirm
+    if self.is_valid != 1
+      self.is_valid = 1
+      self.save
+    end
+    self.top50_object.confirm
+    if self.parent_org.present?
+      self.parent_org.confirm
+    end
+  end
 
 end

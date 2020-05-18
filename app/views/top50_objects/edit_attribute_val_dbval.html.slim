@@ -1,0 +1,10 @@
+div class="page-header"
+  h1 = t(".title", default: "Edit attribute")
+div class="row"
+  div class="col-xs-8"
+    = bootstrap_form_for @top50_attr_val, url: top50_object_top50_attribute_val_dbval_save_path(@top50_object, @top50_attr_val) do |f|
+      = f.collection_select :attr_id, Top50Attribute.where(attr_type: 1), :id, :name
+      = f.collection_select :is_valid, Top50ValidType.all, :id, :name, {include_blank: true, label: "Статус"}
+      = f.text_field :value
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

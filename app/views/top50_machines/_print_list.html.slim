@@ -95,7 +95,12 @@ table class="table table-responsive table-striped"
               br
               = link_to top50_parent_org.name, get_archive_org_path(@list_year, @list_month, top50_parent_org), :title => "Организация"
           - if not (top50_parent_org_rel.present? and top50_parent_org.present?)
-                = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Организация"
+            = link_to top50_org.name, get_archive_org_path(@list_year, @list_month, top50_org), :title => "Организация"
+          - if top50_org.top50_city.present?
+             = ","
+             br
+             = link_to top50_org.top50_city.name, get_archive_city_path(@list_year, @list_month, top50_org.top50_city), :title => "Город"
+ 
       td class="col-xs-1"
         - cpucnt = 0
         - acccnt = 0
@@ -149,6 +154,17 @@ table class="table table-responsive table-striped"
               td align="right" valign="top"
                 - if top50_node.cnt > 0
                    = "#{top50_node.cnt}:"
+              td colspan="2"
+                - node_platform_vendor = @l1_attrd_hash[top50_node.id].find{|x| x.attr_id == @node_platform_vendor_attrid}
+                - if node_platform_vendor.present?
+                  = " "
+                  = node_platform_vendor.elem_name
+                - node_platform = @l1_attrd_hash[top50_node.id].find{|x| x.attr_id == @node_platform_attrid}
+                - if node_platform.present?
+                  = " "
+                  = node_platform.elem_name
+            tr
+              td
               td
                 - if top50_cpus.any?
                   = "CPU: "

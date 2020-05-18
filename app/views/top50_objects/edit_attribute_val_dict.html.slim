@@ -1,0 +1,13 @@
+div class="row"
+div class="page-header"
+  h1 = t(".title", default: "Edit attribute")
+div class="row"
+  div class="col-xs-12"
+    = bootstrap_form_for @top50_attr_val, url: top50_object_top50_attribute_val_dict_save_path(@top50_object, @top50_attr_val) do |f|
+      = f.collection_select :attr_id, Top50Attribute.where(id: @attr_id), :id, :name, selected: @attr_id
+      = f.collection_select :dict_id, Top50Dictionary.where(id: @dict_id), :id, :name, {selected: @dict_id}, {disabled: true}
+      = f.collection_select :dict_elem_id, Top50DictionaryElem.where(dict_id: @dict_id).order(:name), :id, :name
+      = f.collection_select :is_valid, Top50ValidType.all, :id, :name, {include_blank: true, label: "Статус"}
+
+      = f.form_group do
+        = f.submit t("buttons.save", default: "Save")

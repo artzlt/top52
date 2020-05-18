@@ -1,12 +1,15 @@
 ﻿div class="page-header"
   - if @top50_machine.name.present? and @top50_machine.name.length > 0
     h2 = @top50_machine.name
-  h2 =  "Сведения о системе:"
   
-- if current_user and current_user.may_edit_top50?
-    = link_to t("Редактировать"), top50_machines_moderate_path(@top50_machine), class: "btn btn-default"
+  - if current_user and current_user.may_edit_top50?
+    - val = Top50ValidType.find_by(id: @top50_machine.is_valid)
+    h4 = "(Статус: " + (val.present? ? val.name : "Отсутствует")+ ")"
+    = link_to "Редактировать", [:edit, @top50_machine], class: "btn btn-default"
+    = link_to "К объекту", @top50_machine.top50_object, class: "btn btn-default"
     br
-    br
+
+  h2 =  "Сведения о системе:"
         
 - if @top50_machine.name.present? and @top50_machine.name.length > 0
   p
@@ -164,7 +167,17 @@ p
       - top50_gpus = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@gpu_objects)
       - top50_cops = (top50_node.top50_object.top50_relations.joins(:top50_relation_type).merge(Top50RelationType.where(name_eng: "Contains"))).joins(:top50_object).merge(@cop_objects)
       - if top50_node.sec_obj_qty > 0
-        = "узлов: #{top50_node.sec_obj_qty} "
+        - node_platform_wlist = []
+        - node_platform_vendor = @node_platform_vendor_attr_vals.find_by(obj_id: top50_node.top50_object)
+        - if node_platform_vendor.present?
+          - node_platform_wlist.append(node_platform_vendor.top50_dictionary_elem.name)
+        - node_platform = @node_platform_attr_vals.find_by(obj_id: top50_node.top50_object)
+        - if node_platform.present?
+          - node_platform_wlist.append(node_platform.top50_dictionary_elem.name)
+        - if not node_platform_wlist.empty?
+           = "узлы #{node_platform_wlist.join(' ')}: #{top50_node.sec_obj_qty} "
+        - else
+          = "узлов: #{top50_node.sec_obj_qty} "
       = "["
       - top50_cpus.each_with_index do |top50_cpu, i|
         - if i > 0
