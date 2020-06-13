@@ -1,7 +1,12 @@
 class AlgowikiEntitiesController < ApplicationController
-  skip_before_filter :require_login, only: [:show_by_task, :show_by_alg, :show_by_imp, :index, :index_type, :entities_of_type, :show]
+  skip_before_filter :require_login, only: [:show_by_task, :show_by_alg, :show_by_imp, :index, :index_type, :entities_of_type, :show, :show_by_id]
   before_action :set_algowiki_entity, only: [:show, :edit, :update, :destroy]
-
+  SORT_BY = {
+    "performance"=>"Performance, MTEPS",
+    "time"=>"Execution time, ms",
+    "size"=>"Task size",
+    "type"=>"Graph type"
+  }
   # GET /algowiki_entities
   def index
     @algowiki_entities = AlgowikiEntity.all
@@ -60,6 +65,23 @@ class AlgowikiEntitiesController < ApplicationController
       format.xlsx {
         response.headers['Content-Disposition'] = "attachment; filename=\"PerfData by implementation #{@imp.name} of Algorithm #{@alg.name}.xlsx\""
       }
+    end
+  end
+
+  def show_by_id
+
+    @ent = AlgowikiEntity.find(params[:id])
+    ids = @ent.get_all_imps.pluck(:id)
+    @cr = CachedResults.new(ids)
+    if params.include? "sort"
+      @sort_attr = SORT_BY.fetch(params["sort"], "Performance, MTEPS")
+    else
+      @sort_attr = "Performance, MTEPS"
+    end
+    if params.include? "asc" and params["asc"].present? and params["asc"].downcase == "true"
+      @cr.results.sort_by! {|x| x[:launch][@sort_attr]}
+    else
+      @cr.results.sort_by! {|x| x[:launch][@sort_attr]}.reverse!
     end
   end
 

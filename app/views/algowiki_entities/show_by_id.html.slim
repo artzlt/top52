@@ -1,0 +1,71 @@
+# coding: utf-8
+
+h4 =  "Performance Data by #{@ent.type_eng} : #{@ent.name}. Sorted by: #{@sort_attr}"
+br
+
+table class="table table-responsive table-striped"
+  tr
+    th
+      = "№"
+    th 
+      = "Algorithm"
+    th 
+      = "Implementation"
+    th 
+      = "Platform"
+    th
+      = "Node group"
+    th
+      = "Nodes"
+    th
+      = "Specs"
+    th 
+      = "Result, MTEPS"
+    th
+      = "Time, ms"
+    th
+      = "Graph type"
+    th
+      = "Task size"
+  - cur = 0
+  - 
+  - @cr.results.each do |res|
+	  tr
+	  - cur = cur + 1
+      td class="col-1"
+        = cur
+        - impl = AlgoImplementation.find(res[:imp][:id])
+        - machine = Top50Machine.find(res[:machine][:id])
+      td class="col-3"
+        = impl.alg.name
+      td class="col-3"
+        = impl.name
+      td class="col-3"
+        = machine.name
+      td class="col-3"
+        = res[:node_group]['Name']
+      td class="col-3"
+        = res[:node_group][:relations].inject(0) {|sum, rel| sum += (rel["son_type"] == "Compute node") ? rel["count"] : 0}
+      td class="col-8"
+        - res[:node_group][:relations].each do |rel0|
+          - if rel0["son_type"] == "Compute node"
+            = "#{rel0['count']} x "
+            - @cr.rels_by_id(rel0["son_id"], 1).each do |rel1|
+              - if rel1["son_type"] == "Compute group"
+                = "#{rel1['count']} x"
+                br
+                - @cr.rels_by_id(rel1["son_id"], 2).each do |rel2|
+                  - if rel2["son_type"] == "CPU"
+                    - cpu_attrs = @cr.attrs_by_id(rel2["son_id"])
+                    = "#{rel2['count']} #{cpu_attrs['CPU Vendor']} #{cpu_attrs['CPU model']}: #{cpu_attrs['Clock frequency (MHz)']}MHz, #{cpu_attrs['Number of cores']} cores, #{cpu_attrs['L2 cache, KB']}KB of L2 cache"
+                  - else
+                    = "#{rel2['count']} #{rel2['son_type']}"
+                  br
+      td class="col-3"
+        = res[:launch]['Performance, MTEPS']
+      td class="col-3"
+        = res[:launch]['Execution time, ms']
+      td class="col-3"
+        = res[:launch]['Graph type']
+      td class="col-3"
+        = res[:launch]['Task size']

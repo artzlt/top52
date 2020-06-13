@@ -173,6 +173,8 @@ Octoshell::Application.routes.draw do
   get 'algo_results/task/:id', to: 'algowiki_entities#show_by_task', as:'algo_results_by_task'
   get 'algo_results/algorithm/:id', to: 'algowiki_entities#show_by_alg', as:'algo_results_by_alg'
   get 'algo_results/implementation/:id', to: 'algowiki_entities#show_by_imp', as:'algo_results_by_imp'
+
+  get 'new_results/entity/:id', to: 'algowiki_entities#show_by_id', as:'new_results'
   
   get 'components/info/:id', to: 'top50_objects#show_info', as:'top50_objects_show_info'
 

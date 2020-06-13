@@ -1,0 +1,25 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  imp_id: MyString
+  integer: MyString
+  machine_id: MyString
+  integer: MyString
+  node_group_id: MyString
+  integer: MyString
+  is_valid: MyString
+  integer: MyString
+  comment: MyString
+  string: MyString
+
+two:
+  imp_id: MyString
+  integer: MyString
+  machine_id: MyString
+  integer: MyString
+  node_group_id: MyString
+  integer: MyString
+  is_valid: MyString
+  integer: MyString
+  comment: MyString
+  string: MyString

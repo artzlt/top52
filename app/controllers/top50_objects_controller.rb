@@ -107,6 +107,28 @@ class Top50ObjectsController < Top50BaseController
     end
   end
 
+  def edit_relation
+    @top50_object = Top50Object.find(params[:id])
+    @top50_relation = @top50_object.top50_relations.find(params[:relid])
+  end
+
+  def save_relation
+    @top50_object = Top50Object.find(params[:id])
+    @top50_relation = @top50_object.top50_relations.find(params[:relid])
+    if top50_nested_object_params[:top50_object][:id].present?
+      @top50_nested_object = Top50Object.find(top50_nested_object_params[:top50_object][:id])
+    else
+      @top50_nested_object = Top50Object.new(top50_nested_object_params[:top50_object])
+      @top50_nested_object.save!
+    end
+    @top50_relation.sec_obj_id = @top50_nested_object.id
+    if @top50_relation.save
+      redirect_to @top50_object
+    else
+      render :new_relation
+    end
+  end
+
   def new_attribute_val_dict_set_attr
     attr = Top50AttributeDict.find(params[:attr_id])
     redirect_to proc { new_top50_object_top50_attribute_val_dict_step2_path(params[:id], attr.id) }

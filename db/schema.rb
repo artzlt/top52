@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181016090412) do
+ActiveRecord::Schema.define(version: 20200521214016) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -137,30 +137,6 @@ ActiveRecord::Schema.define(version: 20181016090412) do
     t.datetime "updated_at"
   end
 
-  create_table "algo_launch_results", id: false, force: true do |t|
-    t.integer  "id"
-    t.integer  "launch_id"
-    t.float    "result"
-    t.integer  "measure_id"
-    t.integer  "is_valid"
-    t.string   "comment"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "algo_launches", id: false, force: true do |t|
-    t.integer  "id"
-    t.integer  "imp_id"
-    t.integer  "node_group_id"
-    t.integer  "machine_id"
-    t.datetime "start_date"
-    t.datetime "end_date"
-    t.integer  "is_valid"
-    t.string   "comment"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "algo_node_groups", id: false, force: true do |t|
     t.integer  "id"
     t.string   "name"
@@ -180,20 +156,6 @@ ActiveRecord::Schema.define(version: 20181016090412) do
     t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"
-  end
-
-  create_table "algobenchmarkresults", force: true do |t|
-    t.integer  "benchmark_id"
-    t.integer  "machine_id"
-    t.float    "result"
-    t.date     "start_date"
-    t.date     "end_date"
-    t.integer  "is_valid"
-    t.string   "comment"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "launch_id"
-    t.integer  "nodegroup_id"
   end
 
   create_table "algobenchmarkresultswithdup", id: false, force: true do |t|
@@ -313,7 +275,8 @@ ActiveRecord::Schema.define(version: 20181016090412) do
     t.datetime "updated_at"
   end
 
-  create_table "algowiki_relations", force: true do |t|
+  create_table "algowiki_relations", id: false, force: true do |t|
+    t.integer  "id",         null: false
     t.integer  "prim_id"
     t.integer  "sec_id"
     t.integer  "type_id"
@@ -941,10 +904,64 @@ ActiveRecord::Schema.define(version: 20181016090412) do
 
   add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
 
+  create_table "dict_elems", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.integer  "dict_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "export_relations", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "prim_obj_id"
+    t.integer  "sec_obj_id"
+    t.integer  "sec_obj_qty"
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "export_vendor_objects", id: false, force: true do |t|
+    t.integer  "id"
+    t.integer  "type_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "export_vendors", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "country_id"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "groups", force: true do |t|
     t.string   "name"
     t.integer  "weight"
     t.boolean  "system"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "launch_results", force: true do |t|
+    t.integer  "imp_id"
+    t.integer  "machine_id"
+    t.integer  "node_group_id"
+    t.integer  "is_valid"
+    t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -979,8 +996,10 @@ ActiveRecord::Schema.define(version: 20181016090412) do
     t.integer  "number_of_imported_news_shown", default: 20
     t.string   "imported_news_source"
     t.integer  "number_of_local_news_shown",    default: 2
-    t.string   "cron_schedule",                 default: "hour"
-    t.integer  "cron_value",                    default: 1
+    t.string   "cron_schedule"
+    t.integer  "cron_value"
+    t.date     "start_date"
+    t.date     "end_date"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -1452,6 +1471,24 @@ ActiveRecord::Schema.define(version: 20181016090412) do
     t.datetime "updated_at"
     t.integer  "vendor_ids",        default: [], array: true
     t.date     "installation_date"
+  end
+
+  create_table "top50_machines_backup20180904", id: false, force: true do |t|
+    t.integer  "id"
+    t.string   "name"
+    t.string   "name_eng"
+    t.string   "website"
+    t.integer  "type_id"
+    t.integer  "org_id"
+    t.integer  "vendor_id"
+    t.integer  "contact_id"
+    t.date     "start_date"
+    t.date     "end_date"
+    t.integer  "is_valid"
+    t.string   "comment"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "vendor_ids", array: true
   end
 
   create_table "top50_measure_scales", force: true do |t|
