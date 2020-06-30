@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200521214016) do
+ActiveRecord::Schema.define(version: 20200614152138) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -125,8 +125,7 @@ ActiveRecord::Schema.define(version: 20200521214016) do
     t.datetime "updated_at"
   end
 
-  create_table "algo_implementations", id: false, force: true do |t|
-    t.integer  "id"
+  create_table "algo_implementations", force: true do |t|
     t.string   "name"
     t.string   "name_eng"
     t.integer  "alg_id"
@@ -1000,6 +999,17 @@ ActiveRecord::Schema.define(version: 20200521214016) do
     t.integer  "cron_value"
     t.date     "start_date"
     t.date     "end_date"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "partial_launches", force: true do |t|
+    t.integer  "launch_id"
+    t.integer  "comp_group_id"
+    t.integer  "comp_group_qty"
+    t.integer  "sub_group_id"
+    t.integer  "is_valid"
+    t.string   "comment"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

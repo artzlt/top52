@@ -3,6 +3,7 @@ class LaunchResult < ActiveRecord::Base
   belongs_to :impl, foreign_key: "imp_id", class_name: "AlgoImplementation"
   belongs_to :top50_machine, foreign_key: "machine_id"
   belongs_to :node_group, foreign_key: "node_group_id", class_name: "Top50Object"
+  has_many :partial_launches, foreign_key: "launch_id"
   
   before_save do
     if self.new_record?
@@ -20,6 +21,7 @@ class LaunchResult < ActiveRecord::Base
   end
 
   before_destroy do
+    self.partial_launches.destroy_all
     obj = Top50Object.find(self.id)
     obj.destroy!
   end

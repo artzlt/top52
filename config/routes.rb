@@ -175,6 +175,7 @@ Octoshell::Application.routes.draw do
   get 'algo_results/implementation/:id', to: 'algowiki_entities#show_by_imp', as:'algo_results_by_imp'
 
   get 'new_results/entity/:id', to: 'algowiki_entities#show_by_id', as:'new_results'
+  post 'new_results/entity/:id', to: 'algowiki_entities#show_by_id_post', as:'new_results_post'
   
   get 'components/info/:id', to: 'top50_objects#show_info', as:'top50_objects_show_info'
 

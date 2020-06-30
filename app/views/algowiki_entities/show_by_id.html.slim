@@ -3,6 +3,21 @@
 h4 =  "Performance Data by #{@ent.type_eng} : #{@ent.name}. Sorted by: #{@sort_attr}"
 br
 
+= bootstrap_form_tag url: new_results_post_path do |f|
+  = f.collection_select :algo_id, AlgowikiEntity.where(is_valid: 1).order(:type_id, :name), :id, :full_name, {include_blank: true, label: "From Algowiki", selected: @ent.id}
+  = f.submit "FILTER"
+  br
+  = f.fields_for :limits do |g|
+    br
+    = g.fields_for :task_size do |h|
+      h4 = "Task size (from #{@ts_bounds[0]} to #{@ts_bounds[1]})"
+      = h.number_field :from, label: "from", in: @ts_bounds[0]...@ts_bounds[1] + 1, value: @ts_from
+      = h.number_field :to, label: "to", in: @ts_bounds[0]...@ts_bounds[1] + 1, value: @ts_to
+    br
+    = g.collection_select :platform_ids, Top50Machine.where(id: @pl_all).order(:name), :id, :name, {include_blank: true, label: "Platform", selected: @pl_ids}, {multiple: true}
+  = f.submit "SHOW"
+br
+
 table class="table table-responsive table-striped"
   tr
     th
@@ -19,6 +34,8 @@ table class="table table-responsive table-striped"
       = "Nodes"
     th
       = "Specs"
+    th
+      = "Is partial?"
     th 
       = "Result, MTEPS"
     th
@@ -29,7 +46,7 @@ table class="table table-responsive table-striped"
       = "Task size"
   - cur = 0
   - 
-  - @cr.results.each do |res|
+  - (@cr.results.reject {|x| should_skip(x)}).each do |res|
 	  tr
 	  - cur = cur + 1
       td class="col-1"
@@ -61,6 +78,8 @@ table class="table table-responsive table-striped"
                   - else
                     = "#{rel2['count']} #{rel2['son_type']}"
                   br
+      td class="col-3"
+        = res[:launch][:partial_runs].present? ? "Yes" : "No"
       td class="col-3"
         = res[:launch]['Performance, MTEPS']
       td class="col-3"

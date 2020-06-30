@@ -1,5 +1,5 @@
 class AlgowikiEntitiesController < ApplicationController
-  skip_before_filter :require_login, only: [:show_by_task, :show_by_alg, :show_by_imp, :index, :index_type, :entities_of_type, :show, :show_by_id]
+  skip_before_filter :require_login, only: [:show_by_task, :show_by_alg, :show_by_imp, :index, :index_type, :entities_of_type, :show, :show_by_id, :show_by_id_post]
   before_action :set_algowiki_entity, only: [:show, :edit, :update, :destroy]
   SORT_BY = {
     "performance"=>"Performance, MTEPS",
@@ -68,11 +68,45 @@ class AlgowikiEntitiesController < ApplicationController
     end
   end
 
-  def show_by_id
+  def get_limit(limits, e1, def_val)
+    if limits.present?
+      if limits.include? e1 and limits[e1].present?
+        return limits[e1]
+      end
+    end
+    return def_val
+  end
 
+  def get_limit2(limits, e1, e2, def_val)
+    return get_limit(get_limit(limits, e1, {}), e2, def_val)
+  end
+  
+  helper_method :should_skip
+  def should_skip(res)
+    return (
+      res[:launch]['Task size'] > @ts_to or
+      res[:launch]['Task size'] < @ts_from or
+      not @pl_ids.include? res[:machine][:id]
+    )
+  end
+
+  def show_by_id
+    @filter = nil
+    @old_ent = nil
+    if params.include? "old_id"
+      @old_ent = AlgowikiEntity.find(params[:old_id])
+    end
     @ent = AlgowikiEntity.find(params[:id])
     ids = @ent.get_all_imps.pluck(:id)
     @cr = CachedResults.new(ids)
+
+    @ts_bounds = (@cr.get_bounds("Task size") or [0, 0])
+    @ts_from = get_limit2(params[:limits], :task_size, :from, @ts_bounds[0]).to_i
+    @ts_to = get_limit2(params[:limits], :task_size, :to, @ts_bounds[1]).to_i
+
+    @pl_all = @cr.get_all_pl
+    @pl_ids = get_limit(params[:limits], :platform_ids, @pl_all).collect {|x| x.to_i}
+
     if params.include? "sort"
       @sort_attr = SORT_BY.fetch(params["sort"], "Performance, MTEPS")
     else
@@ -82,6 +116,17 @@ class AlgowikiEntitiesController < ApplicationController
       @cr.results.sort_by! {|x| x[:launch][@sort_attr]}
     else
       @cr.results.sort_by! {|x| x[:launch][@sort_attr]}.reverse!
+    end
+    return
+  end
+
+  def show_by_id_post
+    old_id = params[:id].to_i
+    id = params[:algo_id].to_i
+    if params['commit'] == 'SHOW'
+      redirect_to action: :show_by_id, id: id, old_id: old_id, limits: params[:limits] and return
+    else
+      redirect_to action: :show_by_id, id: id, old_id: old_id and return
     end
   end
 

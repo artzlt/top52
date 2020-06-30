@@ -34,4 +34,12 @@ class AlgowikiEntity < ActiveRecord::Base
     return self.algowiki_entity_type.name_eng
   end
 
+  def full_name
+    return self.type + ' ' + self.name
+  end
+
+  def full_nam_enge
+    return self.type_eng + ' ' + self.name_eng
+  end
+
 end
