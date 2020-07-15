@@ -36,7 +36,7 @@ class AlgowikiEntitiesController < ApplicationController
   
   def show_by_task
     @task = AlgowikiEntity.find(params[:id])
-    @algo_results = AlgowikiEntity.select("task, alg, imp, platform, result, cores, type, size").joins("join algo500_sample_results a on a.rus_task = algowiki_entities.name and algowiki_entities.type_id = 2 and algowiki_entities.id = #{@task.id}").order("result desc")
+    @algo_results = AlgowikiEntity.select("task, alg, imp, platform, result, cores, type as legacy_type, size").joins("join algo500_sample_results a on a.rus_task = algowiki_entities.name and algowiki_entities.type_id = 2 and algowiki_entities.id = #{@task.id}").order("result desc")
     respond_to do |format|
       format.html
       format.xlsx {
@@ -47,7 +47,7 @@ class AlgowikiEntitiesController < ApplicationController
 
   def show_by_alg
     @alg = AlgowikiEntity.find(params[:id])
-    @algo_results = AlgowikiEntity.select("task, alg, imp, platform, result, cores, type, size").joins("join algo500_sample_results a on a.rus_alg = algowiki_entities.name and algowiki_entities.type_id = 4 and algowiki_entities.id = #{@alg.id}").order("result desc")
+    @algo_results = AlgowikiEntity.select("task, alg, imp, platform, result, cores, type as legacy_type, size").joins("join algo500_sample_results a on a.rus_alg = algowiki_entities.name and algowiki_entities.type_id = 4 and algowiki_entities.id = #{@alg.id}").order("result desc")
     respond_to do |format|
       format.html
       format.xlsx {
@@ -59,7 +59,7 @@ class AlgowikiEntitiesController < ApplicationController
   def show_by_imp
     @imp = AlgowikiEntity.find(params[:id])
     @alg = AlgowikiEntity.where("exists (select 1 from algowiki_relations where sec_id = #{@imp.id} and prim_id = algowiki_entities.id and type_id = 1)").first
-    @algo_results = AlgowikiEntity.select("task, alg, imp, platform, result, cores, type, size").joins("join algo500_sample_results a on a.rus_alg = algowiki_entities.name and algowiki_entities.type_id = 4 and algowiki_entities.id = #{@alg.id}").joins("join algowiki_entities ae on a.rus_imp = ae.name and ae.type_id = 5 and ae.id = #{@imp.id}").order("result desc")
+    @algo_results = AlgowikiEntity.select("task, alg, imp, platform, result, cores, type as legacy_type, size").joins("join algo500_sample_results a on a.rus_alg = algowiki_entities.name and algowiki_entities.type_id = 4 and algowiki_entities.id = #{@alg.id}").joins("join algowiki_entities ae on a.rus_imp = ae.name and ae.type_id = 5 and ae.id = #{@imp.id}").order("result desc")
     respond_to do |format|
       format.html
       format.xlsx {
@@ -84,9 +84,19 @@ class AlgowikiEntitiesController < ApplicationController
   helper_method :should_skip
   def should_skip(res)
     return (
-      res[:launch]['Task size'] > @ts_to or
-      res[:launch]['Task size'] < @ts_from or
-      not @pl_ids.include? res[:machine][:id]
+      (
+        (@ts_from_present or @ts_to_present) and
+        (@ts_empty == 0) and (
+          not res[:launch].include? 'Task size' or
+          res[:launch]['Task size'] > @ts_to or
+          res[:launch]['Task size'] < @ts_from
+        )
+      ) or
+      ((@pl_ids.count { |x| x.present? }) > 0 and not @pl_ids.include? res[:machine][:id]) or
+      res[:launch]['Nodes'] > @nodes_to or
+      res[:launch]['Nodes'] < @nodes_from or
+      (@lt_cur.count > 0 and not @lt_cur.include? res[:launch]['Launch type']) or
+      (@net_cur.count > 0 and not @net_cur.intersect? res[:machine]['Networks'])
     )
   end
 
@@ -101,11 +111,24 @@ class AlgowikiEntitiesController < ApplicationController
     @cr = CachedResults.new(ids)
 
     @ts_bounds = (@cr.get_bounds("Task size") or [0, 0])
+    @ts_from_present = get_limit2(params[:limits], :task_size, :from, nil).present?
+    @ts_to_present = get_limit2(params[:limits], :task_size, :to, nil).present?
     @ts_from = get_limit2(params[:limits], :task_size, :from, @ts_bounds[0]).to_i
     @ts_to = get_limit2(params[:limits], :task_size, :to, @ts_bounds[1]).to_i
+    @ts_empty = get_limit2(params[:limits], :task_size, :allow_empty, 1).to_i
+
+    @nodes_bounds = (@cr.get_bounds("Nodes") or [0, 0])
+    @nodes_from = get_limit2(params[:limits], :nodes, :from, @nodes_bounds[0]).to_i
+    @nodes_to = get_limit2(params[:limits], :nodes, :to, @nodes_bounds[1]).to_i
 
     @pl_all = @cr.get_all_pl
-    @pl_ids = get_limit(params[:limits], :platform_ids, @pl_all).collect {|x| x.to_i}
+    @pl_ids = get_limit(params[:limits], :platform_ids, []).collect { |x| x.present? ? x.to_i : nil }
+
+    @lt_all = @cr.get_all_common(:launch, 'Launch type')
+    @lt_cur = get_limit(params[:limits], :launch_types, []).select { |x| x.present? }
+
+    @net_all = @cr.get_all_set_common(:machine, 'Networks')
+    @net_cur = Set.new(get_limit(params[:limits], :networks, []).select { |x| x.present? })
 
     if params.include? "sort"
       @sort_attr = SORT_BY.fetch(params["sort"], "Performance, MTEPS")

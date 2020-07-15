@@ -13,8 +13,18 @@ br
       h4 = "Task size (from #{@ts_bounds[0]} to #{@ts_bounds[1]})"
       = h.number_field :from, label: "from", in: @ts_bounds[0]...@ts_bounds[1] + 1, value: @ts_from
       = h.number_field :to, label: "to", in: @ts_bounds[0]...@ts_bounds[1] + 1, value: @ts_to
+      = h.check_box :allow_empty, checked: (@ts_empty != 0), label: "Allow empty"
     br
-    = g.collection_select :platform_ids, Top50Machine.where(id: @pl_all).order(:name), :id, :name, {include_blank: true, label: "Platform", selected: @pl_ids}, {multiple: true}
+    = g.collection_select :platform_ids, Top50Machine.where("id in (?) and length(name) > 0 and is_valid = 1", @pl_all).order(:name), :id, :name, {include_blank: true, label: "Platform", selected: @pl_ids}, {multiple: true}
+    br
+    = g.fields_for :nodes do |h|
+      h4 = "Nodes count (from #{@nodes_bounds[0]} to #{@nodes_bounds[1]})"
+      = h.number_field :from, label: "from", in: @nodes_bounds[0]...@nodes_bounds[1] + 1, value: @nodes_from
+      = h.number_field :to, label: "to", in: @nodes_bounds[0]...@nodes_bounds[1] + 1, value: @nodes_to
+    br
+    = g.select :launch_types, options_for_select(@lt_all.map { |x| [x.to_s, x.to_s] }, selected: @lt_cur), {include_blank: true, label: "Launch type"}, {multiple: true}
+    br
+    = g.select :networks, options_for_select(@net_all.map { |x| [x.to_s, x.to_s] }, selected: @net_cur), {include_blank: true, label: "Interconnect family"}, {multiple: true}
   = f.submit "SHOW"
 br
 
@@ -31,19 +41,14 @@ table class="table table-responsive table-striped"
     th
       = "Node group"
     th
-      = "Nodes"
-    th
       = "Specs"
     th
+     = "Interconnect"
+    th
       = "Is partial?"
-    th 
-      = "Result, MTEPS"
-    th
-      = "Time, ms"
-    th
-      = "Graph type"
-    th
-      = "Task size"
+    - @cr.launch_attrs.each do |la|
+      th 
+        = la
   - cur = 0
   - 
   - (@cr.results.reject {|x| should_skip(x)}).each do |res|
@@ -53,6 +58,9 @@ table class="table table-responsive table-striped"
         = cur
         - impl = AlgoImplementation.find(res[:imp][:id])
         - machine = Top50Machine.find(res[:machine][:id])
+        - node_group = res[:node_group]
+        - if not node_group[:id].present?
+          - node_group = res[:machine]
       td class="col-3"
         = impl.alg.name
       td class="col-3"
@@ -61,10 +69,8 @@ table class="table table-responsive table-striped"
         = machine.name
       td class="col-3"
         = res[:node_group]['Name']
-      td class="col-3"
-        = res[:node_group][:relations].inject(0) {|sum, rel| sum += (rel["son_type"] == "Compute node") ? rel["count"] : 0}
       td class="col-8"
-        - res[:node_group][:relations].each do |rel0|
+        - node_group[:relations].each do |rel0|
           - if rel0["son_type"] == "Compute node"
             = "#{rel0['count']} x "
             - @cr.rels_by_id(rel0["son_id"], 1).each do |rel1|
@@ -79,12 +85,9 @@ table class="table table-responsive table-striped"
                     = "#{rel2['count']} #{rel2['son_type']}"
                   br
       td class="col-3"
+        = res[:machine]['Networks'].to_a.join(',')
+      td class="col-3"
         = res[:launch][:partial_runs].present? ? "Yes" : "No"
-      td class="col-3"
-        = res[:launch]['Performance, MTEPS']
-      td class="col-3"
-        = res[:launch]['Execution time, ms']
-      td class="col-3"
-        = res[:launch]['Graph type']
-      td class="col-3"
-        = res[:launch]['Task size']
+      - @cr.launch_attrs.each do |la| 
+        td class="col-3"
+          = res[:launch][la]
