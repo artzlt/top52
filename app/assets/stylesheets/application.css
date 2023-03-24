@@ -8,16 +8,17 @@
  * You're free to add application-wide styles to this file and they'll appear at the top of the
  * compiled file, but it's generally better to create a new file per style scope.
  *
- *= require face/application
- *= require core/application
- *= require support/application
- *= require sessions/application
- *= require_self
- *= require jquery-ui
- *= require select2
- *= require select2-bootstrap
- *= require_tree .
  */
+ /* = require face/application
+ = require core/application
+ = require support/application
+ = require sessions/application
+ = require_self
+ = require jquery-ui
+ = require select2
+ = require select2-bootstrap
+ = require_tree .
+  */
 
 .return-btn-container {
   padding-top: 4em;

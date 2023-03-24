@@ -1,9 +1,3 @@
-GIT
-  remote: git://github.com/colszowka/phantomjs-gem.git
-  revision: 38a722deeb7989e2de093fd628139266386492c1
-  specs:
-    phantomjs (2.1.1.0)
-
 PATH
   remote: engines/announcements
   specs:
@@ -498,7 +492,6 @@ DEPENDENCIES
   letter_opener
   mina
   mina-rbenv-addons
-  phantomjs!
   poltergeist
   pry-rails
   puma
