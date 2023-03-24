@@ -126,6 +126,9 @@ Octoshell::Application.routes.draw do
   get 'ext_stats/:eid', to: 'top50_machines#ext_stats', as: 'top50_ext_stats'
   get 'ext_stats/:year/:month', to: 'top50_machines#get_ext_stats', as: 'get_ext_stats'
   
+  get 'about', to: 'about#help'
+  get 'about/download_pdf', to: 'about#download_pdf'
+
   post 'objects/:id/attribute_val_dbvals', to: 'top50_objects#create_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbvals'
   get 'objects/:id/attribute_val_dbvals/new', to: 'top50_objects#new_attribute_val_dbval', as:'new_top50_object_top50_attribute_val_dbval'
   patch 'objects/:id/attribute_val_dbvals/:avid', to: 'top50_objects#save_attribute_val_dbval', as:'top50_object_top50_attribute_val_dbval_save'

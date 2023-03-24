@@ -56,6 +56,6 @@ group :test do
   gem "factory_girl-seeds"
   gem "capybara"
   gem "poltergeist"
-  gem "phantomjs", github: "colszowka/phantomjs-gem"
+#  gem "phantomjs", github: "colszowka/phantomjs-gem"
   gem "codeclimate-test-reporter", require: false
 end
